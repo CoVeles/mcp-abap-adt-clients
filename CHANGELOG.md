@@ -27,8 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ## [23.0.2] - 2026-09-27
 
 **Upgrade if you use `@mcp-abap-adt/connection` 9.3.1 or later** — `^9.x`
-resolves to it. There, the UNLOCK of an include, a service definition or
-binding, or a message class released nothing on 23.0.1 and earlier. Nothing
+resolves to it. There, the UNLOCK of an include, a service binding or a
+message class released nothing on 23.0.1 and earlier. Nothing
 else changes for a consumer: no API change, and the connector stays a dev
 dependency. A consumer with its own `IAbapConnection` must carry the ABAP
 context on the `LOCK` and the `UNLOCK` — see `STATEFUL_SESSION_GUIDE.md`.
