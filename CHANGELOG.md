@@ -64,11 +64,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   unit test, group activation and transport suites. On by default;
   `VERIFY_LOCK_RELEASED=false` turns it off, since each check is one extra
   logon. `createTestConnection` takes `{ ownSession: true }` for this, and
-  `closeOwnTestConnection` ends such a session and waits, bounded to 5 s, for
-  its logoff to be answered (`flushGoodbye()`): from connection 9.4.0
-  `disconnect()` only dispatches the logoff, so the next check's logon could
-  arrive while the previous session still held one of the user's few session
-  slots.
+  `closeOwnTestConnection` ends such a session.
 
 ## [23.0.1] - 2026-09-27
 

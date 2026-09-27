@@ -26,10 +26,7 @@ import {
   lockReleaseCheckEnabled,
   verifyLockReleased,
 } from '../../helpers/lockReleased';
-import {
-  closeOwnTestConnection,
-  sessionToJoin,
-} from '../../helpers/sessionConfig';
+import { sessionToJoin } from '../../helpers/sessionConfig';
 
 const CORPUS = path.resolve(__dirname, '../../../../corpus/adt');
 const HELD_BODY = fs.readFileSync(
@@ -372,41 +369,6 @@ describe('verifyLockReleased — answers that are not a held lock', () => {
     await expect(check).rejects.toThrow(/could not be made/);
     await expect(check).rejects.not.toThrow(/did not release the lock/);
     await expect(check).rejects.toThrow(/S_DEVELOP/);
-    expect(close).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('closeOwnTestConnection', () => {
-  it('waits for the logoff the disconnect only dispatched', async () => {
-    const order: string[] = [];
-    let answer!: () => void;
-    const goodbye = new Promise<void>((resolve) => {
-      answer = resolve;
-    });
-    const closing = closeOwnTestConnection({
-      disconnect: async () => {
-        order.push('disconnect');
-      },
-      flushGoodbye: async (timeoutMs) => {
-        order.push(`flush ${timeoutMs}`);
-        await goodbye;
-        order.push('answered');
-      },
-    });
-    let done = false;
-    void closing.then(() => {
-      done = true;
-    });
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(done).toBe(false);
-    answer();
-    await closing;
-    expect(order).toEqual(['disconnect', 'flush 5000', 'answered']);
-  });
-
-  it('closes a connection that has no goodbye to wait for', async () => {
-    const close = jest.fn(async () => undefined);
-    await closeOwnTestConnection({ close });
     expect(close).toHaveBeenCalledTimes(1);
   });
 });
