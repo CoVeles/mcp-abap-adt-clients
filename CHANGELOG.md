@@ -26,6 +26,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ### Documentation
 
+- `WORKAROUNDS.md`: two entries on service bindings, measured on a cloud
+  system. **A binding publishes only once it is active** — a publish straight
+  after the create answers `200` with "Service Binding … does not exist";
+  neither the lock nor the service information `GET` changes that, the
+  activation does. **An unpublish straight after a publish is refused** —
+  "Error while creating service interface …" within a second, while the same
+  request minutes later succeeds (134 s). The binding-lock entry now says that
+  Eclipse posts the job after its own LOCK's `403`, and points to
+  `analysePublicationLock` (adt-strategies). The publication example in
+  `CLIENT_API_REFERENCE.md` passes it, unlocks only a handle it got, and
+  activates a new binding first.
+
 - `WORKAROUNDS.md`: two new entries. **A function module's source answers
   `500`** ("An exception was raised", `SY/530`) for a module that does not
   exist; only its long text says so (FL651), while the metadata answers `404`.
@@ -37,6 +49,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   said the same and is corrected.
 
 ### Tests
+
+- `publicationLock.test.ts`: a binding LOCK answered `403` goes through
+  `AdtServiceBinding.lock` as a lock without a handle under
+  `analysePublicationLock`, and as a refusal without it.
 
 - **`shared:setup` asks about existence on the object's metadata, and judges
   a refusal by SAP's text.** It read the source and took an empty one for

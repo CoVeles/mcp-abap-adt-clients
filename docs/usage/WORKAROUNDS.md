@@ -37,35 +37,37 @@ Sessions and locks
 2. [The session-type header is per request](#the-session-type-header-is-per-request)
 3. [A class include is written under the class lock](#a-class-include-is-written-under-the-class-lock)
 4. [A service binding is locked to publish it](#a-service-binding-is-locked-to-publish-it)
+5. [A binding publishes only once it is active](#a-binding-publishes-only-once-it-is-active)
+6. [An unpublish straight after a publish is refused](#an-unpublish-straight-after-a-publish-is-refused)
 
 Reading answers
 
-5. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
-6. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
-7. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
-8. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
-9. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
+7. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
+8. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
+9. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
+10. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
+11. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
 
 Creating and checking objects
 
-10. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
-11. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
-12. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
+12. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
+13. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
+14. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
 
 Activation
 
-13. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
-14. [Activation settles inside the POST](#activation-settles-inside-the-post)
+15. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
+16. [Activation settles inside the POST](#activation-settles-inside-the-post)
 
 Transports
 
-15. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
-16. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
-17. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
+17. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
+18. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
+19. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
 
 ATC
 
-18. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
+20. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
 
 ---
 
@@ -302,11 +304,16 @@ publish job finishes. An open Eclipse editor on the binding holds the lock for
 the same user from a different session.
 
 **Rule.** The lock spans an editing session. From elsewhere, a held lock looks
-like a 403; it is usually someone's open Eclipse, not a leaked lock.
+like a 403; it is usually someone's open Eclipse, not a leaked lock. Eclipse
+itself meets a `403` on its own LOCK when its editor already holds the binding,
+and posts the job anyway: the job does not need the caller's lock.
 
 **Workaround.** For a library there is no editor, so the edit is the operation:
 `lock()`, `update()` with the desired publication state, `unlock()` in a
-`finally`. The publish job took about 133 seconds on the systems measured,
+`finally`. Pass `analysePublicationLock` to the `lock()`: a `403` then answers
+a lock without a handle (`''`), the publication goes ahead, and there is
+nothing to unlock. A caller who wants the `403` to stop them passes
+`analyseException` instead. The publish job took about 133 seconds on the systems measured,
 above the 120 s default — pass a larger `timeout`. Read the job's own answer
 (`analysePublication` from `@mcp-abap-adt/adt-strategies` reads its
 `SEVERITY`); nothing needs polling. For a binding locked elsewhere, close the
@@ -317,9 +324,71 @@ Eclipse editor that holds it. The full example is in
 `LOCK` → `200` on session *"stateful, enqueue"*; `POST
 …/odatav4/publishjobs` → `200` stateless, 133 057 ms; `UNLOCK` → `200` on
 *"Closing editor"*; a second `LOCK` before the unpublish → `403` while the
-first was held.
+first was held. Eclipse, cloud system, 2026-09-27: after a publish its editor
+kept the lock (a LOCK from another session → `403`); the unpublish that followed
+sent its own `LOCK` → `403` on the enqueue session and then `POST
+…/unpublishjobs` → `200`, 132 s. Between the two, the enqueue session was kept
+alive with `GET /sap/bc/adt/core/http/sessions`.
 
 **Where it bites.** `getServiceBinding()`: `lock`, `update`, `delete`.
+
+---
+
+## A binding publishes only once it is active
+
+**Symptom.** Publishing a binding straight after creating it answers `200`
+with `<SEVERITY>ERROR</SEVERITY>`: *"Local Publish of <SERVICE_BINDING>
+failed"*, long text *"Service Binding <SERVICE_BINDING> does not exist."* The
+binding is there; its metadata reads back.
+
+**Cause.** A created binding has only an inactive version, and the publication
+looks for the active one.
+
+**Rule.** "Does not exist" here means "not active". Taking the lock first does
+not change it, and neither does reading the service's information
+(`generateServiceBinding`, a `GET` on `/businessservices/odatav4/<binding>` that
+Eclipse sends to refresh its view, after a publication).
+
+**Workaround.** `activate()` the binding, then publish it.
+
+**Evidence.** Cloud system, 2026-09-27, one binding deleted and created again:
+publish after the create → the refusal above; lock, then publish → the same;
+the information `GET`, then publish → the same; activate, then publish →
+*"<SERVICE_BINDING> published locally"*, 134 s.
+
+**Where it bites.** `getServiceBinding().create()` followed by `update()` with
+`desiredPublicationState: 'published'`.
+
+---
+
+## An unpublish straight after a publish is refused
+
+**Symptom.** An unpublish answers `200` with `<SEVERITY>ERROR</SEVERITY>`
+within a second: *"Local un-publish of <SERVICE_BINDING> failed"*, long text
+*"Error while creating service interface <SERVICE_BINDING>_0001_G4BA"*.
+
+**Cause.** The publication job answers before the system has finished with
+the binding; an unpublish in that window fails. The request is the same one
+that succeeds later.
+
+**Rule.** A fast `ERROR` from an unpublish is not a verdict on the binding. The
+job itself takes minutes when it runs; an answer in under a second means it did
+not run.
+
+**Workaround.** Leave time between a publish and an unpublish of the same
+binding — minutes, not seconds — and repeat an unpublish that failed this way
+later rather than changing the request.
+
+**Evidence.** Cloud system, 2026-09-27, one binding and the same request each
+time: publish → *"published locally"*, 133 s; unpublish straight after → the
+refusal above, 0.6 s; unpublish seven minutes later → *"un-published
+locally"*, 134 s. An unpublish from Eclipse several minutes after its publish
+took 132 s and succeeded. How long the window is, was not measured more
+closely.
+
+**Where it bites.** `getServiceBinding().update()` with `desiredPublicationState:
+'unpublished'` soon after a publication — a test that publishes and unpublishes
+in one run.
 
 ---
 

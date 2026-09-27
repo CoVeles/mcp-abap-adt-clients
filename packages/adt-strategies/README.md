@@ -83,9 +83,9 @@ misses the first of them silently and reports a taken name as free.
 `analyseActivation`, `analyseCheck`, `analyseDeletion`, `analyseValidation`,
 `analyseUnitTest`, `analyseException`, `analysePublication`,
 `analyseCdsTestDoubles` — `analyseAny`, which dispatches on the root element
-when the form is not known in advance, and three built for one question:
-`analyseMessageClassMessage(msgno)`, `analyseUnitTestStart` and
-`analyseUnsupportedStatus(statuses, what)`.
+when the form is not known in advance, and four built for one question:
+`analyseMessageClassMessage(msgno)`, `analyseUnitTestStart`,
+`analysePublicationLock` and `analyseUnsupportedStatus(statuses, what)`.
 
 Each answers an `IAdtMessageFailure`: the contract's `IAdtError` plus every
 message in the document, normalised. SAP spells severity three ways and carries
@@ -103,6 +103,7 @@ matching on `type === 'E'` does not have to know which carrier they got.
 | `analyseUnitTest` | `aunit:runResult` — alerts on the method that failed |
 | `analyseException` | `<exc:exception>`, wherever it arrives |
 | `analysePublication` | a service binding's publication job: `<SEVERITY>` inside a `200` |
+| `analysePublicationLock` | a service binding's LOCK before a publish or unpublish: a `403` (an editor holds the binding) is no failure, the lock comes back without a handle; every other refusal as `analyseException`. A caller who wants the `403` to stop them passes `analyseException` instead |
 | `analyseCdsTestDoubles` | the CDS test-doubles check |
 | `analyseMessageClassMessage(msgno)` | the class answering is not the message existing |
 | `analyseUnitTestStart` | a started run whose answer names no run id |

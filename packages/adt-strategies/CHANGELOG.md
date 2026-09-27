@@ -13,6 +13,20 @@ Tags follow the same rule: these releases are tagged
 `adt-strategies@<version>`, never `v<version>` — that scheme is `adt-clients`'
 and fires its release workflow.
 
+## [Unreleased]
+
+### Added
+
+- **`analysePublicationLock`** — for the LOCK a service binding takes before
+  it is published or unpublished. A `403` there means an editing session holds
+  the binding: an open Eclipse editor keeps its lock after the job finishes,
+  until the editor closes. The publication job does not need a lock of the
+  caller's, and Eclipse itself posts the job after its own LOCK's `403`
+  (measured). So a `403` is no failure: the lock comes back with no handle
+  (`''`), and there is nothing to unlock. Every other refusal is read as
+  `analyseException` reads it. A caller who wants the `403` to stop them passes
+  `analyseException`, or a strategy of their own.
+
 ## [0.5.0] - 2026-09-26
 
 Released together with `adt-clients` 23.0.0, which stopped applying any reading

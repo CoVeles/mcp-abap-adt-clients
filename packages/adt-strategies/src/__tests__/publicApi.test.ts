@@ -24,6 +24,7 @@ describe('the published surface', () => {
       'analyseException',
       'analyseMessageClassMessage',
       'analysePublication',
+      'analysePublicationLock',
       'analyseUnitTest',
       'analyseUnitTestStart',
       'analyseUnsupportedStatus',

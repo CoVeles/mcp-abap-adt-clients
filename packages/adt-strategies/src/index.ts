@@ -34,6 +34,7 @@ export {
   analyseException,
   analyseMessageClassMessage,
   analysePublication,
+  analysePublicationLock,
   analyseUnitTest,
   analyseUnitTestStart,
   analyseUnsupportedStatus,
