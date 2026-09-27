@@ -26,13 +26,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ### Documentation
 
-- `TROUBLESHOOTING.md` gains **By object type**: per factory
+- `TROUBLESHOOTING.md` gains **the object tree**: every object this library addresses, as it hangs together (a child lives in its parent or is built on it), with each branch that has an unusual answer linked to its section; the sections follow the tree. Per factory
   (`getServiceBinding()`, `getServiceDefinition()`, `getFunctionModule()`,
   `getClass()`, `getPackage()`, the document types, `getDdl()`,
   `getMessageClassMessage()`, transports, ATC), what SAP answers for that type
   that it does not for the others, and what to do — first among them a `403` on
   a binding's LOCK, which is to be ignored (`analysePublicationLock`). Only
-  observed behaviour is listed; each item links to its measurement.
+  observed behaviour is listed; each item links to its measurement. The root
+  README links it; adt-strategies' README points to both documents (they ship
+  in adt-clients under `docs/usage/`, not in adt-strategies).
 - `WORKAROUNDS.md`: two entries on service bindings, measured on a cloud
   system. **A binding publishes only once it is active** — a publish straight
   after the create answers `200` with "Service Binding … does not exist";

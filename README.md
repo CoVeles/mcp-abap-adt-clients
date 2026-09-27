@@ -941,6 +941,7 @@ member uses it on your behalf; `create()` and `update()` issue one request each.
 - **[Migrating to 23.0.0](docs/usage/MIGRATION-23.md)** – the replacing code for every removed behaviour
 - **[Client API reference](docs/usage/CLIENT_API_REFERENCE.md)** – every client, member and result set
 - **[Workarounds](docs/usage/WORKAROUNDS.md)** – SAP-side behaviour a consumer has to work around, with the evidence for each
+- **[Troubleshooting](docs/usage/TROUBLESHOOTING.md)** – the object tree, and on each branch what SAP answers for that object that it does not answer for the others (a `403` on a service binding's LOCK that is to be ignored, among them); both documents ship in this package under `docs/usage/`
 - **[Architecture](docs/architecture/ARCHITECTURE.md)** – package structure and design decisions
 - **[Decisions](docs/architecture/DECISIONS.md)** – the choices that could have gone the other way, and why
 - **[Operation Delays](docs/usage/OPERATION_DELAYS.md)** – configurable delays for SAP operations in tests

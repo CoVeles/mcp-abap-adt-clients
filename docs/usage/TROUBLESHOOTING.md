@@ -8,16 +8,148 @@ SAP-side behaviour with a consumer-side workaround is collected in
 [WORKAROUNDS.md](WORKAROUNDS.md); the entries below that belong there are short
 and link to it.
 
-Start with **[By object type](#by-object-type)** when you know which object you
-were working on; the entries after it are the ones that apply to every type.
+Start with **[the object tree](#the-object-tree)**: find the object you were
+working on, and its branch says what SAP answers for it that it does not answer
+for the others. The entries under [Every type](#every-type) apply to all of
+them.
 
 ## By object type
 
-What SAP answers for one type that it does not answer for the others, and what
-to do about it. Only what was observed on a running system is listed; a type
-that is not here has shown nothing beyond the general entries further down.
+### The object tree
 
-### `getServiceBinding()`
+The objects this library addresses, as they hang together: a child lives in
+its parent or is built on it. A **⚠** marks a node where SAP answers something
+it does not answer for the others; follow the link. A node without one has shown
+nothing beyond the entries under [Every type](#every-type).
+
+- [Transport request](#transport-request) `getRequest()` ⚠
+- [Package](#package) `getPackage()` ⚠
+  - Source code
+    - [Class](#class) `getClass()` ⚠
+      - [local test class, local types, local definitions, local macros](#class-includes) `getLocalTestClass()` `getLocalTypes()` `getLocalDefinitions()` `getLocalMacros()` ⚠
+      - ABAP Unit run `getUnitTest()`
+    - Interface `getInterface()`
+    - Program `getProgram()`
+      - Include `getInclude()`
+    - [Function group](#function-group) `getFunctionGroup()` ⚠
+      - [Function module](#function-module) `getFunctionModule()` ⚠
+      - Function include `getFunctionInclude()`
+    - Transformation `getTransformation()`
+    - Enhancement `getEnhancement()`
+  - Dictionary
+    - [Domain](#domain-and-data-element) `getDomain()` ⚠
+      - [Data element](#domain-and-data-element) `getDataElement()` ⚠
+    - Structure `getStructure()`
+    - Table `getTable()`
+      - Append structure `getAppendStructure()`
+    - [Table type](#table-type) `getTableType()` ⚠
+    - Authorization field `getAuthorizationField()`
+  - CDS and RAP
+    - [DDL source](#ddl-source) `getDdl()` ⚠
+      - Access control `getAccessControl()`
+      - Metadata extension `getMetadataExtension()`
+      - CDS unit test `getCdsUnitTest()`
+      - Behavior definition `getBehaviorDefinition()`
+        - Behavior implementation `getBehaviorImplementation()`
+    - Scalar function `getScalarFunction()`
+      - Scalar function implementation `getScalarFunctionImplementation()`
+  - Services
+    - [Service definition](#service-definition) `getServiceDefinition()` ⚠
+      - [Service binding](#service-binding) `getServiceBinding()` ⚠
+  - Other
+    - Message class `getMessageClass()`
+      - [Message](#message) `getMessageClassMessage()` ⚠
+    - Feature toggle `getFeatureToggle()`
+- Runtime (`AdtRuntimeClient`)
+  - [ATC](#atc) `getAtc()` ⚠
+
+### Transport request
+
+`getRequest()`. A list by user or status answers an empty `<tm:root/>` — the
+list is a search over a saved configuration; the tree under a request has no
+fixed nesting; a task made by hand refuses objects until it is typed. See
+WORKAROUNDS on [the transport list](WORKAROUNDS.md#the-transport-list-is-a-saved-configuration-search),
+[the tree](WORKAROUNDS.md#the-transport-tree-has-no-fixed-nesting) and
+[hand-made tasks](WORKAROUNDS.md#a-hand-made-task-is-unclassified-and-refuses-objects).
+
+### Package
+
+`getPackage()`.
+
+- **"already locked" (PAK/058) on a second save in one ABAP session** — not an
+  enqueue lock. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#a-package-can-be-saved-only-once-per-abap-session).
+- **A metadata read too soon after a write answers `200` with no body** — as for
+  the other document types, see [Domain and data element](#domain-and-data-element).
+
+### Class
+
+`getClass()`.
+
+- **`400` "wrong input data for processing" on every read** of a class created
+  and not yet written — see
+  [below](#resource--zcl_x-wrong-input-data-for-processing-on-a-read).
+- **"Class … does not have a TMDIR entry" on an activation** — the class does
+  not exist; see [below](#class-zcl_x-does-not-have-a-tmdir-entry-on-an-activation).
+
+#### Class includes
+
+`getLocalTestClass()`, `getLocalTypes()`, `getLocalDefinitions()`,
+`getLocalMacros()`. **Written under the class's lock**, not one of their own:
+lock the class. See
+[WORKAROUNDS.md](WORKAROUNDS.md#a-class-include-is-written-under-the-class-lock).
+
+### Function group
+
+`getFunctionGroup()`.
+
+- **`validate()` answers `200` for a taken name**, with the verdict in the body —
+  see [below](#validate-passed-and-the-create-says-the-name-is-taken).
+- **A metadata read too soon after a write answers `200` with no body** — see
+  [Domain and data element](#domain-and-data-element).
+
+#### Function module
+
+`getFunctionModule()`. **`500` "An exception was raised" on a source read** of a
+module that does not exist; only the long text says *"does not exist"* (FL651).
+Ask existence of `readMetadata()`, which answers `404`. See
+[WORKAROUNDS.md](WORKAROUNDS.md#a-function-modules-source-answers-500-for-a-module-that-does-not-exist).
+
+### Domain and data element
+
+`getDomain()`, `getDataElement()` — and the other document types:
+`getPackage()`, `getTableType()`, `getFunctionGroup()`. **A metadata read too
+soon after a write answers `200` with no body.** Before a read-modify-write,
+reject an empty document rather than patching it. See
+[WORKAROUNDS.md](WORKAROUNDS.md#a-read-answers-200-with-an-empty-body-instead-of-404).
+
+### Table type
+
+`getTableType()`. A document type — see
+[Domain and data element](#domain-and-data-element).
+
+### DDL source
+
+`getDdl()`. **`validate()` answers `200` for a taken name**, with the verdict in
+the body — see [below](#validate-passed-and-the-create-says-the-name-is-taken).
+
+### Service definition
+
+`getServiceDefinition()`.
+
+- **A create is a POST that leaves the object empty**: its source reads `200`
+  with no body until you write it. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#what-a-bare-create-leaves-depends-on-the-type).
+- **`400` "Check of condition failed" on a create** means the request carried an
+  empty responsible person — a client built without
+  `IAdtClientOptions.responsible`. A create of a name that exists answers
+  `ExceptionResourceAlreadyExists` instead. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#an-empty-responsible-person-is-refused-as-check-of-condition-failed).
+
+#### Service binding
+
+`getServiceBinding()`. Built on a service definition; it is not edited, only
+activated, published and unpublished.
 
 - **`403` on the LOCK before a publish or unpublish — ignore it.** It means an
   editing session holds the binding: an open Eclipse editor keeps its lock after
@@ -42,71 +174,18 @@ that is not here has shown nothing beyond the general entries further down.
 - **"You are already editing <BINDING>" on a delete** — the lock an editor holds.
   Close the editor that holds it.
 
-### `getServiceDefinition()`
+### Message
 
-- **A create is a POST that leaves the object empty**: its source reads `200`
-  with no body until you write it. See
-  [WORKAROUNDS.md](WORKAROUNDS.md#what-a-bare-create-leaves-depends-on-the-type).
-- **`400` "Check of condition failed" on a create** means the request carried an
-  empty responsible person — a client built without
-  `IAdtClientOptions.responsible`. A create of a name that exists answers
-  `ExceptionResourceAlreadyExists` instead. See
-  [WORKAROUNDS.md](WORKAROUNDS.md#an-empty-responsible-person-is-refused-as-check-of-condition-failed).
+`getMessageClassMessage()`. **`OBJECT_NOT_FOUND` for a message** is this
+library reading the class document, not SAP: a message is a row, and only the
+class exists on the wire — see
+[below](#a-message-class-exists-its-messages-do-not).
 
-### `getFunctionModule()`
+### ATC
 
-- **`500` "An exception was raised" on a source read** of a module that does not
-  exist; only the long text says *"does not exist"* (FL651). Ask existence of
-  `readMetadata()`, which answers `404`. See
-  [WORKAROUNDS.md](WORKAROUNDS.md#a-function-modules-source-answers-500-for-a-module-that-does-not-exist).
-
-### `getClass()` and its includes
-
-- **`400` "wrong input data for processing" on every read** of a class created
-  and not yet written — see
-  [below](#resource--zcl_x-wrong-input-data-for-processing-on-a-read).
-- **"Class … does not have a TMDIR entry" on an activation** — the class does
-  not exist; see [below](#class-zcl_x-does-not-have-a-tmdir-entry-on-an-activation).
-- **The local includes (`getLocalTestClass()`, `getLocalTypes()`, …) are written
-  under the class's lock**, not one of their own. See
-  [WORKAROUNDS.md](WORKAROUNDS.md#a-class-include-is-written-under-the-class-lock).
-
-### `getPackage()`
-
-- **"already locked" (PAK/058) on a second save in one ABAP session** — not an
-  enqueue lock. See
-  [WORKAROUNDS.md](WORKAROUNDS.md#a-package-can-be-saved-only-once-per-abap-session).
-
-### `getDomain()`, `getDataElement()`, `getPackage()`, `getTableType()`, `getFunctionGroup()`
-
-- **A metadata read too soon after a write answers `200` with no body.** Before a
-  read-modify-write, reject an empty document rather than patching it. See
-  [WORKAROUNDS.md](WORKAROUNDS.md#a-read-answers-200-with-an-empty-body-instead-of-404).
-
-### `getDdl()` and `getFunctionGroup()`
-
-- **`validate()` answers `200` for a taken name**, with the verdict in the body —
-  see [below](#validate-passed-and-the-create-says-the-name-is-taken).
-
-### `getMessageClassMessage()`
-
-- **`OBJECT_NOT_FOUND` for a message** is this library reading the class
-  document, not SAP — see
-  [below](#a-message-class-exists-its-messages-do-not).
-
-### `getRequest()` and transports
-
-- **A list by user or status answers an empty `<tm:root/>`**, the tree has no
-  fixed nesting, and a task made by hand refuses objects until it is typed. See
-  WORKAROUNDS entries on
-  [the transport list](WORKAROUNDS.md#the-transport-list-is-a-saved-configuration-search),
-  [the tree](WORKAROUNDS.md#the-transport-tree-has-no-fixed-nesting) and
-  [hand-made tasks](WORKAROUNDS.md#a-hand-made-task-is-unclassified-and-refuses-objects).
-
-### `getAtc()` (runtime)
-
-- **The check variant comes from customizing**, not from the run request. See
-  [WORKAROUNDS.md](WORKAROUNDS.md#atc-takes-its-check-variant-from-customizing).
+`getAtc()` (runtime). **The check variant comes from customizing**, not from
+the run request. See
+[WORKAROUNDS.md](WORKAROUNDS.md#atc-takes-its-check-variant-from-customizing).
 
 ## Every type
 

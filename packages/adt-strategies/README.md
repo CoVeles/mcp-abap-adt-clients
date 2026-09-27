@@ -92,6 +92,19 @@ message in the document, normalised. SAP spells severity three ways and carries
 a T100 key in exactly one of the forms; the reading flattens that so a caller
 matching on `type === 'E'` does not have to know which carrier they got.
 
+### Why a strategy says what it says
+
+Several of these exist because SAP answers something other than what it means —
+a `403` on a service binding's LOCK that is to be ignored
+(`analysePublicationLock`), a refusal inside a `200` (`analysePublication`,
+`analyseActivation`, `analyseDeletion`). The measurements and the object each
+one belongs to are in adt-clients:
+[TROUBLESHOOTING.md](https://github.com/fr0ster/mcp-abap-adt-clients/blob/main/docs/usage/TROUBLESHOOTING.md#the-object-tree)
+(by object) and
+[WORKAROUNDS.md](https://github.com/fr0ster/mcp-abap-adt-clients/blob/main/docs/usage/WORKAROUNDS.md)
+(the evidence). They also ship in the `@mcp-abap-adt/adt-clients` package under
+`docs/usage/`.
+
 ### The whole surface
 
 | export | what it is |
