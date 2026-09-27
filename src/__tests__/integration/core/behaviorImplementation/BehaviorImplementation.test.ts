@@ -17,6 +17,7 @@ import { mainSourceFor } from '../../../../core/behaviorImplementation/AdtBehavi
 import { isCloudEnvironment } from '../../../../utils/systemInfo';
 import { BaseTester } from '../../../helpers/BaseTester';
 import { expectResult } from '../../../helpers/contract';
+import { expectLockReleased } from '../../../helpers/lockReleased';
 import { presenceOf } from '../../../helpers/objectPresence';
 import {
   createTestAdtClient,
@@ -268,6 +269,12 @@ describe('BehaviorImplementation (using AdtClient)', () => {
             } finally {
               await bimpl.unlock(target, locked);
             }
+            await expectLockReleased(
+              (c) => c.getClass(),
+              target,
+              `behavior implementation class ${config.className}`,
+              testsLogger,
+            );
           },
           updateConfig: {
             className: config.className,

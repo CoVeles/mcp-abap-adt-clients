@@ -33,6 +33,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   the RFC context reset is used). `WORKAROUNDS.md` notes that the connector handles PAK/058; the
   entry stays for callers with their own `IAbapConnection`.
 
+### Tests
+
+- **Every UNLOCK the integration suite relies on is now proven, not assumed.**
+  The suites checked only that an UNLOCK answered 200, which is exactly what a
+  stateless UNLOCK does while releasing nothing. `expectLockReleased`
+  (`src/__tests__/helpers/lockReleased.ts`) opens a second ABAP session and
+  LOCKs the same object: a refusal fails the test with SAP's sentence (e.g.
+  403 EU/510 "currently editing"), a grant is released again, and the session
+  is closed in every case. It runs after `BaseTester`'s update-step UNLOCK —
+  every lockable type in the flow tests, class includes against the class
+  lock — and after the hand-written lock windows in the append structure,
+  scalar function, scalar function implementation, behavior implementation,
+  unit test, group activation and transport suites. On by default;
+  `VERIFY_LOCK_RELEASED=false` turns it off, since each check is one extra
+  logon. `createTestConnection` takes `{ ownSession: true }` for this, and
+  `closeOwnTestConnection` ends such a session.
+
 ## [23.0.1] - 2026-09-27
 
 ### Fixed

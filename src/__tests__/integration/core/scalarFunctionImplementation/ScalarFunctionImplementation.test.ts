@@ -29,6 +29,7 @@ import { utilDocuments } from '../../../../core/shared/utilResultSet';
 import { orThrow } from '../../../../utils/adtResponse';
 import { isCloudEnvironment } from '../../../../utils/systemInfo';
 import { expectResult } from '../../../helpers/contract';
+import { expectLockReleased } from '../../../helpers/lockReleased';
 import {
   createTestAdtClient,
   createTestConnection,
@@ -239,6 +240,12 @@ describe('ScalarFunctionImplementation (DSFI/SFI) integration', () => {
           } finally {
             await sf.unlock({ scalarFunctionName: funcName }, funcLock);
           }
+          await expectLockReleased(
+            (c) => c.getScalarFunction(),
+            { scalarFunctionName: funcName },
+            `scalar function ${funcName}`,
+            testsLogger,
+          );
           expectResult(
             await sf.activate({ scalarFunctionName: funcName }),
             'activate scalar function',
@@ -260,6 +267,12 @@ describe('ScalarFunctionImplementation (DSFI/SFI) integration', () => {
             { source: amdpSource, lockHandle: amdpLock },
           );
           await cls.unlock({ className: amdpName }, amdpLock);
+          await expectLockReleased(
+            (c) => c.getClass(),
+            { className: amdpName },
+            `AMDP class ${amdpName}`,
+            testsLogger,
+          );
 
           // 3) DSFI create + implementation update (PUT /source/main JSON).
           try {
@@ -300,6 +313,12 @@ describe('ScalarFunctionImplementation (DSFI/SFI) integration', () => {
           } finally {
             await dsfi.unlock({ implementationName: implName }, implLock);
           }
+          await expectLockReleased(
+            (c) => c.getScalarFunctionImplementation(),
+            { implementationName: implName },
+            `scalar function implementation ${implName}`,
+            testsLogger,
+          );
 
           // 4) Group-activate the trio, then wait: step 5 reads the active
           // source, and reading it straight after the POST would read whatever

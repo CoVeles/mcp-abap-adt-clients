@@ -26,6 +26,7 @@ import type { AdtClient } from '../../../clients/AdtClient';
 import { utilDocuments } from '../../../core/shared/utilResultSet';
 import { isCloudEnvironment } from '../../../utils/systemInfo';
 import { expectResult } from '../../helpers/contract';
+import { expectLockReleased } from '../../helpers/lockReleased';
 import {
   createTestAdtClient,
   createTestConnection,
@@ -515,6 +516,12 @@ define structure ${structureName} {
         } finally {
           await structureHandler.unlock({ structureName }, structureLockHandle);
         }
+        await expectLockReleased(
+          (c) => c.getStructure(),
+          { structureName },
+          `structure ${structureName}`,
+          testsLogger,
+        );
         await new Promise((resolve) =>
           setTimeout(resolve, getOperationDelay('update', testCase)),
         );

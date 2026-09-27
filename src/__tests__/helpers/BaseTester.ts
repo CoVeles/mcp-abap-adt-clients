@@ -50,6 +50,12 @@ import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
 import { LogLevel } from '@mcp-abap-adt/interfaces-utils';
 import { getTimeout } from '../../utils/timeouts';
 import { expectResult } from './contract';
+import {
+  expectLockReleased,
+  factoryOf,
+  type ILockWindow,
+  lockReleaseCheckEnabled,
+} from './lockReleased';
 import { recycleTestSession, releaseTestConnection } from './sessionConfig';
 import { TestConfigResolver } from './TestConfigResolver';
 import {
@@ -173,6 +179,19 @@ export type TestableObject<TConfig> = IAdtCreatable<TConfig, unknown> &
   // is a thing ADT is free to refuse and say why.
   Partial<IAdtLockable<TConfig>>;
 
+/** The object's names from its config — `className`, `domainName`, … */
+function describeObject(config: unknown): string {
+  const names = Object.entries((config ?? {}) as Record<string, unknown>)
+    .filter(
+      ([key, value]) =>
+        key.endsWith('Name') &&
+        key !== 'packageName' &&
+        typeof value === 'string',
+    )
+    .map(([, value]) => value as string);
+  return names.length ? names.join('/') : '(unnamed)';
+}
+
 export class BaseTester<TConfig, TState = unknown> {
   private readonly adtObject: TestableObject<TConfig>;
   private readonly loggerPrefix: string;
@@ -182,6 +201,8 @@ export class BaseTester<TConfig, TState = unknown> {
   private objectCreated: boolean = false;
   private objectLocked: boolean = false;
   private lockHandle: string | undefined;
+  /** The client factory for this handler, once {@link factoryOf} found it. */
+  private lockFactory: string | undefined;
 
   // Setup state
   private connection?: IAbapConnection;
@@ -450,8 +471,10 @@ export class BaseTester<TConfig, TState = unknown> {
     const handle = expectResult(await this.adtObject.lock(config), 'lock');
     this.objectLocked = true;
     this.lockHandle = handle;
+    let unlocked = false;
+    let written: unknown;
     try {
-      return await this.writeWhatItHas(config, {
+      written = await this.writeWhatItHas(config, {
         ...options,
         lockHandle: handle,
       });
@@ -459,6 +482,7 @@ export class BaseTester<TConfig, TState = unknown> {
       const released = await this.adtObject.unlock(config, handle);
       this.objectLocked = false;
       this.lockHandle = undefined;
+      unlocked = released.ok;
       if (!released.ok) {
         this.log(
           LogLevel.WARN,
@@ -466,6 +490,51 @@ export class BaseTester<TConfig, TState = unknown> {
         );
       }
     }
+    // Only after an UNLOCK that answered ok: that is the answer that can be
+    // wrong — a stateless UNLOCK answers 200 and releases nothing.
+    if (unlocked) await this.expectLockReleased(config);
+    return written;
+  }
+
+  /**
+   * Prove the UNLOCK above released the lock, from a second ABAP session.
+   *
+   * The handler this tester holds is bound to the test's connection, so the
+   * check builds the same class of handler on its own — found once on the
+   * test's client by {@link factoryOf}. Same class, same lock target: a class
+   * include's tester locks the class, and so does its check.
+   */
+  private async expectLockReleased(config: Partial<TConfig>): Promise<void> {
+    if (!lockReleaseCheckEnabled()) return;
+    if (!this.client) {
+      throw new Error(
+        `${this.loggerPrefix}: no client in setup(), so the lock-release ` +
+          'check has nothing to build its handler from. Set ' +
+          'VERIFY_LOCK_RELEASED=false to run without it.',
+      );
+    }
+    if (this.lockFactory === undefined) {
+      this.lockFactory = factoryOf(this.client, this.adtObject);
+    }
+    const factory = this.lockFactory;
+    if (!factory) {
+      throw new Error(
+        `${this.loggerPrefix}: no zero-argument factory on the client builds ` +
+          `a ${this.adtObject.constructor.name}, so the lock-release check ` +
+          'cannot open this handler on its own session. Set ' +
+          'VERIFY_LOCK_RELEASED=false to run without it.',
+      );
+    }
+    logTestStep('verify unlock released the lock', this.logger);
+    await expectLockReleased(
+      (client) =>
+        (client as unknown as Record<string, () => ILockWindow<unknown>>)[
+          factory
+        ](),
+      config,
+      `${this.loggerPrefix} ${describeObject(config)} (${factory}().lock)`,
+      this.logger,
+    );
   }
 
   private async ensureUnlock(_config: Partial<TConfig>): Promise<void> {
