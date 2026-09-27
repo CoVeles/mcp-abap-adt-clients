@@ -26,10 +26,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ### Development
 
-- `@mcp-abap-adt/connection` `^9.3.4` (was `^9.3.0`), a dev dependency: the
+- `@mcp-abap-adt/connection` `^9.4.0` (was `^9.3.0`), a dev dependency: the
   integration suite now runs on the connector that keeps a request that is not
   stateful out of the stateful context, over HTTP (9.3.1) and RFC (9.3.2,
-  9.3.4). `WORKAROUNDS.md` notes that the connector handles PAK/058; the
+  9.3.4; 9.4.0 requires `sap-rfc-lite` 0.2.0, so the lockfile resolves it and
+  the RFC context reset is used). `WORKAROUNDS.md` notes that the connector handles PAK/058; the
   entry stays for callers with their own `IAbapConnection`.
 
 ## [23.0.1] - 2026-09-27
