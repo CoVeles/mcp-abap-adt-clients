@@ -34,14 +34,26 @@ const HELD_BODY = fs.readFileSync(
   'utf8',
 );
 
+const exception = (text: string) =>
+  '<?xml version="1.0" encoding="utf-8"?><exc:exception xmlns:exc="http://www.sap.com/abapxml/types/communicationframework">' +
+  '<namespace id="com.sap.adt"/><type id="ExceptionResourceNotFound"/>' +
+  `<message lang="EN">${text}</message></exc:exception>`;
+const MISSING_BODY = exception('CLASS ZCL_LOCKREL_UNIT does not exist');
+const FORBIDDEN_BODY = exception('No authorization for S_DEVELOP');
+
 const LOCK_XML =
   '<asx:abap xmlns:asx="http://www.sap.com/abapxml"><asx:values><DATA>' +
   '<LOCK_HANDLE>HANDLE123</LOCK_HANDLE></DATA></asx:values></asx:abap>';
 
-type Answer = 'granted' | 'held' | 'throws';
+type Answer = 'granted' | 'held' | 'throws' | 'missing' | 'forbidden';
 
 /** A connection answering LOCK as told, recording every request it sees. */
-function fakeConnection(lock: Answer, unlockStatus = 200) {
+function fakeConnection(
+  lock: Answer,
+  unlockStatus = 200,
+  missingTimes = Number.POSITIVE_INFINITY,
+) {
+  let missingSeen = 0;
   const calls: Array<{ method?: string; url: string }> = [];
   const conn = {
     setSessionType: jest.fn(),
@@ -49,6 +61,29 @@ function fakeConnection(lock: Answer, unlockStatus = 200) {
       calls.push({ method: req.method, url: String(req.url) });
       if (String(req.url).includes('_action=LOCK')) {
         if (lock === 'throws') throw new TypeError('socket hang up');
+        if (lock === 'missing' && missingSeen < missingTimes) {
+          missingSeen += 1;
+          throw {
+            message: 'Request failed with status code 404',
+            response: {
+              status: 404,
+              statusText: 'Not Found',
+              headers: { 'content-type': 'application/xml' },
+              data: MISSING_BODY,
+            } as IAdtWireResponse,
+          };
+        }
+        if (lock === 'forbidden') {
+          throw {
+            message: 'Request failed with status code 403',
+            response: {
+              status: 403,
+              statusText: 'Forbidden',
+              headers: { 'content-type': 'application/xml' },
+              data: FORBIDDEN_BODY,
+            } as IAdtWireResponse,
+          };
+        }
         if (lock === 'held') {
           throw {
             message: 'Request failed with status code 403',
@@ -268,5 +303,72 @@ describe('sessionToJoin', () => {
     const read = jest.fn(() => material);
     expect(sessionToJoin({}, read)).toBeNull();
     expect(read).not.toHaveBeenCalled();
+  });
+});
+
+describe('verifyLockReleased — answers that are not a held lock', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  // Measured on the cloud trial: a class created seconds before answered a
+  // second session's LOCK with 404 "does not exist", and the same test passed
+  // alone. A new session can land on another application server. That is not
+  // a held lock, and the check must not say it is.
+  it('retries an object the second session cannot see, and takes the lock once it can', async () => {
+    const { conn, calls } = fakeConnection('missing', 200, 2);
+    const { open, close } = fakeSession();
+
+    const check = verifyLockReleased(
+      open,
+      () => new AdtClass(conn),
+      config,
+      'x',
+    );
+    await jest.advanceTimersByTimeAsync(10_000);
+    await expect(check).resolves.toBeUndefined();
+
+    const locks = calls.filter((c) => c.url.includes('_action=LOCK'));
+    expect(locks).toHaveLength(3);
+    expect(calls.some((c) => c.url.includes('_action=UNLOCK'))).toBe(true);
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('warns instead of failing when the object stays invisible', async () => {
+    const { conn } = fakeConnection('missing');
+    const { open, close } = fakeSession();
+    const warn = jest.fn();
+
+    const check = verifyLockReleased(
+      open,
+      () => new AdtClass(conn),
+      config,
+      'class ZCL_LOCKREL_UNIT',
+      { warn, debug: jest.fn(), info: jest.fn(), error: jest.fn() },
+    );
+    await jest.advanceTimersByTimeAsync(10_000);
+    await expect(check).resolves.toBeUndefined();
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /inconclusive.*not visible.*HTTP 404.*does not exist/,
+      ),
+    );
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call a refusal for another reason a held lock', async () => {
+    const { conn } = fakeConnection('forbidden');
+    const { open, close } = fakeSession();
+
+    const check = verifyLockReleased(
+      open,
+      () => new AdtClass(conn),
+      config,
+      'x',
+    );
+    await expect(check).rejects.toThrow(/could not be made/);
+    await expect(check).rejects.not.toThrow(/did not release the lock/);
+    await expect(check).rejects.toThrow(/S_DEVELOP/);
+    expect(close).toHaveBeenCalledTimes(1);
   });
 });

@@ -114,6 +114,26 @@ function statusOf(failure: IAdtError): string {
   return status === undefined ? `[${failure.origin}]` : `HTTP ${status}`;
 }
 
+const NOT_VISIBLE_RETRIES = 3;
+const NOT_VISIBLE_DELAY_MS = 2000;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** SAP says the object is not there: 404. Not a lock, whatever else it is. */
+function isNotVisible(failure: IAdtError): boolean {
+  return failure.response?.status === 404;
+}
+
+/**
+ * SAP says someone holds the lock: 403, with EU/510 "currently editing" or a
+ * "locked by" text. The one answer that means the UNLOCK released nothing.
+ */
+function isLockHeld(failure: IAdtError): boolean {
+  if (failure.response?.status !== 403) return false;
+  const said = whatSapSaid(failure);
+  return /EU\/510|currently editing|locked by|is locked|enqueue/i.test(said);
+}
+
 /**
  * The check itself, with the session opener given — which is what lets it be
  * unit-tested without a system.
@@ -129,35 +149,64 @@ export async function verifyLockReleased<TConfig>(
   let failure: unknown;
   try {
     const handler = openHandler(session.client);
-    const locked = await handler.lock(config, { analyse: analyseException });
+    // A new session may land on another application server, where an object
+    // created seconds ago is not visible yet: its LOCK answers 404 "does not
+    // exist". Measured on the cloud trial — the same test passed alone. That is
+    // not a lock at all, so it is retried, and if the object stays invisible
+    // the check reports it cannot judge rather than claiming a held lock.
+    let locked = await handler.lock(config, { analyse: analyseException });
+    for (
+      let attempt = 1;
+      !locked.ok &&
+      isNotVisible(locked.getError()) &&
+      attempt <= NOT_VISIBLE_RETRIES;
+      attempt++
+    ) {
+      await sleep(NOT_VISIBLE_DELAY_MS);
+      locked = await handler.lock(config, { analyse: analyseException });
+    }
     if (!locked.ok) {
       const refusal = locked.getError();
-      throw new Error(
-        `${what}: the previous UNLOCK did not release the lock — a second ` +
-          `ABAP session was refused it (${statusOf(refusal)}): ` +
-          `${whatSapSaid(refusal)}` +
-          (refusal.request?.url ? ` (${refusal.request.url})` : ''),
-      );
+      const detail =
+        `(${statusOf(refusal)}): ${whatSapSaid(refusal)}` +
+        (refusal.request?.url ? ` (${refusal.request.url})` : '');
+      if (isNotVisible(refusal)) {
+        logger?.warn?.(
+          `${what}: lock-release check inconclusive — the object is not ` +
+            `visible from a second ABAP session ${detail}`,
+        );
+      } else if (isLockHeld(refusal)) {
+        throw new Error(
+          `${what}: the previous UNLOCK did not release the lock — a second ` +
+            `ABAP session was refused it ${detail}`,
+        );
+      } else {
+        throw new Error(
+          `${what}: the lock-release check could not be made — a second ABAP ` +
+            `session's LOCK was refused for another reason ${detail}`,
+        );
+      }
+    } else {
+      const handle = locked.getResult().value;
+      if (!handle) {
+        throw new Error(
+          `${what}: a second ABAP session's LOCK answered without a lock ` +
+            'handle, so whether the previous UNLOCK released anything cannot ' +
+            'be told — and there is nothing to release this lock with.',
+        );
+      }
+      const released = await handler.unlock(config, handle, {
+        analyse: analyseException,
+      });
+      if (!released.ok) {
+        const refusal = released.getError();
+        throw new Error(
+          `${what}: the verifying session took the lock but could not release ` +
+            `it (${statusOf(refusal)}): ${whatSapSaid(refusal)}`,
+        );
+      }
+      logger?.debug?.(`${what}: lock released — a second session took it`);
     }
-    const handle = locked.getResult().value;
-    if (!handle) {
-      throw new Error(
-        `${what}: a second ABAP session's LOCK answered without a lock ` +
-          'handle, so whether the previous UNLOCK released anything cannot ' +
-          'be told — and there is nothing to release this lock with.',
-      );
-    }
-    const released = await handler.unlock(config, handle, {
-      analyse: analyseException,
-    });
-    if (!released.ok) {
-      const refusal = released.getError();
-      throw new Error(
-        `${what}: the verifying session took the lock but could not release ` +
-          `it (${statusOf(refusal)}): ${whatSapSaid(refusal)}`,
-      );
-    }
-    logger?.debug?.(`${what}: lock released — a second session took it`);
   } catch (error) {
     failure = error;
   }
