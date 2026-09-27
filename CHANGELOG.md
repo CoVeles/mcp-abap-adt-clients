@@ -26,6 +26,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ### Documentation
 
+- `TROUBLESHOOTING.md` gains **By object type**: per factory
+  (`getServiceBinding()`, `getServiceDefinition()`, `getFunctionModule()`,
+  `getClass()`, `getPackage()`, the document types, `getDdl()`,
+  `getMessageClassMessage()`, transports, ATC), what SAP answers for that type
+  that it does not for the others, and what to do — first among them a `403` on
+  a binding's LOCK, which is to be ignored (`analysePublicationLock`). Only
+  observed behaviour is listed; each item links to its measurement.
 - `WORKAROUNDS.md`: two entries on service bindings, measured on a cloud
   system. **A binding publishes only once it is active** — a publish straight
   after the create answers `200` with "Service Binding … does not exist";

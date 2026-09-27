@@ -8,6 +8,110 @@ SAP-side behaviour with a consumer-side workaround is collected in
 [WORKAROUNDS.md](WORKAROUNDS.md); the entries below that belong there are short
 and link to it.
 
+Start with **[By object type](#by-object-type)** when you know which object you
+were working on; the entries after it are the ones that apply to every type.
+
+## By object type
+
+What SAP answers for one type that it does not answer for the others, and what
+to do about it. Only what was observed on a running system is listed; a type
+that is not here has shown nothing beyond the general entries further down.
+
+### `getServiceBinding()`
+
+- **`403` on the LOCK before a publish or unpublish — ignore it.** It means an
+  editing session holds the binding: an open Eclipse editor keeps its lock after
+  a publication, until the editor closes. The publication job does not need
+  your lock, and Eclipse itself posts the job after its own LOCK's `403`. Pass
+  `analysePublicationLock` (adt-strategies) to `lock()`: the `403` then answers a
+  lock without a handle (`''`), you publish, and you send no UNLOCK. Every other
+  refusal stays one. If the `403` should stop you, pass `analyseException`
+  instead. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#a-service-binding-is-locked-to-publish-it).
+- **"Service Binding … does not exist" on a publish** — inside a `200` — means
+  the binding is not active yet; a binding just created has only an inactive
+  version. `activate()` it, then publish. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#a-binding-publishes-only-once-it-is-active).
+- **"Error while creating service interface <BINDING>_0001_G4BA" on an
+  unpublish**, within a second, means the unpublish came too soon after a
+  publish. Repeat it minutes later; do not change the request. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#an-unpublish-straight-after-a-publish-is-refused).
+- **A publication takes minutes.** About 133 s on an idle system, longer on a
+  loaded one — pass a `timeout` above the 120 s default and wait for the job's
+  own answer (`analysePublication`); nothing needs polling.
+- **"You are already editing <BINDING>" on a delete** — the lock an editor holds.
+  Close the editor that holds it.
+
+### `getServiceDefinition()`
+
+- **A create is a POST that leaves the object empty**: its source reads `200`
+  with no body until you write it. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#what-a-bare-create-leaves-depends-on-the-type).
+- **`400` "Check of condition failed" on a create** means the request carried an
+  empty responsible person — a client built without
+  `IAdtClientOptions.responsible`. A create of a name that exists answers
+  `ExceptionResourceAlreadyExists` instead. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#an-empty-responsible-person-is-refused-as-check-of-condition-failed).
+
+### `getFunctionModule()`
+
+- **`500` "An exception was raised" on a source read** of a module that does not
+  exist; only the long text says *"does not exist"* (FL651). Ask existence of
+  `readMetadata()`, which answers `404`. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#a-function-modules-source-answers-500-for-a-module-that-does-not-exist).
+
+### `getClass()` and its includes
+
+- **`400` "wrong input data for processing" on every read** of a class created
+  and not yet written — see
+  [below](#resource--zcl_x-wrong-input-data-for-processing-on-a-read).
+- **"Class … does not have a TMDIR entry" on an activation** — the class does
+  not exist; see [below](#class-zcl_x-does-not-have-a-tmdir-entry-on-an-activation).
+- **The local includes (`getLocalTestClass()`, `getLocalTypes()`, …) are written
+  under the class's lock**, not one of their own. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#a-class-include-is-written-under-the-class-lock).
+
+### `getPackage()`
+
+- **"already locked" (PAK/058) on a second save in one ABAP session** — not an
+  enqueue lock. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#a-package-can-be-saved-only-once-per-abap-session).
+
+### `getDomain()`, `getDataElement()`, `getPackage()`, `getTableType()`, `getFunctionGroup()`
+
+- **A metadata read too soon after a write answers `200` with no body.** Before a
+  read-modify-write, reject an empty document rather than patching it. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#a-read-answers-200-with-an-empty-body-instead-of-404).
+
+### `getDdl()` and `getFunctionGroup()`
+
+- **`validate()` answers `200` for a taken name**, with the verdict in the body —
+  see [below](#validate-passed-and-the-create-says-the-name-is-taken).
+
+### `getMessageClassMessage()`
+
+- **`OBJECT_NOT_FOUND` for a message** is this library reading the class
+  document, not SAP — see
+  [below](#a-message-class-exists-its-messages-do-not).
+
+### `getRequest()` and transports
+
+- **A list by user or status answers an empty `<tm:root/>`**, the tree has no
+  fixed nesting, and a task made by hand refuses objects until it is typed. See
+  WORKAROUNDS entries on
+  [the transport list](WORKAROUNDS.md#the-transport-list-is-a-saved-configuration-search),
+  [the tree](WORKAROUNDS.md#the-transport-tree-has-no-fixed-nesting) and
+  [hand-made tasks](WORKAROUNDS.md#a-hand-made-task-is-unclassified-and-refuses-objects).
+
+### `getAtc()` (runtime)
+
+- **The check variant comes from customizing**, not from the run request. See
+  [WORKAROUNDS.md](WORKAROUNDS.md#atc-takes-its-check-variant-from-customizing).
+
+## Every type
+
+The entries from here on apply to whichever object you were working on.
+
 ## "You are not authorized to make changes (authorization object S_ABPLNGVS)"
 
 Arrives as a `403` with an `<exc:exception>` document, `adtType`
