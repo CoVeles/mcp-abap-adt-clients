@@ -15,6 +15,8 @@ and fires its release workflow.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-27
+
 ### Added
 
 - **`analysePublicationLock`** — for the LOCK a service binding takes before
