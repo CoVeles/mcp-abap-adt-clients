@@ -24,6 +24,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+## [23.0.3] - 2026-09-27
+
+**Documentation and tests only — no library code changed.** What ships in
+`docs/usage/` changes: `WORKAROUNDS.md` and `TROUBLESHOOTING.md` are gone, and
+`ERRATA.md` replaces both. A link into either old file from outside this
+package now needs `ERRATA.md` — the anchors are listed in its contents. Use it
+with `@mcp-abap-adt/adt-strategies` 0.6.0, which ships the same errata and
+`analysePublicationLock`.
+
 ### Documentation
 
 - **`WORKAROUNDS.md` is now `ERRATA.md`, and `TROUBLESHOOTING.md` is merged
@@ -63,6 +72,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ### Tests
 
+- `serviceBinding/publication.test.ts` runs the sequence the errata
+  recommends — lock read by `analysePublicationLock`, the job read by
+  `analysePublication`, unlock only of a handle taken — and fails at once on a
+  refusal that arrives immediately instead of waiting it out. Run on a cloud
+  system: publish under our lock, 134 s.
 - `publicationLock.test.ts`: a binding LOCK answered `403` goes through
   `AdtServiceBinding.lock` as a lock without a handle under
   `analysePublicationLock`, and as a refusal without it.
