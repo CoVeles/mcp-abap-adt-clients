@@ -506,33 +506,30 @@ export class BaseTester<TConfig, TState = unknown> {
    */
   private async expectLockReleased(config: Partial<TConfig>): Promise<void> {
     if (!lockReleaseCheckEnabled()) return;
-    if (!this.client) {
-      throw new Error(
-        `${this.loggerPrefix}: no client in setup(), so the lock-release ` +
-          'check has nothing to build its handler from. Set ' +
-          'VERIFY_LOCK_RELEASED=false to run without it.',
-      );
-    }
-    if (this.lockFactory === undefined) {
-      this.lockFactory = factoryOf(this.client, this.adtObject);
-    }
-    const factory = this.lockFactory;
-    if (!factory) {
-      throw new Error(
-        `${this.loggerPrefix}: no zero-argument factory on the client builds ` +
-          `a ${this.adtObject.constructor.name}, so the lock-release check ` +
-          'cannot open this handler on its own session. Set ' +
-          'VERIFY_LOCK_RELEASED=false to run without it.',
-      );
-    }
     logTestStep('verify unlock released the lock', this.logger);
+    // The factory is found on the verifier's own client: it is an AdtClient
+    // like any other, and not every tester hands its client to setup().
+    const handlerClass = this.adtObject;
     await expectLockReleased(
-      (client) =>
-        (client as unknown as Record<string, () => ILockWindow<unknown>>)[
-          factory
-        ](),
+      (client) => {
+        if (this.lockFactory === undefined) {
+          this.lockFactory = factoryOf(client, handlerClass);
+        }
+        const factory = this.lockFactory;
+        if (!factory) {
+          throw new Error(
+            `${this.loggerPrefix}: no zero-argument factory on the client ` +
+              `builds a ${handlerClass.constructor.name}, so the lock-release ` +
+              'check cannot open this handler on its own session. Set ' +
+              'VERIFY_LOCK_RELEASED=false to run without it.',
+          );
+        }
+        return (
+          client as unknown as Record<string, () => ILockWindow<unknown>>
+        )[factory]();
+      },
       config,
-      `${this.loggerPrefix} ${describeObject(config)} (${factory}().lock)`,
+      `${this.loggerPrefix} ${describeObject(config)}`,
       this.logger,
     );
   }
