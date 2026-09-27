@@ -110,6 +110,15 @@ async function checkVariantFor(
   testCase: { params?: Record<string, unknown> },
 ): Promise<string> {
   const pinned = String(testCase.params?.check_variant ?? '').trim();
+  // The template's placeholder, left in place: sent as-is it would reach SAP
+  // as a variant name and come back as an obscure refusal.
+  if (/^<.*>$/.test(pinned)) {
+    throw new Error(
+      `atc_run.params.check_variant is still the template's ${pinned} — set it ` +
+        'in test-config.yaml to a variant that runs on this system (e.g. ' +
+        'DEFAULT), or to "" for the one the system nominates.',
+    );
+  }
   if (pinned) return pinned;
   return expectResult(await atc.resolveCheckVariant(), 'check variant');
 }
