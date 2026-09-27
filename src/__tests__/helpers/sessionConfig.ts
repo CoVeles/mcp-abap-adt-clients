@@ -434,6 +434,7 @@ export async function createTestConnection(
 export interface IReleasableConnection {
   close?: () => Promise<unknown>;
   disconnect?: () => Promise<unknown>;
+  flushGoodbye?: (timeoutMs?: number) => Promise<void>;
   connect?: () => Promise<unknown>;
   exportSession?: () => ISessionMaterial;
 }
@@ -448,17 +449,33 @@ async function endSession(conn: IReleasableConnection): Promise<void> {
 }
 
 /**
+ * How long a closing own session waits for its logoff to be answered. The
+ * connector's own default; a server that stays silent longer is left to its
+ * idle timeout rather than holding the run.
+ */
+const GOODBYE_WAIT_MS = 5000;
+
+/**
  * End a session opened with `createTestConnection(logger, { ownSession: true })`.
  *
  * Unconditional, unlike {@link releaseTestConnection}: the session is this
  * caller's alone, so `disconnect()` — the platform logoff on on-prem — ends
  * only it, and nobody else is on it. `close()` for RFC.
+ *
+ * Then waits, bounded, for the logoff to be answered: since connector 9.4.0
+ * `disconnect()` dispatches it and returns. Own sessions are opened one after
+ * another — one per lock-release check — and a system that grants a user only
+ * a few sessions refuses the next logon while the previous one still holds its
+ * slot.
  */
 export async function closeOwnTestConnection(
   connection: IReleasableConnection | undefined | null,
 ): Promise<void> {
   if (!connection) return;
   await endSession(connection);
+  if (typeof connection.flushGoodbye === 'function') {
+    await connection.flushGoodbye(GOODBYE_WAIT_MS);
+  }
 }
 
 /**
