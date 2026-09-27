@@ -26,7 +26,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ### Documentation
 
-- `WORKAROUNDS.md`: two new entries. **A function module's source answers
+- **`WORKAROUNDS.md` is now `ERRATA.md`, and `TROUBLESHOOTING.md` is merged
+  into it** — one document for what SAP answers that it does not mean. It opens
+  with **the object tree**: every object this library addresses, as it hangs
+  together (a child lives in its parent or is built on it), each branch with an
+  unusual answer linked to its section, the sections in tree order — first
+  among them a `403` on a service binding's LOCK, which is to be ignored
+  (`analysePublicationLock`). Then every case with symptom, cause, rule,
+  workaround and evidence. Four cases that lived only in troubleshooting are
+  entries now: a validation answering a taken name inside a `200`, a deletion
+  check that says no, "No URI-Mapping" inside a `200`, and an object created
+  without a package that cannot be deleted; the `S_ABPLNGVS` explanation moved
+  into its entry. Every link is updated. It ships in adt-clients under
+  `docs/usage/` and, copied at pack time, in adt-strategies.
+- `ERRATA.md`: two entries on service bindings, measured on a cloud
+  system. **A binding publishes only once it is active** — a publish straight
+  after the create answers `200` with "Service Binding … does not exist";
+  neither the lock nor the service information `GET` changes that, the
+  activation does. **An unpublish straight after a publish is refused** —
+  "Error while creating service interface …" within a second, while the same
+  request minutes later succeeds (134 s). The binding-lock entry now says that
+  Eclipse posts the job after its own LOCK's `403`, and points to
+  `analysePublicationLock` (adt-strategies). The publication example in
+  `CLIENT_API_REFERENCE.md` passes it, unlocks only a handle it got, and
+  activates a new binding first.
+
+- `ERRATA.md`: two new entries. **A function module's source answers
   `500`** ("An exception was raised", `SY/530`) for a module that does not
   exist; only its long text says so (FL651), while the metadata answers `404`.
   **An empty responsible person is refused as "Check of condition failed"**
@@ -37,6 +62,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   said the same and is corrected.
 
 ### Tests
+
+- `publicationLock.test.ts`: a binding LOCK answered `403` goes through
+  `AdtServiceBinding.lock` as a lock without a handle under
+  `analysePublicationLock`, and as a refusal without it.
 
 - **`shared:setup` asks about existence on the object's metadata, and judges
   a refusal by SAP's text.** It read the source and took an empty one for
@@ -90,7 +119,7 @@ context on the `LOCK` and the `UNLOCK` — see `STATEFUL_SESSION_GUIDE.md`.
   integration suite now runs on the connector that keeps a request that is not
   stateful out of the stateful context, over HTTP (9.3.1) and RFC (9.3.2,
   9.3.4; 9.4.0 requires `sap-rfc-lite` 0.2.0, so the lockfile resolves it and
-  the RFC context reset is used). `WORKAROUNDS.md` notes that the connector handles PAK/058; the
+  the RFC context reset is used). `ERRATA.md` notes that the connector handles PAK/058; the
   entry stays for callers with their own `IAbapConnection`.
 
 ### Tests
@@ -126,7 +155,7 @@ context on the `LOCK` and the `UNLOCK` — see `STATEFUL_SESSION_GUIDE.md`.
 ### Documentation
 
 - **SAP-side behaviour a consumer has to work around is in one place:
-  [`docs/usage/WORKAROUNDS.md`](docs/usage/WORKAROUNDS.md).** Sixteen cases,
+  [`docs/usage/ERRATA.md`](docs/usage/ERRATA.md).** Sixteen cases,
   each with the same sections — symptom, cause, rule, workaround, evidence
   (system and date) and the members it bites: PAK/058, the session-type
   header, class includes under the class lock, the service-binding lock,
@@ -1559,7 +1588,7 @@ the sequence around a write handed back to the consumer.
 - **`README.md`, `CLAUDE.md`, `docs/README.md`,
   [`STATEFUL_SESSION_GUIDE.md`](docs/usage/STATEFUL_SESSION_GUIDE.md),
   [`CLIENT_API_REFERENCE.md`](docs/usage/CLIENT_API_REFERENCE.md) and
-  [`TROUBLESHOOTING.md`](docs/usage/TROUBLESHOOTING.md)** — every example that
+  `TROUBLESHOOTING.md` (since merged into [`ERRATA.md`](docs/usage/ERRATA.md))** — every example that
   passed an option to run a step now makes the call. The session guide states
   the invariant that replaces the old automatic handling: only `lock` and
   `unlock` change the session type.

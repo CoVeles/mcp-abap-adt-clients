@@ -189,4 +189,4 @@ A package can be saved only once per ABAP session: the next update or delete
 from that session is refused with `PAK/058`. Over RFC every call shares one
 session, so an update straight after a create is already refused. The rule for
 both transports and the workaround are in
-[WORKAROUNDS.md](WORKAROUNDS.md#a-package-can-be-saved-only-once-per-abap-session).
+[ERRATA.md](ERRATA.md#a-package-can-be-saved-only-once-per-abap-session).

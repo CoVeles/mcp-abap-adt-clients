@@ -1,7 +1,8 @@
-# Workarounds for SAP-side behaviour
+# SAP ADT errata
 
-This document collects behaviour of the SAP system and its ADT endpoints that a
-consumer has to work around. Each case is **surprising, not a defect of this
+Known behaviour of the SAP system and its ADT endpoints that a consumer has to
+work around — errata in the sense a platform vendor publishes them: the defect
+is the platform's, each entry says how to live with it. Each case is **surprising, not a defect of this
 library**, and has a **workaround on the consumer side**. The knowledge used to
 be scattered across guides and code comments; it lives here now, and the other
 documents link to it.
@@ -26,8 +27,193 @@ a second session, retry, poll or judge an answer on your behalf. Where a
 workaround needs a reading, `@mcp-abap-adt/adt-strategies` usually has one, and
 each entry names it.
 
+Start with **[the object tree](#the-object-tree)**: find the object you were
+working on, and its branch says what SAP answers for it that it does not answer
+for the others. The numbered entries under [Contents](#contents) carry the
+evidence, and some of them apply to every object.
+
 Every entry has the same sections: **Symptom** (what the caller sees),
 **Cause**, **Rule**, **Workaround**, **Evidence** and **Where it bites**.
+
+## The object tree
+
+The objects this library addresses, as they hang together: a child lives in
+its parent or is built on it. A **⚠** marks a node where SAP answers something
+it does not answer for the others; follow the link. A node without one has shown
+nothing beyond the entries that apply to every type — see [Contents](#contents).
+
+- [Transport request](#transport-request) `getRequest()` ⚠
+- [Package](#package) `getPackage()` ⚠
+  - Source code
+    - [Class](#class) `getClass()` ⚠
+      - [local test class, local types, local definitions, local macros](#class-includes) `getLocalTestClass()` `getLocalTypes()` `getLocalDefinitions()` `getLocalMacros()` ⚠
+      - ABAP Unit run `getUnitTest()`
+    - Interface `getInterface()`
+    - Program `getProgram()`
+      - Include `getInclude()`
+    - [Function group](#function-group) `getFunctionGroup()` ⚠
+      - [Function module](#function-module) `getFunctionModule()` ⚠
+      - Function include `getFunctionInclude()`
+    - Transformation `getTransformation()`
+    - Enhancement `getEnhancement()`
+  - Dictionary
+    - [Domain](#domain-and-data-element) `getDomain()` ⚠
+      - [Data element](#domain-and-data-element) `getDataElement()` ⚠
+    - Structure `getStructure()`
+    - Table `getTable()`
+      - Append structure `getAppendStructure()`
+    - [Table type](#table-type) `getTableType()` ⚠
+    - Authorization field `getAuthorizationField()`
+  - CDS and RAP
+    - [DDL source](#ddl-source) `getDdl()` ⚠
+      - Access control `getAccessControl()`
+      - Metadata extension `getMetadataExtension()`
+      - CDS unit test `getCdsUnitTest()`
+      - Behavior definition `getBehaviorDefinition()`
+        - Behavior implementation `getBehaviorImplementation()`
+    - Scalar function `getScalarFunction()`
+      - Scalar function implementation `getScalarFunctionImplementation()`
+  - Services
+    - [Service definition](#service-definition) `getServiceDefinition()` ⚠
+      - [Service binding](#service-binding) `getServiceBinding()` ⚠
+  - Other
+    - Message class `getMessageClass()`
+      - [Message](#message) `getMessageClassMessage()` ⚠
+    - Feature toggle `getFeatureToggle()`
+- Runtime (`AdtRuntimeClient`)
+  - [ATC](#atc) `getAtc()` ⚠
+
+## By object
+
+In the order of the tree.
+
+### Transport request
+
+`getRequest()`. A list by user or status answers an empty `<tm:root/>` — the
+list is a search over a saved configuration; the tree under a request has no
+fixed nesting; a task made by hand refuses objects until it is typed. See
+ERRATA on [the transport list](#the-transport-list-is-a-saved-configuration-search),
+[the tree](#the-transport-tree-has-no-fixed-nesting) and
+[hand-made tasks](#a-hand-made-task-is-unclassified-and-refuses-objects).
+
+### Package
+
+`getPackage()`.
+
+- **"already locked" (PAK/058) on a second save in one ABAP session** — not an
+  enqueue lock. See
+  [below](#a-package-can-be-saved-only-once-per-abap-session).
+- **A metadata read too soon after a write answers `200` with no body** — as for
+  the other document types, see [Domain and data element](#domain-and-data-element).
+
+### Class
+
+`getClass()`.
+
+- **`400` "wrong input data for processing" on every read** of a class created
+  and not yet written — see
+  [below](#what-a-bare-create-leaves-depends-on-the-type).
+- **"Class … does not have a TMDIR entry" on an activation** — the class does
+  not exist; see [below](#activationexecuted-false-is-not-a-failure).
+
+#### Class includes
+
+`getLocalTestClass()`, `getLocalTypes()`, `getLocalDefinitions()`,
+`getLocalMacros()`. **Written under the class's lock**, not one of their own:
+lock the class. See
+[below](#a-class-include-is-written-under-the-class-lock).
+
+### Function group
+
+`getFunctionGroup()`.
+
+- **`validate()` answers `200` for a taken name**, with the verdict in the body —
+  see [below](#a-validation-answers-a-taken-name-inside-a-200).
+- **A metadata read too soon after a write answers `200` with no body** — see
+  [Domain and data element](#domain-and-data-element).
+
+#### Function module
+
+`getFunctionModule()`. **`500` "An exception was raised" on a source read** of a
+module that does not exist; only the long text says *"does not exist"* (FL651).
+Ask existence of `readMetadata()`, which answers `404`. See
+[below](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist).
+
+### Domain and data element
+
+`getDomain()`, `getDataElement()` — and the other document types:
+`getPackage()`, `getTableType()`, `getFunctionGroup()`. **A metadata read too
+soon after a write answers `200` with no body.** Before a read-modify-write,
+reject an empty document rather than patching it. See
+[below](#a-read-answers-200-with-an-empty-body-instead-of-404).
+
+### Table type
+
+`getTableType()`. A document type — see
+[Domain and data element](#domain-and-data-element).
+
+### DDL source
+
+`getDdl()`. **`validate()` answers `200` for a taken name**, with the verdict in
+the body — see [below](#a-validation-answers-a-taken-name-inside-a-200).
+
+### Service definition
+
+`getServiceDefinition()`.
+
+- **A create is a POST that leaves the object empty**: its source reads `200`
+  with no body until you write it. See
+  [below](#what-a-bare-create-leaves-depends-on-the-type).
+- **`400` "Check of condition failed" on a create** means the request carried an
+  empty responsible person — a client built without
+  `IAdtClientOptions.responsible`. A create of a name that exists answers
+  `ExceptionResourceAlreadyExists` instead. See
+  [below](#an-empty-responsible-person-is-refused-as-check-of-condition-failed).
+
+#### Service binding
+
+`getServiceBinding()`. Built on a service definition; it is not edited, only
+activated, published and unpublished.
+
+- **`403` on the LOCK before a publish or unpublish — ignore it.** It means an
+  editing session holds the binding: an open Eclipse editor keeps its lock after
+  a publication, until the editor closes. The publication job does not need
+  your lock, and Eclipse itself posts the job after its own LOCK's `403`. Pass
+  `analysePublicationLock` (adt-strategies) to `lock()`: the `403` then answers a
+  lock without a handle (`''`), you publish, and you send no UNLOCK. Every other
+  refusal stays one. If the `403` should stop you, pass `analyseException`
+  instead. See
+  [below](#a-service-binding-is-locked-to-publish-it).
+- **"Service Binding … does not exist" on a publish** — inside a `200` — means
+  the binding is not active yet; a binding just created has only an inactive
+  version. `activate()` it, then publish. See
+  [below](#a-binding-publishes-only-once-it-is-active).
+- **"Error while creating service interface <BINDING>_0001_G4BA" on an
+  unpublish**, within a second, means the unpublish came too soon after a
+  publish. Repeat it minutes later; do not change the request. See
+  [below](#an-unpublish-straight-after-a-publish-is-refused).
+- **A publication takes minutes.** About 133 s on an idle system, longer on a
+  loaded one — pass a `timeout` above the 120 s default and wait for the job's
+  own answer (`analysePublication`); nothing needs polling.
+- **"You are already editing <BINDING>" on a delete** — the lock an editor holds.
+  Close the editor that holds it.
+
+### Message
+
+`getMessageClassMessage()`. **`OBJECT_NOT_FOUND` for a message** is this
+library reading the class document, not SAP reporting absence. A message class
+is a container and its messages are rows in it: only the container has existence
+on the wire — 404 before it is created, 404 after it is deleted — while a row has
+none. Measured, `POST …/messages/001?_action=LOCK_MSG` answers `200` before
+message 001 exists, because the PUT after it is what creates it. So the member
+fetches the class document and looks for the number itself; a consumer who
+replaces the reading replaces that verdict with it.
+
+### ATC
+
+`getAtc()` (runtime). **The check variant comes from customizing**, not from
+the run request. See
+[below](#atc-takes-its-check-variant-from-customizing).
 
 ## Contents
 
@@ -37,35 +223,41 @@ Sessions and locks
 2. [The session-type header is per request](#the-session-type-header-is-per-request)
 3. [A class include is written under the class lock](#a-class-include-is-written-under-the-class-lock)
 4. [A service binding is locked to publish it](#a-service-binding-is-locked-to-publish-it)
+5. [A binding publishes only once it is active](#a-binding-publishes-only-once-it-is-active)
+6. [An unpublish straight after a publish is refused](#an-unpublish-straight-after-a-publish-is-refused)
 
 Reading answers
 
-5. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
-6. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
-7. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
-8. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
-9. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
+7. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
+8. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
+9. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
+10. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
+11. [A validation answers a taken name inside a 200](#a-validation-answers-a-taken-name-inside-a-200)
+12. [A deletion check that says no is not a failure](#a-deletion-check-that-says-no-is-not-a-failure)
+13. ["No URI-Mapping defined for URI" inside a 200](#no-uri-mapping-defined-for-uri-inside-a-200)
+14. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
 
 Creating and checking objects
 
-10. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
-11. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
-12. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
+15. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
+16. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
+17. [An object created without a package cannot be deleted](#an-object-created-without-a-package-cannot-be-deleted)
+18. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
 
 Activation
 
-13. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
-14. [Activation settles inside the POST](#activation-settles-inside-the-post)
+19. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
+20. [Activation settles inside the POST](#activation-settles-inside-the-post)
 
 Transports
 
-15. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
-16. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
-17. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
+21. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
+22. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
+23. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
 
 ATC
 
-18. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
+24. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
 
 ---
 
@@ -302,11 +494,16 @@ publish job finishes. An open Eclipse editor on the binding holds the lock for
 the same user from a different session.
 
 **Rule.** The lock spans an editing session. From elsewhere, a held lock looks
-like a 403; it is usually someone's open Eclipse, not a leaked lock.
+like a 403; it is usually someone's open Eclipse, not a leaked lock. Eclipse
+itself meets a `403` on its own LOCK when its editor already holds the binding,
+and posts the job anyway: the job does not need the caller's lock.
 
 **Workaround.** For a library there is no editor, so the edit is the operation:
 `lock()`, `update()` with the desired publication state, `unlock()` in a
-`finally`. The publish job took about 133 seconds on the systems measured,
+`finally`. Pass `analysePublicationLock` to the `lock()`: a `403` then answers
+a lock without a handle (`''`), the publication goes ahead, and there is
+nothing to unlock. A caller who wants the `403` to stop them passes
+`analyseException` instead. The publish job took about 133 seconds on the systems measured,
 above the 120 s default — pass a larger `timeout`. Read the job's own answer
 (`analysePublication` from `@mcp-abap-adt/adt-strategies` reads its
 `SEVERITY`); nothing needs polling. For a binding locked elsewhere, close the
@@ -317,9 +514,71 @@ Eclipse editor that holds it. The full example is in
 `LOCK` → `200` on session *"stateful, enqueue"*; `POST
 …/odatav4/publishjobs` → `200` stateless, 133 057 ms; `UNLOCK` → `200` on
 *"Closing editor"*; a second `LOCK` before the unpublish → `403` while the
-first was held.
+first was held. Eclipse, cloud system, 2026-09-27: after a publish its editor
+kept the lock (a LOCK from another session → `403`); the unpublish that followed
+sent its own `LOCK` → `403` on the enqueue session and then `POST
+…/unpublishjobs` → `200`, 132 s. Between the two, the enqueue session was kept
+alive with `GET /sap/bc/adt/core/http/sessions`.
 
 **Where it bites.** `getServiceBinding()`: `lock`, `update`, `delete`.
+
+---
+
+## A binding publishes only once it is active
+
+**Symptom.** Publishing a binding straight after creating it answers `200`
+with `<SEVERITY>ERROR</SEVERITY>`: *"Local Publish of <SERVICE_BINDING>
+failed"*, long text *"Service Binding <SERVICE_BINDING> does not exist."* The
+binding is there; its metadata reads back.
+
+**Cause.** A created binding has only an inactive version, and the publication
+looks for the active one.
+
+**Rule.** "Does not exist" here means "not active". Taking the lock first does
+not change it, and neither does reading the service's information
+(`generateServiceBinding`, a `GET` on `/businessservices/odatav4/<binding>` that
+Eclipse sends to refresh its view, after a publication).
+
+**Workaround.** `activate()` the binding, then publish it.
+
+**Evidence.** Cloud system, 2026-09-27, one binding deleted and created again:
+publish after the create → the refusal above; lock, then publish → the same;
+the information `GET`, then publish → the same; activate, then publish →
+*"<SERVICE_BINDING> published locally"*, 134 s.
+
+**Where it bites.** `getServiceBinding().create()` followed by `update()` with
+`desiredPublicationState: 'published'`.
+
+---
+
+## An unpublish straight after a publish is refused
+
+**Symptom.** An unpublish answers `200` with `<SEVERITY>ERROR</SEVERITY>`
+within a second: *"Local un-publish of <SERVICE_BINDING> failed"*, long text
+*"Error while creating service interface <SERVICE_BINDING>_0001_G4BA"*.
+
+**Cause.** The publication job answers before the system has finished with
+the binding; an unpublish in that window fails. The request is the same one
+that succeeds later.
+
+**Rule.** A fast `ERROR` from an unpublish is not a verdict on the binding. The
+job itself takes minutes when it runs; an answer in under a second means it did
+not run.
+
+**Workaround.** Leave time between a publish and an unpublish of the same
+binding — minutes, not seconds — and repeat an unpublish that failed this way
+later rather than changing the request.
+
+**Evidence.** Cloud system, 2026-09-27, one binding and the same request each
+time: publish → *"published locally"*, 133 s; unpublish straight after → the
+refusal above, 0.6 s; unpublish seven minutes later → *"un-published
+locally"*, 134 s. An unpublish from Eclipse several minutes after its publish
+took 132 s and succeeded. How long the window is, was not measured more
+closely.
+
+**Where it bites.** `getServiceBinding().update()` with `desiredPublicationState:
+'unpublished'` soon after a publication — a test that publishes and unpublishes
+in one run.
 
 ---
 
@@ -488,6 +747,79 @@ answered `200` with its code.
 
 ---
 
+## A validation answers a taken name inside a 200
+
+**Symptom.** `validate()` answers `200` for a name that is taken, and the create
+that follows is refused because the name exists.
+
+**Cause.** A validation refuses a taken name two different ways. A domain, a
+structure, a table, a class and a service definition answer a failing status. A
+**function group and a DDL source answer `200`** with the verdict in the body:
+
+```xml
+<SEVERITY>ERROR</SEVERITY>
+<SHORT_TEXT>Data definition <NAME> already exists</SHORT_TEXT>
+```
+
+**Rule.** A `validate()` that returns `200` has not told you the name is free —
+the body has. And `validate()` never answers whether the object exists: a free
+name validates fine either way, and a name is held from the POST onward whatever
+state the object is in.
+
+**Workaround.** Pass `analyseValidation` (adt-strategies), which reads both
+forms, or read `<SEVERITY>` yourself.
+
+**Evidence.** The recorded answers `refusal-validation-name-taken-ddl`,
+`-functiongroup`, `-class`, `-domain` and `-table` in the corpus.
+
+**Where it bites.** `getDdl().validate()`, `getFunctionGroup().validate()`.
+
+---
+
+## A deletion check that says no is not a failure
+
+**Symptom.** `checkDeletion()` answers `200` with `del:isDeletable="false"` and a
+reason.
+
+**Cause.** That is the answer the check exists to produce.
+
+**Rule.** A *check* that says "no" has answered. A *delete* that reports
+`del:isDeleted="false"` is a different thing: the objects are still on the
+system, and that is a failure.
+
+**Workaround.** Read the check's verdict with `analyseDeletion`; treat a refused
+delete as a failure, a refusing check as information.
+
+**Evidence.** The recorded answers `refusal-deletion-check-refuses` and
+`refusal-delete-refused` in the corpus.
+
+**Where it bites.** `checkDeletion()` and `delete()` on every type;
+`getUtils()` group deletion.
+
+---
+
+## "No URI-Mapping defined for URI" inside a 200
+
+**Symptom.** A group operation — deletion check, delete, activation — does
+nothing and reports nothing; the body of its `200` says *"No URI-Mapping defined
+for URI"*.
+
+**Cause.** The address named in the request does not exist on the server. It was
+seen when an object URI was built by lowercasing the type code — `DEVC/K` became
+`/sap/bc/adt/devc/k/<NAME>` — where the real resource is
+`/sap/bc/adt/packages/<NAME>`.
+
+**Rule.** A success that did nothing has its complaint in the body.
+
+**Workaround.** Take an object's URI from the system's own answers (search,
+node structure), not from its type code.
+
+**Evidence.** The package URI built from `DEVC/K`, answered as above.
+
+**Where it bites.** `getUtils()` group operations over hand-built references.
+
+---
+
 ## S_ABPLNGVS refuses a create into a package that does not exist
 
 **Symptom.** A create answers `403 ExceptionResourceNoAccess`, *"You are not
@@ -507,8 +839,53 @@ scenario `ABAP_LANGUAGE_VERSION` is switched on.
 **Workaround.** Before going to PFCG, check that the package in the request
 exists and that its software component allows the language version you are
 writing; then that the user holds that value in `ABP_LNG_VS` and the `ACTVT` for
-the step that failed. The authorization side is explained in
-[TROUBLESHOOTING.md](TROUBLESHOOTING.md#you-are-not-authorized-to-make-changes-authorization-object-s_abplngvs).
+the step that failed.
+
+**What the object is.** `S_ABPLNGVS` is not a role — it is an authorization
+object for the ABAP **language version**:
+
+| field | meaning |
+|---|---|
+| `ABP_LNG_VS` | the language version — *ABAP for Cloud Development*, *Standard ABAP* |
+| `ACTVT` | the permitted operations — create, change, activate, execute, ABAP Unit |
+
+The template role `SAP_BC_ABAP_DEVELOPER_5` carries it restricted to *ABAP for
+Cloud Development*. Allowing *Standard ABAP* as well means adding that value in
+PFCG.
+
+**It may be inert.** The check applies only when the SACF authorization scenario
+`ABAP_LANGUAGE_VERSION` is switched on. Otherwise the object sitting in a role
+restricts nothing, so finding it in a role proves nothing about behaviour.
+
+**It is not `S_DEVELOP`.** `S_DEVELOP` governs access to development objects at
+all; `S_ABPLNGVS` additionally governs *which language version* they may be
+created, changed and run in.
+
+**What "access to a language version" actually grants.**
+
+The object is checked as a pair, and both halves have to match the request:
+
+- **`ABP_LNG_VS` — which language.** An object is written in one ABAP language
+  version, fixed by the software component its package belongs to. Writing into a
+  package whose component is *ABAP for Cloud Development* requires that value;
+  writing a Standard ABAP object requires the Standard ABAP value. Holding one
+  does not grant the other, and this is the usual cause on BTP ABAP Environment,
+  where a developer is typically granted the cloud value only.
+- **`ACTVT` — which operation, per language.** Access is granted per activity:
+  create, change, activate, execute, run ABAP Unit. A user can hold *change* for
+  a language version and not *activate* it, so a chain can write successfully and
+  then fail at the activation step with the same object named.
+
+That second half is what makes the failure look intermittent: the same user, the
+same package, refused at one step of a create chain and not at the earlier ones.
+Read which step the failure carries — `IAdtError.request` names it — before
+concluding the whole language version is denied.
+
+**What to check, in order.** Whether the package in the request exists; which
+language version its software component fixes; whether the user holds that value
+in `ABP_LNG_VS`; and whether they hold the specific `ACTVT` for the operation
+that failed rather than for the one that succeeded.
+
 
 **Evidence.** Cloud trial, 2026-09-03: a class create into a package that did
 not exist answered this refusal. The meaning of the object is SAP's
@@ -614,6 +991,39 @@ without options, so it measured this.
 
 **Where it bites.** `create` on a client without `responsible` — most visibly
 `getServiceDefinition().create()`.
+
+---
+
+## An object created without a package cannot be deleted
+
+**Symptom.** A name is taken — every create of it is refused — and the deletion
+check says the object does not exist:
+
+```xml
+<del:object del:isDeletable="false" adtcore:name="<NAME>">
+  <del:message del:type="E"><del:text>Object does not exist</del:text></del:message>
+```
+
+**Cause.** The object was created but never bound to a package. The deletion
+check resolves through the package; one it can resolve names it
+(`adtcore:packageName="<PACKAGE>"`), and an unbound object gets the same answer
+as an absent one.
+
+**Rule.** "Object does not exist" from the deletion check is not proof of
+absence. Nothing reachable through ADT removes such an object — there is no
+resource that re-binds it — so cleaning it up is SAP GUI territory.
+
+**Workaround.** Prevention. `create` is one POST and never leaves such an object
+itself; a sequence that stops between the POST and the write can. Wrap the
+steps after a create so a failure calls `delete` while the object is still bound;
+treat a create as unfinished until `getUtils().search({ query: name })` answers
+`adtcore:packageName` for it. The one input guard this library keeps is exactly
+this: `create` without `packageName` throws before any request.
+
+**Evidence.** The two deletion-check shapes above. Not reproduced on purpose: the
+experiment leaves exactly the undeletable object it describes.
+
+**Where it bites.** Any `create` followed by steps that can fail.
 
 ---
 

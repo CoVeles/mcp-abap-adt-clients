@@ -5,6 +5,7 @@ import {
   analyseCheck,
   analyseDeletion,
   analyseException,
+  analysePublicationLock,
   analyseUnitTest,
   analyseValidation,
   type IAdtMessageFailure,
@@ -273,5 +274,42 @@ describe('the request the failure carries', () => {
       analyseException(ADT_NO_FAILURE, answerFor('refusal-lock-held-by-other')),
     );
     expect(verdict.request).toBeUndefined();
+  });
+});
+
+describe('analysePublicationLock', () => {
+  const libraryVerdict = (status: number): IAdtError => ({
+    origin: 'connection',
+    message: `Request failed with status code ${status}`,
+  });
+
+  it('lets the 403 of a binding someone is editing through', () => {
+    expect(
+      analysePublicationLock(
+        libraryVerdict(403),
+        answerFor('refusal-lock-held-by-other'),
+      ),
+    ).toBe(ADT_NO_FAILURE);
+  });
+
+  it('passes a granted lock as it came', () => {
+    expect(
+      analysePublicationLock(ADT_NO_FAILURE, answerFor('lock-success')),
+    ).toBe(ADT_NO_FAILURE);
+  });
+
+  it('reads every other refusal as analyseException does', () => {
+    const answer = answerFor('refusal-write-not-locked');
+    const verdict = failed(analysePublicationLock(libraryVerdict(423), answer));
+    expect(verdict).toEqual(analyseException(libraryVerdict(423), answer));
+  });
+
+  it('does not take a failure without an answer for a 403', () => {
+    failed(
+      analysePublicationLock(
+        { origin: 'connection', message: 'timeout of 45000ms exceeded' },
+        undefined,
+      ),
+    );
   });
 });

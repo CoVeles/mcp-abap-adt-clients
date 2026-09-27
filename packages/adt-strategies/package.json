@@ -1,6 +1,6 @@
 {
   "name": "@mcp-abap-adt/adt-strategies",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Default result and failure strategies for @mcp-abap-adt/adt-clients, derived from recorded ADT answers",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,13 +14,14 @@
     "dist",
     "README.md",
     "LICENSE",
-    "COPYING"
+    "COPYING",
+    "ERRATA.md"
   ],
   "scripts": {
     "clean": "node -e \"const fs=require('fs');try{fs.rmSync('dist',{recursive:true,force:true})}catch{}\"",
     "build": "npm run --silent clean && npx tsc -p tsconfig.json",
     "test": "npx jest -c jest.config.js",
-    "prepack": "npm run --silent build"
+    "prepack": "node scripts/copy-errata.js && npm run --silent build"
   },
   "keywords": [
     "abap",

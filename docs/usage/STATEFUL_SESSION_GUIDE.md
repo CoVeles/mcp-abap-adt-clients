@@ -97,7 +97,7 @@ only once per ABAP session — the next update or delete from that session is
 refused with `PAK/058`, and the same request from any other session succeeds at
 once. It is `CL_PACKAGE`'s session buffer, not a delay: retrying never helps.
 The rule for HTTP and RFC, the evidence and the workaround are in
-[WORKAROUNDS.md](WORKAROUNDS.md#a-package-can-be-saved-only-once-per-abap-session).
+[ERRATA.md](ERRATA.md#a-package-can-be-saved-only-once-per-abap-session).
 
 So when an operation refuses in a way that names editing or locking, and the
 object is one your session has just changed, the fix is a different session —

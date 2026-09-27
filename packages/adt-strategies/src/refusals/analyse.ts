@@ -175,6 +175,28 @@ export const analyseAny = analyser(readAdtRefusal);
 /** A service binding's publication — `SEVERITY` other than `OK` refuses. */
 export const analysePublication = analyser(readPublicationRefusal);
 
+/**
+ * The LOCK a service binding takes before it is published or unpublished.
+ *
+ * A `403` is no failure here. It means an editing session holds the binding —
+ * an open Eclipse editor keeps its lock after the job finishes, until the
+ * editor closes — and the publication job does not need a lock of the
+ * caller's: it is posted and answered the same either way. Eclipse treats its
+ * own LOCK's `403` so, and posts the job. The lock then comes back without a
+ * handle (`''`), so there is nothing to unlock.
+ *
+ * Every other refusal is read as {@link analyseException} reads it.
+ */
+export const analysePublicationLock: IAnalyse<IAdtMessageFailure> = (
+  verdict,
+  answer,
+) => {
+  const judged = analyseException(verdict, answer);
+  if (judged === ADT_NO_FAILURE) return judged;
+  const status = judged.response?.status ?? answer?.status;
+  return status === 403 ? ADT_NO_FAILURE : judged;
+};
+
 /** The CDS test-doubles check — anything but `SEVERITY` `OK` refuses. */
 export const analyseCdsTestDoubles = analyser(readCdsTestDoublesRefusal);
 

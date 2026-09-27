@@ -1067,11 +1067,19 @@ Unpublishing is the same, against `…/unpublishjobs`.
 it for you:
 
 ```typescript
-import { analysePublication } from '@mcp-abap-adt/adt-strategies';
+import {
+  analysePublication,
+  analysePublicationLock,
+} from '@mcp-abap-adt/adt-strategies';
 
 const bindings = client.getServiceBinding();
 
-const locked = await bindings.lock({ bindingName: 'ZAC_SRVB01' });
+// analysePublicationLock: a 403 (an editor holds the binding) is no failure —
+// the job does not need our lock, and the handle then comes back as ''.
+const locked = await bindings.lock(
+  { bindingName: 'ZAC_SRVB01' },
+  { analyse: analysePublicationLock },
+);
 if (!locked.ok) throw new Error(locked.getError().message);
 const lockHandle = locked.getResult().value;
 
@@ -1091,9 +1099,13 @@ try {
   );
   if (!answer.ok) throw new Error(answer.getError().message);
 } finally {
-  await bindings.unlock({ bindingName: 'ZAC_SRVB01' }, lockHandle);
+  if (lockHandle) await bindings.unlock({ bindingName: 'ZAC_SRVB01' }, lockHandle);
 }
 ```
+
+A binding just created has no active version, and publishing it answers `200`
+with *"Service Binding … does not exist"*: `activate()` it first. See
+[ERRATA.md](ERRATA.md#a-service-binding-is-locked-to-publish-it).
 
 Why the library does not do that for you: **how long a lock is held is a
 policy**, and it is not one policy. Eclipse holds a binding's lock for as long
