@@ -48,6 +48,10 @@
  * ```
  */
 
+import {
+  analysePublication,
+  analysePublicationLock,
+} from '@mcp-abap-adt/adt-strategies';
 import type {
   IAbapConnection,
   ISessionLifecycleAware,
@@ -216,10 +220,29 @@ describe('Service binding publication (deliberate runs)', () => {
       `${desired}: one request, up to ${Math.round(c.timeoutMs / 1000)}s`,
       testsLogger,
     );
+    // The sequence ERRATA.md recommends: the binding's lock read by
+    // `analysePublicationLock` — a 403 (an editor holds it) is no failure and
+    // leaves no handle — then the job, then an unlock only of a handle we got.
+    const bindings = client.getServiceBinding();
+    const locked = await bindings.lock(
+      { bindingName: c.bindingName },
+      { analyse: analysePublicationLock },
+    );
+    if (!locked.ok) {
+      throw new Error(`lock: ${locked.getError().message}`);
+    }
+    const handle = locked.getResult().value;
+    logTestStep(
+      handle
+        ? 'locked'
+        : 'the binding is held by an editing session (403); publishing without our lock',
+      testsLogger,
+    );
+
     // Counted on the wire, because "one request" is the claim under test.
     const before_count = requests.length;
     const started = Date.now();
-    const answer = await client.getServiceBinding().update(
+    const answer = await bindings.update(
       {
         bindingName: c.bindingName,
         desiredPublicationState: desired,
@@ -229,11 +252,20 @@ describe('Service binding publication (deliberate runs)', () => {
         // target by type and name, so they would go nowhere.
         serviceType: c.serviceType,
       },
-      { timeout: c.timeoutMs },
+      { timeout: c.timeoutMs, analyse: analysePublication },
     );
     const spent = Math.round((Date.now() - started) / 1000);
 
     const issued = requests.slice(before_count);
+    if (handle) {
+      const released = await bindings.unlock(
+        { bindingName: c.bindingName },
+        handle,
+      );
+      if (!released.ok) {
+        throw new Error(`unlock: ${released.getError().message}`);
+      }
+    }
     logTestStep(
       `the write issued ${issued.length} request(s): ${issued.map((r) => `${r.method} ${r.url}`).join(', ')}`,
       testsLogger,
@@ -247,7 +279,11 @@ describe('Service binding publication (deliberate runs)', () => {
     expect(issued[0].url).not.toContain('?');
 
     if (answer.ok) {
-      logTestStep(`the request answered after ${spent}s`, testsLogger);
+      logTestStep(`the job answered OK after ${spent}s`, testsLogger);
+    } else if (spent < 30) {
+      // A refusal inside the job's own 200, answered at once: not a timeout,
+      // and no amount of waiting turns it into the other state.
+      throw new Error(`${desired} refused: ${answer.getError().message}`);
     } else {
       // Not a verdict about the job. Measured: the client gave up at 120s and
       // the binding was published anyway.
