@@ -54,6 +54,31 @@ over the same shared objects. Do not edit `src/` while a run is in flight either
 jest reads each test file when it reaches it, so an edit half-way through means
 the run is testing two different versions of the code.
 
+## Proving an UNLOCK released the lock
+
+```bash
+VERIFY_LOCK_RELEASED=false npm test   # turn the check off (on by default)
+```
+
+An UNLOCK that answers 200 has not necessarily released anything: sent
+stateless, it runs in a fresh ABAP context and leaves the enqueue entry where it
+was, and the suite only saw it when a later activation was refused with EU/510
+"currently editing". So after every UNLOCK a test does before it needs the object
+unlocked — `BaseTester`'s update step, which covers every lockable type in the
+flow tests, and the hand-written lock windows in the append structure, scalar
+function, scalar function implementation, behavior implementation, unit test,
+group activation and transport suites — `expectLockReleased`
+(`src/__tests__/helpers/lockReleased.ts`) opens a **second ABAP session** of its
+own and LOCKs the same object from there. A lock still held is refused and the
+test fails with SAP's sentence; a released one is granted and released again.
+A class include is checked against the class lock, which is the one it was
+written under.
+
+It costs one session logon per check. The trial grants two sessions — the run's
+and this one — and the check always closes its own before it returns, so the
+two are never exceeded. Turn it off with `VERIFY_LOCK_RELEASED=false` when the
+extra logons matter more than the proof.
+
 ## Reading the traffic
 
 ```bash

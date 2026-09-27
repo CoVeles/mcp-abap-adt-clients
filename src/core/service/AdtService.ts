@@ -501,13 +501,12 @@ export class AdtServiceBinding<
   ): Promise<IAdtResponse<void, E>> {
     const name = this.name(config);
     return answering(
-      async () => {
-        try {
-          return await unlockServiceBinding(this.connection, name, lockHandle);
-        } finally {
-          this.connection.setSessionType?.('stateless');
-        }
-      },
+      // The UNLOCK reaches the context the LOCK opened only if it is sent
+      // stateful; stateless, it releases nothing and still answers 200.
+      () =>
+        inStatefulSession(this.connection, () =>
+          unlockServiceBinding(this.connection, name, lockHandle),
+        ),
       nothing,
       options?.analyse,
     );

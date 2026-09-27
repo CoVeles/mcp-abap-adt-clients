@@ -22,6 +22,50 @@ independent versions. One package at a time: `npm run publish:clients` and
   
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the package follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`AdtInclude`, `AdtService` and `AdtMessageClass` send their UNLOCK
+  stateful.** Only the LOCK and the UNLOCK are stateful: `lock` returns to
+  stateless once its request answers, so `unlock` must switch to stateful for
+  its own request, as every other handler does. These three sent it stateless.
+  An older connector carried the context cookie on every request, which hid
+  it; from `@mcp-abap-adt/connection` 9.3.1 a stateless request carries no
+  `sap-contextid`, so the UNLOCK ran in a fresh ABAP context, answered `200`
+  and released nothing. Measured on an on-premise system with connection
+  9.4.0: the include activation then answered `403` EU/510 "currently
+  editing", and its cleanup delete was refused the same way. **Anyone on
+  adt-clients 23.0.1 with connection 9.3.1 or later is affected** — `^9.x`
+  resolves to it. `behaviour.test.ts` now stamps every LOCK and UNLOCK with the
+  mode it went out in, for every lockable handler.
+
+### Development
+
+- `@mcp-abap-adt/connection` `^9.4.0` (was `^9.3.0`), a dev dependency: the
+  integration suite now runs on the connector that keeps a request that is not
+  stateful out of the stateful context, over HTTP (9.3.1) and RFC (9.3.2,
+  9.3.4; 9.4.0 requires `sap-rfc-lite` 0.2.0, so the lockfile resolves it and
+  the RFC context reset is used). `WORKAROUNDS.md` notes that the connector handles PAK/058; the
+  entry stays for callers with their own `IAbapConnection`.
+
+### Tests
+
+- **Every UNLOCK the integration suite relies on is now proven, not assumed.**
+  The suites checked only that an UNLOCK answered 200, which is exactly what a
+  stateless UNLOCK does while releasing nothing. `expectLockReleased`
+  (`src/__tests__/helpers/lockReleased.ts`) opens a second ABAP session and
+  LOCKs the same object: a refusal fails the test with SAP's sentence (e.g.
+  403 EU/510 "currently editing"), a grant is released again, and the session
+  is closed in every case. It runs after `BaseTester`'s update-step UNLOCK —
+  every lockable type in the flow tests, class includes against the class
+  lock — and after the hand-written lock windows in the append structure,
+  scalar function, scalar function implementation, behavior implementation,
+  unit test, group activation and transport suites. On by default;
+  `VERIFY_LOCK_RELEASED=false` turns it off, since each check is one extra
+  logon. `createTestConnection` takes `{ ownSession: true }` for this, and
+  `closeOwnTestConnection` ends such a session.
+
 ## [23.0.1] - 2026-09-27
 
 ### Fixed

@@ -561,9 +561,13 @@ standard_objects:
       description: "Shared runnable class (from shared_dependencies)"
       available_in: ["onprem", "cloud"]
 
+  # `available_in` is required on every entry: resolveStandardObject filters
+  # on it, and an entry without it is never selected — these four were
+  # silently skipped by their read tests on every system.
   interfaces:
     - name: "ZAC_SHR_IF01"
       description: "Shared interface (from shared_dependencies)"
+      available_in: ["onprem", "cloud"]
 
   # Basic DDIC objects — guaranteed to exist on all ABAP systems
   domains:
@@ -614,15 +618,29 @@ standard_objects:
   views:
     - name: "ZAC_SHR_CDSUT_DDLS"
       description: "Shared CDS view (from shared_dependencies)"
+      available_in: ["onprem", "cloud"]
 
   function_groups:
     - name: "ZAC_SHR_FUGR"
       description: "Shared function group (from shared_dependencies)"
+      available_in: ["onprem", "cloud"]
 
   function_modules:
     - name: "Z_AC_SHR_FM01"
       group: "ZAC_SHR_FUGR"
       description: "Shared function module (from shared_dependencies)"
+      available_in: ["onprem", "cloud"]
+
+  # SAP-delivered, read-only fixtures: nothing is created for them.
+  includes:
+    - name: "LSVIMTOP"
+      description: "Standard program include (PROG/I)"
+      available_in: ["onprem", "legacy"]
+
+  transformations:
+    - name: "ID"
+      description: "Standard identity XSLT transformation"
+      available_in: ["onprem", "legacy"]
 
   service_definitions:
     - name: "ZAC_SHR_SRVD01"
@@ -1585,10 +1603,20 @@ create_service_binding:
 # Create Feature Toggle (FTG2/FT) — core module; users need both to create
 # custom feature toggles and to switch their state. Start onprem-only: the
 # FTG2/FT create authorization is usually SAP-reserved on cloud trial.
+# Feature toggles — A DELIBERATE RUN, never the full suite (issue #131).
+#
+# Many systems refuse to have feature toggles created at all: "It is not
+# allowed to create/update feature toggles in this system" (FTG2/035), and
+# nothing in this library can get past that. The domain methods and the
+# on/off switch then act on an object that was never made. Like service
+# binding publication, this is `enabled: false` by default and turned on by
+# hand, on a system where Switch Framework permits it:
+#   1. set create_feature_toggle.enabled: true
+#   2. `npm test -- integration/core/featureToggle`
 create_feature_toggle:
   test_cases:
     - name: "adt_feature_toggle"
-      enabled: true
+      enabled: false                # ← turn on for a deliberate feature-toggle run
       available_in: ["onprem"]
       description: "Feature toggle reserved for AdtFeatureToggle tests"
       params:
@@ -2252,10 +2280,18 @@ runtime_gateway_errors:
         max_results: 10
 
 # ATC check runs (AdtRuntimeClient.getAtc())
+# ATC — off until you name a check variant that runs on your system.
+#
+# Which variant works is the system's own answer: one it nominates can abort
+# every run with TOOL_FAILURE "ATC check run aborted, due to missing
+# prerequisites", while an SAP-delivered one (DEFAULT, SLIN_DEFAULT) runs.
+# To turn it on:
+#   1. set params.check_variant below to a variant that runs on your system
+#   2. set enabled: true
 atc_run:
   test_cases:
     - name: "adt_atc_run"
-      enabled: true
+      enabled: false                # ← CHANGE: true once check_variant is set
       description: "Run ATC over the deliberately dirty shared class and read the worklist"
       # No `available_in`: ATC exists on every system this library targets, and
       # `getEnvironmentType()` answers "onprem" everywhere anyway — it defaults
@@ -2285,6 +2321,11 @@ atc_run:
         #
         # expected_message_id: "0245"
         # expected_priority: 2
+        # The check variant the run uses. Empty ("") asks the system for the one
+        # it nominates (/atc/customizing) — what a consumer gets; a run that
+        # then finishes with TOOL_FAILURE "missing prerequisites" means that
+        # variant cannot run here, so name one that can.
+        check_variant: "<CHECK_VARIANT>"   # ← CHANGE: e.g. DEFAULT, or "" for the system's own
         poll_timeout_ms: 300000
         poll_interval_ms: 3000
 

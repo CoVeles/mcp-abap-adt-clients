@@ -27,6 +27,7 @@ import {
 } from '../../../../utils/systemInfo';
 import { patchXmlElement } from '../../../../utils/xmlPatch';
 import { expectResult } from '../../../helpers/contract';
+import { expectLockReleased } from '../../../helpers/lockReleased';
 import {
   createTestAdtClient,
   createTestConnection,
@@ -694,6 +695,12 @@ describe('AdtRequest', () => {
           } finally {
             await domain.unlock({ domainName }, domainHandle);
           }
+          await expectLockReleased(
+            (c) => c.getDomain(),
+            { domainName },
+            `domain ${domainName}`,
+            testsLogger,
+          );
 
           await domain.delete({ domainName, transportRequest: sharedRequest });
 

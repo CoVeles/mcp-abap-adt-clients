@@ -42,6 +42,7 @@ npm test -- e2e 2>&1 | tee test-run.log            # End-to-end tests (excluded 
 npm run shared:setup 2>&1 | tee shared-setup.log   # Create shared dependencies
 DEBUG_TESTS=true npm test -- integration/class 2>&1 | tee test-run.log   # With connection debug logs
 DEBUG_ADT_TESTS=true npm test -- integration/view 2>&1 | tee test-run.log # With ADT operation logs
+VERIFY_LOCK_RELEASED=false npm test 2>&1 | tee test-run.log   # Skip the second-session proof that each UNLOCK released its lock (on by default; one extra logon per check)
 
 # Type-check tests without running
 npm run test:check              # All test tsconfigs
@@ -94,7 +95,7 @@ await cls.activate(config);
 
 The one exception is `AdtMessageClassMessage`, where a message is a row inside its class's document: the write is one PUT, but it needs two lock handles and a read-modify-write of XML this library assembles.
 
-**Session Management**: `lock` sets stateful and `unlock` restores stateless. No other member touches `connection.setSessionType()` — asserted by `src/__tests__/unit/capabilities/behaviour.test.ts`.
+**Session Management**: only the `LOCK` and the `UNLOCK` request are stateful. `lock` sets stateful for its own request and is back to stateless as soon as that request answers; `unlock` does the same for its `UNLOCK`. Everything between them — the write included — goes stateless, as Eclipse sends it. The `UNLOCK` must be stateful: the connector (`@mcp-abap-adt/connection` ≥ 9.3.1) sends the context cookie `sap-contextid` with stateful requests only, and a stateless `UNLOCK` runs in a fresh ABAP context, answers 200 and releases nothing — the next activation or delete is refused with `EU/510` "currently editing". No other member touches `connection.setSessionType()`. Both rules are asserted by `src/__tests__/unit/capabilities/behaviour.test.ts` ("LOCK and UNLOCK are the stateful requests", "a member leaves the session alone"). The one exception is `AdtMessageClassMessage`, whose write holds two locks and manages its own window.
 
 **Interface-Only Communication**: All code depends on `IAbapConnection` interface, not concrete implementations. `@mcp-abap-adt/connection` (dev dependency) provides the concrete implementation, used only in tests.
 
@@ -125,7 +126,7 @@ The one exception is `AdtMessageClassMessage`, where a message is a row inside i
 - **Test config setup**: `npm run test:init` (or `cp src/__tests__/helpers/test-config.yaml.template src/__tests__/helpers/test-config.yaml`). Template works out of the box — edit only lines marked `# ← CHANGE`: `system` (`"onprem"` or `"cloud"` — this is what picks the connector, and it is stated, never inferred from `SAP_URL` or the auth type), `default_package`, `default_transport`, `default_master_system`, `shared_dependencies.super_package`. On-prem package tests also need `transport_layer`.
 - **Root package prerequisite**: The package specified in `default_package` (e.g., `ZADT_BLD_PKG03`) must be created manually in the SAP system before running tests. Tests do not create this package — they only create objects inside it.
 - `TestConfigResolver` resolves params with priority: `testCase.params` > `environment.default_*` > `SAP_*` env vars
-- **Tests never build a connection themselves.** `createTestConnection(logger)` from `src/__tests__/helpers/sessionConfig.ts` reads the target system and the authentication from config, picks the connector accordingly, opens the session, and returns it ready to use; `await connection.disconnect()` in `afterAll` releases it. `reset()` is gone as of `@mcp-abap-adt/connection` 5.0.0 — it dropped the cookie locally and left the session open on the server
+- **Tests never build a connection themselves.** `createTestConnection(logger)` from `src/__tests__/helpers/sessionConfig.ts` reads the target system and the authentication from config, picks the connector accordingly, opens the session, and returns it ready to use; `await connection.disconnect()` in `afterAll` releases it. `createTestConnection(logger, { ownSession: true })` opens a session of its own instead of joining the run's — the caller closes it with `closeOwnTestConnection()`; `expectLockReleased` (`helpers/lockReleased.ts`) is its one user. `reset()` is gone as of `@mcp-abap-adt/connection` 5.0.0 — it dropped the cookie locally and left the session open on the server
 - Tests are idempotent: CREATE tests delete existing objects first; other tests create missing objects
 - Only user-defined objects (Z_/Y_ prefix) can be modified in tests
 - Tests run sequentially (`maxWorkers: 1`, `maxConcurrency: 1`) to avoid conflicts with shared SAP objects; timeout is 15 minutes

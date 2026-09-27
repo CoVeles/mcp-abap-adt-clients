@@ -289,6 +289,35 @@ function perFileSession(): boolean {
   return process.env.PER_FILE_SESSION === '1';
 }
 
+/** How a caller of {@link createTestConnection} wants its session. */
+export interface ITestConnectionOptions {
+  /**
+   * Open a session of this connection's own instead of joining the run's.
+   *
+   * For a second ABAP session that must NOT be the one the test works on —
+   * `expectLockReleased` locks from here to prove the test's UNLOCK released
+   * what its LOCK took, which the test's own session cannot prove: a lock is
+   * granted again to the session that already holds it. The caller closes it
+   * with {@link closeOwnTestConnection}; the trial grants two sessions, and
+   * this is the second.
+   */
+  ownSession?: boolean;
+}
+
+/**
+ * The run's session material to adopt, or `null` to open a new session.
+ *
+ * Factored out so the decision is testable without a system: an own session
+ * and `PER_FILE_SESSION=1` both answer `null` without reading the material.
+ */
+export function sessionToJoin(
+  options: ITestConnectionOptions = {},
+  read: () => ISessionMaterial | null = readSessionMaterial,
+): ISessionMaterial | null {
+  if (options.ownSession || perFileSession()) return null;
+  return read();
+}
+
 /**
  * The one place a test gets a connection.
  *
@@ -302,6 +331,7 @@ function perFileSession(): boolean {
  */
 export async function createTestConnection(
   logger: ILogger = createConnectionLogger(),
+  options: ITestConnectionOptions = {},
 ): Promise<IAbapConnection & ISessionLifecycleAware & ISessionSharing> {
   const config = getConfig();
   const system = getTargetSystem();
@@ -351,7 +381,7 @@ export async function createTestConnection(
   // Each has to close for that to stay bounded, which is exactly what this
   // measures. HTTP only — an RFC conversation IS its session, and adopts
   // nothing.
-  const shared = perFileSession() ? null : readSessionMaterial();
+  const shared = sessionToJoin(options);
   if (shared) connection.adoptSession(shared);
 
   // Still connect(): adopting the cookies does not make the connection
@@ -415,6 +445,20 @@ async function endSession(conn: IReleasableConnection): Promise<void> {
   } else if (typeof conn.disconnect === 'function') {
     await conn.disconnect();
   }
+}
+
+/**
+ * End a session opened with `createTestConnection(logger, { ownSession: true })`.
+ *
+ * Unconditional, unlike {@link releaseTestConnection}: the session is this
+ * caller's alone, so `disconnect()` — the platform logoff on on-prem — ends
+ * only it, and nobody else is on it. `close()` for RFC.
+ */
+export async function closeOwnTestConnection(
+  connection: IReleasableConnection | undefined | null,
+): Promise<void> {
+  if (!connection) return;
+  await endSession(connection);
 }
 
 /**

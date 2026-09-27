@@ -749,6 +749,74 @@ describe('capability guard — a failed lock window restores the session', () =>
 });
 
 /**
+ * The LOCK and the UNLOCK go out stateful — they alone, and each on its own.
+ *
+ * The lock lives in the stateful ABAP context the `LOCK` opened, and only a
+ * request that reaches that context can release it. The connector decides
+ * which requests carry the context cookie by the session mode at the moment
+ * of the request: since `@mcp-abap-adt/connection` 9.3.1 a stateless request
+ * goes without it, so a stateless `UNLOCK` runs in a fresh context, answers
+ * 200, and releases nothing. Measured on E19, 2026-09-27: twenty-four unlocks
+ * here were sent stateless — `lock` went back to stateless as soon as its own
+ * request answered — and the include suite's activation then answered 403
+ * `EU/510` "currently editing", with its cleanup delete refused the same way.
+ * The older connector sent the cookie on every request, which hid it.
+ *
+ * So both requests are stamped with the mode they left in, and the session is
+ * stateless again once each member returns: everything between them — the
+ * write included — goes stateless, as Eclipse sends it.
+ */
+describe('capability guard — LOCK and UNLOCK are the stateful requests', () => {
+  function modeRecordingClient() {
+    let mode = 'stateless';
+    const sent: Array<{ url: string; mode: string }> = [];
+    const connection = {
+      connect: async () => {},
+      getBaseUrl: async () => 'https://example',
+      getSessionId: () => null,
+      setSessionType: (type: string) => {
+        mode = type;
+      },
+      makeAdtRequest: async (req: Recorded) => {
+        sent.push({ url: wireUrl(req), mode });
+        return {
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          data: bodyFor(req.url, ACTIVATION_OK),
+        } as IAdtWireResponse;
+      },
+    } as unknown as IAbapConnection;
+    const client = new AdtClient(connection, createLibraryLogger());
+    return { client, sent, mode: () => mode };
+  }
+
+  for (const [name, entry] of Object.entries(
+    HANDLERS as Record<string, HandlerEntry>,
+  )) {
+    if (!entry.capabilities.includes('lockable')) continue;
+    for (const [method, action] of [
+      ['lock', 'LOCK'],
+      ['unlock', 'UNLOCK'],
+    ] as const) {
+      it(`${name}.${method} sends its ${action} stateful and returns stateless`, async () => {
+        const { client, sent, mode } = modeRecordingClient();
+        const handler = entry.factory(client) as unknown as Record<
+          string,
+          unknown
+        >;
+        await invoke(handler, method, entry.config);
+
+        const own = sent.filter((r) => r.url.includes(`_action=${action}`));
+        expect(own.length).toBeGreaterThan(0);
+        expect(own.map((r) => r.mode)).toEqual(own.map(() => 'stateful'));
+        expect(mode()).toBe('stateless');
+      });
+    }
+  }
+});
+
+/**
  * The caller's deadline reaches the wire.
  *
  * Since 18.0.0 this library sends no client-side timeout of its own —

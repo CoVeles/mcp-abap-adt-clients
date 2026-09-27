@@ -22,6 +22,7 @@ import * as dotenv from 'dotenv';
 import type { AdtClient } from '../../../../clients/AdtClient';
 import { isCloudEnvironment } from '../../../../utils/systemInfo';
 import { expectResult } from '../../../helpers/contract';
+import { expectLockReleased } from '../../../helpers/lockReleased';
 import {
   createTestAdtClient,
   createTestConnection,
@@ -208,6 +209,12 @@ describe('ScalarFunction (DSFD/SCF) integration', () => {
             } finally {
               await sf.unlock({ scalarFunctionName }, sfLock);
             }
+            await expectLockReleased(
+              (c) => c.getScalarFunction(),
+              { scalarFunctionName },
+              `scalar function ${scalarFunctionName}`,
+              testsLogger,
+            );
             expectResult(
               await sf.activate({ scalarFunctionName }),
               'activate scalar function',

@@ -22,6 +22,7 @@ import * as dotenv from 'dotenv';
 import type { AdtClient } from '../../../../clients/AdtClient';
 import { isCloudEnvironment } from '../../../../utils/systemInfo';
 import { expectResult } from '../../../helpers/contract';
+import { expectLockReleased } from '../../../helpers/lockReleased';
 import {
   createTestAdtClient,
   createTestConnection,
@@ -272,6 +273,12 @@ describe('AppendStructure (TABL/DS) integration', () => {
             } finally {
               await as.unlock({ appendStructureName }, appendLock);
             }
+            await expectLockReleased(
+              (c) => c.getAppendStructure(),
+              { appendStructureName },
+              `append structure ${appendStructureName}`,
+              testsLogger,
+            );
             expectResult(
               await as.activate({ appendStructureName }),
               'activate append structure',

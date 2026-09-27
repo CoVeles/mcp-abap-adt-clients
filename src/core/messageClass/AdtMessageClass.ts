@@ -321,11 +321,14 @@ export class AdtMessageClass<
     const name = this.name(config);
 
     return answering(
+      // The UNLOCK reaches the context the LOCK opened only if it is sent
+      // stateful; stateless, it releases nothing and still answers 200.
       async () => {
         try {
-          return await unlockMessageClass(this.connection, name, lockHandle);
+          return await inStatefulSession(this.connection, () =>
+            unlockMessageClass(this.connection, name, lockHandle),
+          );
         } finally {
-          this.connection.setSessionType('stateless');
           this.lockTracker.untrack(name);
         }
       },

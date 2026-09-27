@@ -27,6 +27,7 @@ import type { IUnitTestConfig } from '../../../../core/unitTest';
 import { unitTestDocuments } from '../../../../core/unitTest/types';
 import { isCloudEnvironment } from '../../../../utils/systemInfo';
 import { expectResult } from '../../../helpers/contract';
+import { expectLockReleased } from '../../../helpers/lockReleased';
 import { presenceOf } from '../../../helpers/objectPresence';
 import {
   createTestAdtClient,
@@ -276,6 +277,12 @@ describe('AdtUnitTest (using AdtClient)', () => {
             'write container class source',
           );
           await client.getClass().unlock(containerConfig, containerHandle);
+          await expectLockReleased(
+            (c) => c.getClass(),
+            containerConfig,
+            `container class ${containerClass}`,
+            testsLogger,
+          );
           testsLogger.info?.('Container class source written');
 
           // Step 3: Write the tests into the container class's include.
@@ -306,6 +313,14 @@ describe('AdtUnitTest (using AdtClient)', () => {
           } finally {
             await client.getClass().unlock(containerConfig, includeHandle);
           }
+          // The include was written under the CLASS lock, so the class lock is
+          // the one to prove released.
+          await expectLockReleased(
+            (c) => c.getClass(),
+            containerConfig,
+            `container class ${containerClass} (testclasses include)`,
+            testsLogger,
+          );
           testsLogger.info?.('Local test class written');
 
           // Step 4: Activate class
