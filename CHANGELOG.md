@@ -24,6 +24,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+### Development
+
+- `@mcp-abap-adt/connection` `^9.4.2` (was `^9.4.0`), a dev dependency: 9.4.2
+  requires `sap-rfc-lite` `^0.2.1`, the first npm package whose JS client has
+  `resetServerContext` — 0.2.0 was packed with a stale `lib/`, so RFC runs fell
+  back to a new connection per stateless call (about 1010 s against 684 s for a
+  full run). The lockfile resolves 0.2.1. Consumers are unaffected: they choose
+  their own connector.
+
 ## [23.0.4] - 2026-09-27
 
 **Documentation only — no library code changed.**
