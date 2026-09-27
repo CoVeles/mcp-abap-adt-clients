@@ -530,7 +530,9 @@ A POST sometimes builds a minimal working object and sometimes builds nothing,
 and which one you get is a property of the type: a domain is complete, an
 interface has a generated skeleton, a DDL source answers `200` with an empty
 body, a class has a skeleton that **no read can see until its first source
-write**, and a service definition's create is refused outright.
+write**, and a service definition is created with an empty source (a create
+that sends no responsible person is refused — a different thing, see
+[WORKAROUNDS.md](WORKAROUNDS.md#an-empty-responsible-person-is-refused-as-check-of-condition-failed)).
 `getVersions()` answers `ok` in every one of those states. The measured table,
 the class's read sequence and what to do are in
 [WORKAROUNDS.md](WORKAROUNDS.md#what-a-bare-create-leaves-depends-on-the-type).

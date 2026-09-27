@@ -43,27 +43,29 @@ Reading answers
 5. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
 6. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
 7. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
-8. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
+8. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
+9. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
 
 Creating and checking objects
 
-9. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
-10. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
+10. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
+11. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
+12. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
 
 Activation
 
-11. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
-12. [Activation settles inside the POST](#activation-settles-inside-the-post)
+13. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
+14. [Activation settles inside the POST](#activation-settles-inside-the-post)
 
 Transports
 
-13. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
-14. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
-15. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
+15. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
+16. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
+17. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
 
 ATC
 
-16. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
+18. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
 
 ---
 
@@ -448,6 +450,44 @@ CDS sources; any deletion reading.
 
 ---
 
+## A function module's source answers 500 for a module that does not exist
+
+**Symptom.** A read of a function module's source answers **`500`**, *"An
+exception was raised"* (`SY/530`), for a module that is simply not there. The
+same question asked of the module's metadata answers `404`.
+
+```
+GET …/fmodules/<FUNCTION_MODULE>/source/main  → 500  <type id="FUNCTION"/>
+    "An exception was raised"; LONGTEXT: "Function module <FUNCTION_MODULE>
+    does not exist" (FL651)
+GET …/fmodules/<FUNCTION_MODULE>              → 404  ExceptionResourceNotFound
+    "Function module <FUNCTION_MODULE> does not exist" (FL110)
+```
+
+**Cause.** The source resource raises the function builder's own exception
+instead of answering absence; the reason travels only in the long text.
+
+**Rule.** The status is the least of the answer — the text says "does not
+exist", even under a `500`. And a source is the wrong place to ask about
+existence at all: this one answers `500`, and a source that was never written
+answers `200` and no body
+([above](#a-read-answers-200-with-an-empty-body-instead-of-404)). Ask the
+object's own URI.
+
+**Workaround.** Decide existence with `readMetadata()`: a document means the
+object is there, `ExceptionResourceNotFound` or "does not exist" means it is
+not, and only an answer without a text is judged by its status. Where a source
+read has already failed, read the document in `response.data` — not the
+transport's "Request failed with status code 500".
+
+**Evidence.** Cloud system, 2026-09-27: both reads above, for a module in a new
+function group and for one in a long-active group; an existing module's source
+answered `200` with its code.
+
+**Where it bites.** `getFunctionModule().read()` used as an existence check.
+
+---
+
 ## S_ABPLNGVS refuses a create into a package that does not exist
 
 **Symptom.** A create answers `403 ExceptionResourceNoAccess`, *"You are not
@@ -485,8 +525,7 @@ mistyped `packageName`.
 `400 ExceptionResourceWrongData`, `SADT_RESOURCE/007`, *"Resource  <CLASS>: wrong
 input data for processing"* (note the double space) — for `active`, `inactive`,
 metadata and source alike. Waiting 30 seconds does not help, and neither does
-lock + unlock. Other types answer differently, and a service definition's
-create is refused outright with *"Check of condition failed"*.
+lock + unlock. Other types answer differently.
 
 **Cause.** What the POST leaves is a property of the type:
 
@@ -496,7 +535,7 @@ create is refused outright with *"Check of condition failed"*.
 | `interface` | generated skeleton | 53 bytes |
 | `class` | generated skeleton | **refused** `400 ExceptionResourceWrongData` |
 | `ddl` | object, no content | `200`, empty |
-| `serviceDefinition` | **nothing — the POST is refused** | — |
+| `serviceDefinition` | object, no content | `200`, empty source |
 
 The class does have a skeleton; it becomes readable at the first source write
 (`version=active` → SAP's `class <CLASS> definition`, `version=inactive` → what
@@ -509,16 +548,23 @@ the unreadable class), and `validate()` answers neither "name is free" nor
 "object exists" — the name is held from the POST onward regardless. Absence has
 three wordings (*"Error while importing object … from the database"*,
 *"Resource INTERFACE … does not exist."*, *"Data definition … of version  does
-not exist"*); do not match on the text.
+not exist"*); do not match on one wording. The metadata read marks absence
+with `<type id="ExceptionResourceNotFound"/>` whatever the sentence; a function
+module's source is the exception, where only the long text says it
+([below](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)).
 
 **Workaround.** After creating a class, write its source; do not retry the read.
 The first check worth making is after the write: read the version you wrote and
-compare. A service definition is created with its source in the same flow, not
-bare. If a sequence stops between the POST and the write, `delete()` the object
+compare. A service definition is created empty; write its source before
+activating it. If a sequence stops between the POST and the write, `delete()` the object
 while it is still bound to its package.
 
 **Evidence.** Cloud trial, 2026-09-05, `scripts/probe-unfinished-create.ts` and
-`scripts/probe-inactive-metadata.ts` (the table above). `program` could not be
+`scripts/probe-inactive-metadata.ts` (the table above). The service definition
+row was corrected on 2026-09-27: that probe's client carried no responsible
+person, and its "refused" was
+[that refusal](#an-empty-responsible-person-is-refused-as-check-of-condition-failed);
+with the user set, the POST answers `201` and the source reads empty. `program` could not be
 measured there — an ABAP Cloud system refuses it with `S_DEVELOP`. The class, in
 order:
 
@@ -537,6 +583,37 @@ read inactive       200   CLASS <class> DEFINITION …    ← as written
 **Where it bites.** `create` then `read` / `readMetadata` on `getClass()`,
 `getInterface()`, `getDdl()`, `getDomain()`; `getServiceDefinition().create()`;
 `getVersions()` and `validate()` used as readiness checks.
+
+---
+
+## An empty responsible person is refused as "Check of condition failed"
+
+**Symptom.** A create answers `400 ExceptionInvalidData`, *"Check of condition
+failed"* (`00/001`), with `XML_PATH` `srvd:srvdSource(1)` and an `XML_OFFSET`
+that points at the end of the root element's start tag. Nothing names a field.
+
+**Cause.** The request carried `adtcore:responsible=""`. The empty attribute is
+the only difference from a request that is accepted: with the user in it the
+same POST answers `201`.
+
+**Rule.** The offset is the pointer: it names the root element's attributes,
+not its content. A create of a name that exists is a different answer —
+`400 ExceptionResourceAlreadyExists`, *"Resource Service Definition <NAME> does
+already exist."* — so this sentence is not "already exists" either.
+
+**Workaround.** Give the client the responsible person: `IAdtClientOptions.responsible`
+(on a cloud system, `userName` from `getSystemInformation()`; on-premise, the
+logon user, upper-cased). A client built without options sends it empty.
+
+**Evidence.** Cloud system, 2026-09-27, the same service definition POST three
+ways: `responsible=""` → `400` "Check of condition failed", `XML_OFFSET 330`,
+which is the end of the start tag; `responsible` set → `201`; the same again →
+`400 ExceptionResourceAlreadyExists`. The earlier measurement that called a
+service definition's create "refused outright" came from a client built
+without options, so it measured this.
+
+**Where it bites.** `create` on a client without `responsible` — most visibly
+`getServiceDefinition().create()`.
 
 ---
 

@@ -24,6 +24,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+### Documentation
+
+- `WORKAROUNDS.md`: two new entries. **A function module's source answers
+  `500`** ("An exception was raised", `SY/530`) for a module that does not
+  exist; only its long text says so (FL651), while the metadata answers `404`.
+  **An empty responsible person is refused as "Check of condition failed"**
+  (`00/001`, `XML_OFFSET` at the end of the root start tag). The table of what
+  a bare create leaves said a service definition's POST is refused outright;
+  that measurement came from a client without a responsible person. With one,
+  the POST answers `201` and the source reads empty. `OBJECT_LIFECYCLE.md`
+  said the same and is corrected.
+
+### Tests
+
+- **`shared:setup` asks about existence on the object's metadata, and judges
+  a refusal by SAP's text.** It read the source and took an empty one for
+  absence. A service definition created but not written answers `200` with an
+  empty source, so a second run called it missing and created it again. A
+  missing function module's source answers `500`; the check read the
+  transport's "Request failed with status code 500" rather than SAP's
+  "does not exist", and stopped. `answerSaysAbsent` reads the document first
+  and falls back to the status only when there is no text.
+- **A shared service definition with `skip_activation` gets its source.** Since
+  23.0.0 `create` is the POST alone and ignores `source`. The deferred branch
+  wrote nothing, so the object stayed an empty inactive shell that a service
+  binding was then built on. It is now locked, written and unlocked, and left
+  for the group activation (`writeSource`).
+
 ## [23.0.2] - 2026-09-27
 
 **Upgrade if you use `@mcp-abap-adt/connection` 9.3.1 or later** — `^9.x`
