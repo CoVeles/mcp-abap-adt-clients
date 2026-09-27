@@ -95,24 +95,26 @@ other request:
 const cls = client.getClass();
 const config = { className: 'ZCL_TEST' };
 
-const locked = await cls.lock(config);           // stateful from here
+const locked = await cls.lock(config);           // the LOCK goes stateful
 if (!locked.ok) throw new Error(locked.getError().message);
 const lockHandle = locked.getResult().value;
 
 try {
   await cls.update(config, { source, lockHandle });
 } finally {
-  await cls.unlock(config, lockHandle);           // stateless again
+  await cls.unlock(config, lockHandle);           // so does the UNLOCK
 }
 
 await cls.activate(config);                       // when you want it active
 ```
 
-`lock` and `unlock` are the only members that change the session type: `lock`
-sets `stateful`, `unlock` restores `stateless`. A lock handle is only valid
-inside a stateful request on some releases, which is why the unlock has to
-happen before anything puts the session back — and why the `finally` above is
-the shape to copy.
+`lock` and `unlock` are the only members that change the session type, and
+each only for its own request: the `LOCK` and the `UNLOCK` go out stateful,
+everything between them — the write included — stateless. The `UNLOCK` has to
+reach the ABAP context that holds the lock, which is what the stateful request
+carries it to; a stateless one answers `200` and releases nothing (see
+[STATEFUL_SESSION_GUIDE.md](STATEFUL_SESSION_GUIDE.md)). The `finally` above is
+the shape to copy, because a handle left held refuses the next write.
 
 **`lock` answers the handle SAP sent; `unlock` answers SAP's reply.** The handle
 is read from the `sap-adt-lm-handle` header or from `LOCK_HANDLE` in the body.

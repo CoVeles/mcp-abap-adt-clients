@@ -159,7 +159,7 @@ An update is the caller's sequence:
 ## Session and Locking Model
 
 Critical conventions used across object modules:
-- `lock` sets the session stateful and `unlock` restores stateless; no other member calls `connection.setSessionType`.
+- Only the `LOCK` and the `UNLOCK` request are stateful: `lock` and `unlock` each switch to stateful for their own request and back to stateless when it answers; no other member calls `connection.setSessionType`. The `UNLOCK` must be stateful — a stateless one runs in a fresh ABAP context and releases nothing.
 - `lockHandleOf` (`utils/lockHandle.ts`) reads the handle from the `sap-adt-lm-handle` header (function groups) or `LOCK_HANDLE` in the body; it is the one reading the implementation owns, because the contract fixes `lock`'s answer as the handle.
 - Long polling is a flag on reads the caller makes, where ADT supports `withLongPolling=true`.
 
