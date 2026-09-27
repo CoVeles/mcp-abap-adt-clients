@@ -197,6 +197,10 @@ activated, published and unpublished.
   own answer (`analysePublication`); nothing needs polling.
 - **"You are already editing <BINDING>" on a delete** — the lock an editor holds.
   Close the editor that holds it.
+- **A package walk lists objects the binding's publication generated** —
+  `G4BA`, `SCO2`, `SUSH` — that have no ADT address; a group deletion check
+  over them refuses the whole group. Leave them out; they go with the binding.
+  See [below](#a-package-walk-lists-a-bindings-generated-objects).
 
 ### Message
 
@@ -235,29 +239,30 @@ Reading answers
 11. [A validation answers a taken name inside a 200](#a-validation-answers-a-taken-name-inside-a-200)
 12. [A deletion check that says no is not a failure](#a-deletion-check-that-says-no-is-not-a-failure)
 13. ["No URI-Mapping defined for URI" inside a 200](#no-uri-mapping-defined-for-uri-inside-a-200)
-14. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
+14. [A package walk lists a binding's generated objects](#a-package-walk-lists-a-bindings-generated-objects)
+15. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
 
 Creating and checking objects
 
-15. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
-16. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
-17. [An object created without a package cannot be deleted](#an-object-created-without-a-package-cannot-be-deleted)
-18. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
+16. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
+17. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
+18. [An object created without a package cannot be deleted](#an-object-created-without-a-package-cannot-be-deleted)
+19. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
 
 Activation
 
-19. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
-20. [Activation settles inside the POST](#activation-settles-inside-the-post)
+20. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
+21. [Activation settles inside the POST](#activation-settles-inside-the-post)
 
 Transports
 
-21. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
-22. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
-23. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
+22. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
+23. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
+24. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
 
 ATC
 
-24. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
+25. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
 
 ---
 
@@ -816,7 +821,37 @@ node structure), not from its type code.
 
 **Evidence.** The package URI built from `DEVC/K`, answered as above.
 
-**Where it bites.** `getUtils()` group operations over hand-built references.
+**Where it bites.** `getUtils()` group operations over hand-built references,
+and over a package walk that includes a binding's generated objects — see
+[the next entry](#a-package-walk-lists-a-bindings-generated-objects).
+
+---
+
+## A package walk lists a binding's generated objects
+
+**Symptom.** A group deletion check over everything a package walk listed
+answers `200` refusing the group, with `[E]` *"No URI-Mapping defined for
+URI"* on objects that carry no name in the answer. Nothing is deleted.
+
+**Cause.** Next to a service binding that has been published, the node
+structure of its package lists what the system generated for it — a `G4BA`
+named like the binding, an `SCO2` `<BINDING>_0001_G4BA`, a `SUSH` with a
+generated name. They are not ADT objects: there is no resource to address, so
+the deletion check cannot place them.
+
+**Rule.** A package walk lists more than ADT can act on. What you can delete is
+what you can address.
+
+**Workaround.** Leave these types out of a group deletion.
+Delete the binding; its generated objects go with it.
+
+**Evidence.** Cloud system, 2026-09-27, cleaning a test package: with the three
+included, the group check refused everything as above; without them, 26 objects
+were checked and deleted, and a walk of the package afterwards listed nothing —
+the generated objects had gone with the binding.
+
+**Where it bites.** `getUtils().checkDeletionGroup()` and `deleteObjectsGroup()`
+over references taken from `fetchNodeStructure()` or any package walk.
 
 ---
 
