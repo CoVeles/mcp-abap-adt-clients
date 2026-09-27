@@ -24,6 +24,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+### Documentation
+
+- `ERRATA.md`: **a package walk lists a binding's generated objects** —
+  `G4BA`, `SCO2`, `SUSH` beside a published binding, with no ADT address. A
+  group deletion check over them refuses the whole group ("No URI-Mapping
+  defined for URI"); leave them out, they go with the binding. Measured on a
+  cloud system while cleaning a test package. Linked from the service binding's
+  branch of the object tree.
+
 ## [23.0.3] - 2026-09-27
 
 **Documentation and tests only — no library code changed.** What ships in
