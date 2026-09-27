@@ -27,6 +27,15 @@ and fires its release workflow.
   `analyseException` reads it. A caller who wants the `403` to stop them passes
   `analyseException`, or a strategy of their own.
 
+### Documentation
+
+- **`ERRATA.md` ships in this package.** It is adt-clients' document of what SAP
+  answers that it does not mean — the object tree with each branch's cases, then
+  every case with its evidence — and it is the reason several strategies here
+  exist. It is copied from `docs/usage/ERRATA.md` at pack time
+  (`scripts/copy-errata.js`), never committed twice; its relative links point to
+  the repository on GitHub. The README links it.
+
 ## [0.5.0] - 2026-09-26
 
 Released together with `adt-clients` 23.0.0, which stopped applying any reading

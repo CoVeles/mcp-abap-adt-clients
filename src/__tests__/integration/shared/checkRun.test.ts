@@ -30,7 +30,7 @@
  * A third shape is possible and is not asserted here: an authorization refusal
  * naming `S_ABPLNGVS`, the ABAP **language version**, which newer systems raise
  * when the version the sent source implies cannot be satisfied — including for
- * reasons that have nothing to do with rights (see TROUBLESHOOTING.md). It can
+ * reasons that have nothing to do with rights (see ERRATA.md). It can
  * arrive as a transport failure or as an exception document inside a 200, so it
  * is recognised and skipped with the server's own sentence rather than reported
  * as a contract violation.

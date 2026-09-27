@@ -97,13 +97,10 @@ matching on `type === 'E'` does not have to know which carrier they got.
 Several of these exist because SAP answers something other than what it means —
 a `403` on a service binding's LOCK that is to be ignored
 (`analysePublicationLock`), a refusal inside a `200` (`analysePublication`,
-`analyseActivation`, `analyseDeletion`). The measurements and the object each
-one belongs to are in adt-clients:
-[TROUBLESHOOTING.md](https://github.com/fr0ster/mcp-abap-adt-clients/blob/main/docs/usage/TROUBLESHOOTING.md#the-object-tree)
-(by object) and
-[WORKAROUNDS.md](https://github.com/fr0ster/mcp-abap-adt-clients/blob/main/docs/usage/WORKAROUNDS.md)
-(the evidence). They also ship in the `@mcp-abap-adt/adt-clients` package under
-`docs/usage/`.
+`analyseActivation`, `analyseDeletion`). The measurements, and the object each one belongs to, are in
+[ERRATA.md](ERRATA.md) — shipped in this package, and kept in adt-clients at
+[docs/usage/ERRATA.md](https://github.com/fr0ster/mcp-abap-adt-clients/blob/main/docs/usage/ERRATA.md#the-object-tree).
+Start with its object tree.
 
 ### The whole surface
 

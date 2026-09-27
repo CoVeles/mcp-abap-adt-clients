@@ -53,7 +53,7 @@ export type PackageValidationResult = string;
  *
  * A refusal arrives as **200** carrying `isDeleted="false"`, so the document,
  * not the status, is the verdict. A package can be saved only once per ABAP
- * session: PAK/058 — see docs/usage/WORKAROUNDS.md.
+ * session: PAK/058 — see docs/usage/ERRATA.md.
  */
 export type PackageDeletionResult = string;
 
