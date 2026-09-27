@@ -322,26 +322,17 @@ export class AdtInclude<R extends IIncludeResults = typeof includeDocuments>
     return answer;
   }
 
-  /** Unlock the include, and go back to stateless either way. */
   /**
-   * Close the lock window, and the session mode with it.
+   * Release the lock: one `UNLOCK`, sent stateful, and stateless again after.
    *
-   * `lock()` sets stateful; only this puts it back. It did not, and the session
-   * stayed stateful for everything that followed — measured the four
-   * requests after an include's unlock all went out stateful: the read, the
-   * **activation**, the read after it, and the deletion. Every other type here
-   * pairs the two calls; this one set stateful and never cleared it.
-   *
-   * It matters beyond tidiness. An activation inside a stateful session leaves
-   * its `E_ABAP_GENPH` on the generated program held by that session, which
-   * lives as long as the connection — hours, in a test run — where the same
-   * activation sent statelessly leaves nothing behind. Eclipse holds a stateful
-   * session for the lock alone: its `LOCK` and `UNLOCK` are on one session and
-   * every other request, the source `PUT` included, goes stateless on a session
-   * of its own.
-   *
-   * Cleared after the request, not before: the unlock itself belongs to the
-   * window it is closing.
+   * The lock lives in the stateful context the `LOCK` opened, and only a
+   * request that reaches that context releases it. The connector sends the
+   * context cookie with stateful requests only, so an `UNLOCK` sent stateless
+   * runs in a fresh context, answers 200 and releases nothing — measured on
+   * an on-premise system 2026-09-27: the activation after it answered 403 `EU/510` "currently
+   * editing", and the delete was refused the same way. Both the `LOCK` and the
+   * `UNLOCK` are stateful for their own request only; everything between them,
+   * the source `PUT` included, goes stateless, as Eclipse sends it.
    */
   async unlock<E extends IAdtError = IAdtError>(
     config: Partial<IIncludeConfig>,
@@ -349,12 +340,13 @@ export class AdtInclude<R extends IIncludeResults = typeof includeDocuments>
     options?: IAdtAnalyseOptions<E>,
   ): Promise<IAdtResponse<void, E>> {
     const includeName = requireName(config);
-    const answer = await answering(
-      () => unlockInclude(this.connection, includeName, lockHandle),
+    return answering(
+      () =>
+        inStatefulSession(this.connection, () =>
+          unlockInclude(this.connection, includeName, lockHandle),
+        ),
       nothing,
       options?.analyse,
     );
-    this.connection.setSessionType?.('stateless');
-    return answer;
   }
 }

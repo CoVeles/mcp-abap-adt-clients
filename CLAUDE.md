@@ -94,7 +94,7 @@ await cls.activate(config);
 
 The one exception is `AdtMessageClassMessage`, where a message is a row inside its class's document: the write is one PUT, but it needs two lock handles and a read-modify-write of XML this library assembles.
 
-**Session Management**: `lock` sets stateful and `unlock` restores stateless. No other member touches `connection.setSessionType()` — asserted by `src/__tests__/unit/capabilities/behaviour.test.ts`.
+**Session Management**: only the `LOCK` and the `UNLOCK` request are stateful. `lock` sets stateful for its own request and is back to stateless as soon as that request answers; `unlock` does the same for its `UNLOCK`. Everything between them — the write included — goes stateless, as Eclipse sends it. The `UNLOCK` must be stateful: the connector (`@mcp-abap-adt/connection` ≥ 9.3.1) sends the context cookie `sap-contextid` with stateful requests only, and a stateless `UNLOCK` runs in a fresh ABAP context, answers 200 and releases nothing — the next activation or delete is refused with `EU/510` "currently editing". No other member touches `connection.setSessionType()`. Both rules are asserted by `src/__tests__/unit/capabilities/behaviour.test.ts` ("LOCK and UNLOCK are the stateful requests", "a member leaves the session alone"). The one exception is `AdtMessageClassMessage`, whose write holds two locks and manages its own window.
 
 **Interface-Only Communication**: All code depends on `IAbapConnection` interface, not concrete implementations. `@mcp-abap-adt/connection` (dev dependency) provides the concrete implementation, used only in tests.
 
