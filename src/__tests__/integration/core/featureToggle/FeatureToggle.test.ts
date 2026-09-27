@@ -232,7 +232,8 @@ describe('FeatureToggle (using AdtClient)', () => {
     );
     if (!tc) {
       return {
-        skipReason: 'Test case disabled or not found',
+        skipReason:
+          'create_feature_toggle is disabled — this is a deliberate run (#131)',
         testCase: null,
         featureToggleName: null,
       };

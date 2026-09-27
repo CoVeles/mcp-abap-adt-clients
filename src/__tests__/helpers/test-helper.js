@@ -527,6 +527,11 @@ function resolveStandardObject(
       paramSuffix: 'include_name',
     },
     program: { yamlKey: 'programs', paramSuffix: 'program_name' },
+    include: { yamlKey: 'includes', paramSuffix: 'include_name' },
+    transformation: {
+      yamlKey: 'transformations',
+      paramSuffix: 'transformation_name',
+    },
     package: { yamlKey: 'packages', paramSuffix: 'package_name' },
     view: { yamlKey: 'views', paramSuffix: 'ddl_name' },
     serviceDefinition: {
