@@ -118,7 +118,7 @@ See [ARCHITECTURE.md](architecture/ARCHITECTURE.md#type-system-organization) for
 
 ### Session Management
 
-`lock` sets the session stateful and `unlock` restores stateless; the handle is what `lock` answers, and the sequence between them is yours.
+Only the `LOCK` and the `UNLOCK` request are stateful — `lock` and `unlock` each switch for their own request and back; everything between them goes stateless. The handle is what `lock` answers, and the sequence between them is yours.
 
 See [STATEFUL_SESSION_GUIDE.md](usage/STATEFUL_SESSION_GUIDE.md) for implementation details.
 

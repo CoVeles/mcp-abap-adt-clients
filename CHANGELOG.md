@@ -24,6 +24,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+## [23.0.2] - 2026-09-27
+
+**Upgrade if you use `@mcp-abap-adt/connection` 9.3.1 or later** — `^9.x`
+resolves to it. There, the UNLOCK of an include, a service binding or a
+message class released nothing on 23.0.1 and earlier. Nothing
+else changes for a consumer: no API change, and the connector stays a dev
+dependency. A consumer with its own `IAbapConnection` must carry the ABAP
+context on the `LOCK` and the `UNLOCK` — see `STATEFUL_SESSION_GUIDE.md`.
+
 ### Fixed
 
 - **`AdtInclude`, `AdtService` and `AdtMessageClass` send their UNLOCK
@@ -39,6 +48,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   adt-clients 23.0.1 with connection 9.3.1 or later is affected** — `^9.x`
   resolves to it. `behaviour.test.ts` now stamps every LOCK and UNLOCK with the
   mode it went out in, for every lockable handler.
+
+### Documentation
+
+- `STATEFUL_SESSION_GUIDE.md`, `OBJECT_LIFECYCLE.md`, `ARCHITECTURE.md` and
+  `docs/README.md` said `unlock` "restores stateless". They now say what the
+  code does: the `LOCK` and the `UNLOCK` each go out stateful and nothing
+  between them does. The guide says why the `UNLOCK` must be stateful.
 
 ### Development
 

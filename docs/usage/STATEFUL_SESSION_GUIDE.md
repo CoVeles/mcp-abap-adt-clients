@@ -9,10 +9,18 @@ This guide explains how `@mcp-abap-adt/adt-clients` manages ADT sessions for CRU
 - `lock` returns the `lockHandle`; `update` and `delete` carry it in
   `options.lockHandle`, and `unlock` gives it back.
 - **Only `lock` and `unlock` change the session type**, and each covers its own
-  request and nothing more: `lock` sets stateful, acquires the handle, and puts
-  the session back to stateless before returning. The window between `lock` and
-  `unlock` is *not* stateful — the write inside it goes out stateless, carrying
-  the handle in `options.lockHandle`.
+  request and nothing more: `lock` sends its `LOCK` stateful and puts the
+  session back to stateless before returning; `unlock` does the same for its
+  `UNLOCK`. The window between them is *not* stateful — the write inside it
+  goes out stateless, carrying the handle in `options.lockHandle`.
+- **The `UNLOCK` must be stateful.** From `@mcp-abap-adt/connection` 9.3.1 the
+  connector sends the context cookie `sap-contextid` with stateful requests
+  only. A stateless `UNLOCK` then runs in a fresh ABAP context, answers `200`
+  and releases nothing; the next activation or delete is refused with `403`
+  EU/510 "currently editing". Every `unlock` in this library sends it stateful
+  since 23.0.2 — before that, `AdtInclude`, `AdtService` and `AdtMessageClass`
+  did not. A caller with its own `IAbapConnection` needs the same: the cookie
+  on the `LOCK` and the `UNLOCK`.
 - This is Eclipse's model, measured at two scales. A full run against the cloud
   trial: 803 requests, of which exactly 100 carry `x-sap-adt-sessiontype:
   stateful` — the 50 `LOCK`s and the 50 `UNLOCK`s, and nothing else. A probe
@@ -45,14 +53,14 @@ const config = { className: 'ZCL_TEST' };
 // The POST that makes the class shell. Nothing else.
 await cls.create({ ...config, packageName: 'ZPKG', description: 'Test' });
 
-const locked = await cls.lock(config);          // stateful from here
+const locked = await cls.lock(config);          // the LOCK goes stateful
 if (!locked.ok) throw new Error(locked.getError().message);
 const lockHandle = locked.getResult().value;
 
 try {
   await cls.update(config, { source: updatedCode, lockHandle });
 } finally {
-  await cls.unlock(config, lockHandle);          // stateless again
+  await cls.unlock(config, lockHandle);          // so does the UNLOCK
 }
 
 await cls.activate(config);
