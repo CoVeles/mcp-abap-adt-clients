@@ -93,6 +93,26 @@ const libraryLogger: ILogger = createLibraryLogger();
 const testsLogger: ILogger = createTestsLogger();
 
 const SECTION = 'atc_run';
+
+/**
+ * The check variant a run uses: the one `params.check_variant` pins, or the
+ * one the system nominates.
+ *
+ * The system's own choice is the default because it is what a consumer gets.
+ * A pin exists because that choice can be one the system cannot run: on an
+ * on-premise system (2026-09-27) the nominated variant and
+ * ABAP_CLOUD_DEVELOPMENT_DEFAULT both aborted every run with TOOL_FAILURE
+ * "ATC check run aborted, due to missing prerequisites", while DEFAULT and
+ * SLIN_DEFAULT ran and found the dirty class's finding (0,1,0).
+ */
+async function checkVariantFor(
+  atc: AdtAtc<typeof atcReading>,
+  testCase: { params?: Record<string, unknown> },
+): Promise<string> {
+  const pinned = String(testCase.params?.check_variant ?? '').trim();
+  if (pinned) return pinned;
+  return expectResult(await atc.resolveCheckVariant(), 'check variant');
+}
 const CASE = 'adt_atc_run';
 
 /**
@@ -194,10 +214,7 @@ describe('ATC check runs (using AdtRuntimeClient)', () => {
         // Three calls since 19.0.0, because a run is three requests: the
         // system's check variant, a worklist for it, then the run.
         const atc = new AdtAtc(connection, libraryLogger, atcReading);
-        const variant = expectResult(
-          await atc.resolveCheckVariant(),
-          'check variant',
-        );
+        const variant = await checkVariantFor(atc, testCase);
         const worklistId = expectResult(
           await atc.createWorklist(variant),
           'worklist',
@@ -298,10 +315,7 @@ describe('ATC check runs (using AdtRuntimeClient)', () => {
         const atc = new AdtAtc(connection, libraryLogger, atcReading);
 
         logTestStep(`start ATC run over class ${className}`, testsLogger);
-        const variant = expectResult(
-          await atc.resolveCheckVariant(),
-          'check variant',
-        );
+        const variant = await checkVariantFor(atc, testCase);
         const worklistId = expectResult(
           await atc.createWorklist(variant),
           'worklist',

@@ -2313,6 +2313,13 @@ atc_run:
         #
         # expected_message_id: "0245"
         # expected_priority: 2
+        # ← CHANGE (optional): pin the check variant. Unset, the run uses the
+        # variant the system nominates (/atc/customizing) — what a consumer
+        # gets. Pin one when that variant cannot run on your system: a run that
+        # finishes with TOOL_FAILURE "ATC check run aborted, due to missing
+        # prerequisites" is the variant, not the class. DEFAULT and
+        # SLIN_DEFAULT are SAP-delivered and ran where others aborted.
+        # check_variant: "DEFAULT"
         poll_timeout_ms: 300000
         poll_interval_ms: 3000
 
