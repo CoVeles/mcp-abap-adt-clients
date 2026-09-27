@@ -22,6 +22,16 @@ independent versions. One package at a time: `npm run publish:clients` and
   
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the package follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Development
+
+- `@mcp-abap-adt/connection` `^9.3.3` (was `^9.3.0`), a dev dependency: the
+  integration suite now runs on the connector that keeps a request that is not
+  stateful out of the stateful context, over HTTP (9.3.1) and RFC (9.3.2,
+  9.3.3). `WORKAROUNDS.md` notes that the connector handles PAK/058; the
+  entry stays for callers with their own `IAbapConnection`.
+
 ## [23.0.1] - 2026-09-27
 
 ### Fixed

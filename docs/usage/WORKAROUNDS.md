@@ -110,6 +110,20 @@ per ABAP session**.
   second update in the same stateful session is refused, and so is a delete
   from a session that updated the package.
 
+**Handled by the connector.** `@mcp-abap-adt/connection` keeps a request that
+is not stateful out of the stateful context: over HTTP from 9.3.1 (only the
+`LOCK` and `UNLOCK` carry the context cookie `sap-contextid`; a `PUT` that
+carried it ran in the lock's context and met the buffer), over RFC from 9.3.2
+(such a request runs on a conversation of its own; from 9.3.3, with
+`@mcp-abap-adt/sap-rfc-lite` 0.2.0, on a reused one whose server context is
+reset after each call). With it, create, two lock → update → unlock rounds and
+a delete pass on one connection, over both transports — the connector's own
+measurement on an on-premise system. On another BASIS release the same leak
+showed as `423` "Resource … is not locked (invalid lock handle)" on every
+`PUT`, and the same fix removed it. The rule above is still SAP's; the
+workaround below is for a caller that holds sessions another way — its own
+`IAbapConnection`, or a connector older than those releases.
+
 **Workaround.** Run every stage that saves a package in an ABAP session no
 earlier stage has saved it in:
 
