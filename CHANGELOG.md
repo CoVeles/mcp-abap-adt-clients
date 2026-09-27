@@ -24,6 +24,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+### Fixed
+
+- **`AdtInclude`, `AdtService` and `AdtMessageClass` send their UNLOCK
+  stateful.** Only the LOCK and the UNLOCK are stateful: `lock` returns to
+  stateless once its request answers, so `unlock` must switch to stateful for
+  its own request, as every other handler does. These three sent it stateless.
+  An older connector carried the context cookie on every request, which hid
+  it; from `@mcp-abap-adt/connection` 9.3.1 a stateless request carries no
+  `sap-contextid`, so the UNLOCK ran in a fresh ABAP context, answered `200`
+  and released nothing. Measured on an on-premise system with connection
+  9.4.0: the include activation then answered `403` EU/510 "currently
+  editing", and its cleanup delete was refused the same way. **Anyone on
+  adt-clients 23.0.1 with connection 9.3.1 or later is affected** — `^9.x`
+  resolves to it. `behaviour.test.ts` now stamps every LOCK and UNLOCK with the
+  mode it went out in, for every lockable handler.
+
 ### Development
 
 - `@mcp-abap-adt/connection` `^9.4.0` (was `^9.3.0`), a dev dependency: the
