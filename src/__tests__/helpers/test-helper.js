@@ -29,6 +29,25 @@ let cachedEnvType = null;
  * not written is not one the suite can build on.
  */
 async function writeAndActivate(handler, config, options, logger) {
+  await writeSource(handler, config, options, logger);
+  if (typeof handler.activate === 'function') {
+    const activated = await handler.activate(config);
+    if (activated && activated.ok === false) {
+      const failure = activated.getError();
+      throw new Error(
+        `activate failed [${failure.origin}]: ${failure.message}`,
+      );
+    }
+  }
+}
+
+/**
+ * The write half of {@link writeAndActivate}: lock, write, unlock — nothing
+ * activated. For an object whose activation belongs to a later group run.
+ * Since 23.0.0 `create` is the POST alone and drops `source`; an object that
+ * is created and not written reads back with an empty source.
+ */
+async function writeSource(handler, config, options, logger) {
   const raise = (answer, what) => {
     if (answer && answer.ok === false) {
       const failure = answer.getError();
@@ -68,9 +87,27 @@ async function writeAndActivate(handler, config, options, logger) {
       }
     }
   }
-  if (typeof handler.activate === 'function') {
-    raise(await handler.activate(config), 'activate');
-  }
+}
+
+/**
+ * Whether a refused read says the object is not there.
+ *
+ * SAP's text outranks the status: a function module's source answers `500`
+ * with "Function module … does not exist" (FL651) inside, and a status alone
+ * would call that a server fault. Only an answer without a text is judged by
+ * its status, and then only 404 is absence. `failure.message` is SAP's text
+ * when a strategy read it, and the transport's sentence ("Request failed with
+ * status code 500") when none did, so the document itself is read too.
+ */
+function answerSaysAbsent(failure) {
+  const data = failure?.response?.data;
+  const document =
+    typeof data === 'string' ? data : data == null ? '' : String(data);
+  const texts = [failure?.adtType ?? '', failure?.message ?? '', document];
+  const said = texts.join('\n');
+  if (/ExceptionResourceNotFound|does not exist/i.test(said)) return true;
+  if (document.trim() !== '') return false;
+  return failure?.response?.status === 404;
 }
 
 /**
@@ -2540,42 +2577,46 @@ async function ensureSharedDependency(client, type, name, logger) {
   // the "it exists, update it" branch for all twenty, announced "updated and
   // activated", created nothing, and reported success.
   //
-  // Absence is read from the answer now: a failure that says 404 or names the
-  // object as non-existent, or a success carrying an empty document — ADT
-  // answers absence with 200 and no body on the measured systems, and a
-  // source-bearing shared object with an empty body is not one a later run
-  // should accept as satisfied.
+  // Existence is asked of the object's own URI — its metadata — never of its
+  // source. A source answers nothing about existence: a service definition
+  // created and not yet written answers `200` with an empty source, a function
+  // module that does not exist answers `500` on its source, and on the trial
+  // an absent object's source answers `200` and no body. Its metadata answers
+  // a document when the object is there and `ExceptionResourceNotFound` when
+  // it is not. Measured on the trial for a function module, a service
+  // definition and a package.
   const readShared = async () => {
     if (type === 'domains') {
-      // Document-only types: no `read`, only `readMetadata`.
       return client.getDomain().readMetadata({ domainName: name });
     }
     if (type === 'data_elements') {
       return client.getDataElement().readMetadata({ dataElementName: name });
     }
     if (type === 'structures') {
-      return client.getStructure().read({ structureName: name });
+      return client.getStructure().readMetadata({ structureName: name });
     }
     if (type === 'tables') {
-      return client.getTable().read({ tableName: name });
+      return client.getTable().readMetadata({ tableName: name });
     }
     if (type === 'views') {
-      return client.getDdl().read({ ddlName: name });
+      return client.getDdl().readMetadata({ ddlName: name });
     }
     if (type === 'programs') {
-      return client.getProgram().read({ programName: name });
+      return client.getProgram().readMetadata({ programName: name });
     }
     if (type === 'behavior_definitions') {
-      return client.getBehaviorDefinition().read({ name });
+      return client.getBehaviorDefinition().readMetadata({ name });
     }
     if (type === 'classes') {
-      return client.getClass().read({ className: name });
+      return client.getClass().readMetadata({ className: name });
     }
     if (type === 'access_controls') {
-      return client.getAccessControl().read({ accessControlName: name });
+      return client
+        .getAccessControl()
+        .readMetadata({ accessControlName: name });
     }
     if (type === 'interfaces') {
-      return client.getInterface().read({ interfaceName: name });
+      return client.getInterface().readMetadata({ interfaceName: name });
     }
     if (type === 'function_groups') {
       return client
@@ -2583,13 +2624,13 @@ async function ensureSharedDependency(client, type, name, logger) {
         .readMetadata({ functionGroupName: name });
     }
     if (type === 'function_modules') {
-      return client.getFunctionModule().read({
+      return client.getFunctionModule().readMetadata({
         functionModuleName: name,
         functionGroupName: depConfig.function_group,
       });
     }
     if (type === 'function_group_includes') {
-      return client.getFunctionInclude().read({
+      return client.getFunctionInclude().readMetadata({
         functionGroupName: depConfig.function_group,
         includeName: name,
       });
@@ -2597,10 +2638,10 @@ async function ensureSharedDependency(client, type, name, logger) {
     if (type === 'service_definitions') {
       return client
         .getServiceDefinition()
-        .read({ serviceDefinitionName: name });
+        .readMetadata({ serviceDefinitionName: name });
     }
     if (type === 'service_bindings') {
-      return client.getServiceBinding().read({ bindingName: name });
+      return client.getServiceBinding().readMetadata({ bindingName: name });
     }
     return undefined;
   };
@@ -2612,14 +2653,11 @@ async function ensureSharedDependency(client, type, name, logger) {
       // A type this function has no read for. Unknown, not absent.
       exists = false;
     } else if (answer.ok) {
-      const value = answer.getResult().value;
-      exists =
-        typeof value === 'string'
-          ? value.trim() !== ''
-          : value !== undefined && value !== null;
+      // A 2xx on the object's own URI is the object — even an empty one: a
+      // document read too soon after its create answers `200` and no body.
+      exists = true;
     } else {
       const failure = answer.getError();
-      const status = failure.response?.status;
       // A refused read is not absence unless it says so — it is "we did not
       // find out", and turning that into `exists = false` is a guess that then
       // does something irreversible.
@@ -2633,9 +2671,7 @@ async function ensureSharedDependency(client, type, name, logger) {
       //
       // A refusal naming the object as non-existent is absence: that is the
       // sentence a cloud system answers in place of a 404.
-      const saysAbsent =
-        status === 404 || /does not exist/i.test(failure.message ?? '');
-      if (!saysAbsent) {
+      if (!answerSaysAbsent(failure)) {
         throw new Error(
           `Could not determine whether shared ${type} ${name} exists: ${failure.message}. ` +
             'Refusing to assume it is missing — the create that would follow ' +
@@ -3180,9 +3216,18 @@ async function ensureSharedDependency(client, type, name, logger) {
           `shared servicedefinition update ${name}`,
         );
         logger?.info?.(`Shared service definition ${name} activated`);
-      } else if (depConfig.skip_activation) {
+      } else if (depConfig.source && depConfig.skip_activation) {
+        mustSucceed(
+          await writeSource(
+            client.getServiceDefinition(),
+            { serviceDefinitionName: name, transportRequest },
+            { source: depConfig.source },
+            logger,
+          ),
+          `shared servicedefinition write ${name}`,
+        );
         logger?.info?.(
-          `Shared service definition ${name} created (activation deferred for group activation)`,
+          `Shared service definition ${name} written (activation deferred for group activation)`,
         );
       }
     } else if (type === 'service_bindings') {
@@ -3244,6 +3289,8 @@ function resetSharedDependencyCache() {
 
 module.exports = {
   activateSharedFunctionGroup,
+  answerSaysAbsent,
+  writeSource,
   domainDocumentFor,
   dataElementDocumentFor,
   readDocumentForUpdate,
