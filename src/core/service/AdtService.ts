@@ -175,6 +175,11 @@ export class AdtServiceBinding<
     // drop it, which left a caller no way to wait longer than the library had
     // decided to.
     timeout?: number,
+    // **V2 only.** The job resolves the service by name and version, in the query
+    // string; the body's `SCGR` reference is not enough for it. Absent for V4,
+    // which the same body settles — both measured, see
+    // `IServiceBindingPublicationParams`.
+    service?: { name: string; version: string },
   ): Promise<IAdtWireResponse> {
     // **The document Eclipse sends**, captured on one system: the target is
     // named by *type* — `SCGR`, a service group — and by name, with no
@@ -185,12 +190,21 @@ export class AdtServiceBinding<
   <adtcore:objectReference adtcore:type="SCGR" adtcore:name="${bindingName.toUpperCase()}"/>
 </adtcore:objectReferences>`;
 
-    // **No query string.** `servicename` and `serviceversion` used to be
-    // appended here; Eclipse sends neither, and the job answers `SEVERITY OK`
-    // without them. They stay on the params because they still override what
-    // the binding's own document says when this member reads it.
+    // **A query string for V2, none for V4.** A capture of Eclipse showed none and
+    // the job answered `SEVERITY OK`, which is why these two fields were dropped
+    // here — measured on one system, and V2 does not behave that way: without them
+    // it refuses, naming an empty service and version `0000`. Measured 2026-09-29
+    // on one binding per protocol with a known state and a single job each.
     return this.connection.makeAdtRequest({
       url: `/sap/bc/adt/businessservices/${serviceType}/publishjobs`,
+      ...(service
+        ? {
+            params: {
+              servicename: service.name.toUpperCase(),
+              serviceversion: service.version,
+            },
+          }
+        : {}),
       method: 'POST',
       // Measured at ~133s in both directions, so the 120s `SAP_TIMEOUT_LONG`
       // default could never have been enough. A caller who knows their system
@@ -220,6 +234,11 @@ export class AdtServiceBinding<
     // drop it, which left a caller no way to wait longer than the library had
     // decided to.
     timeout?: number,
+    // **V2 only.** The job resolves the service by name and version, in the query
+    // string; the body's `SCGR` reference is not enough for it. Absent for V4,
+    // which the same body settles — both measured, see
+    // `IServiceBindingPublicationParams`.
+    service?: { name: string; version: string },
   ): Promise<IAdtWireResponse> {
     // **The document Eclipse sends**, captured on one system: the target is
     // named by *type* — `SCGR`, a service group — and by name, with no
@@ -230,12 +249,20 @@ export class AdtServiceBinding<
   <adtcore:objectReference adtcore:type="SCGR" adtcore:name="${bindingName.toUpperCase()}"/>
 </adtcore:objectReferences>`;
 
-    // **No query string.** `servicename` and `serviceversion` used to be appended
-    // here; Eclipse sends neither, and the job answers `SEVERITY OK` without
-    // them. They stay on the params because they still override what the
-    // binding's own document says when this member reads it.
+    // **A query string for V2, none for V4** — the same measurement as `publish`
+    // above, taken on the unpublish job: without it, "Local un-publish of service
+    // ␠ with version 0000 failed"; with it, `SEVERITY OK` and "service … with
+    // version 0001 un-published locally".
     return this.connection.makeAdtRequest({
       url: `/sap/bc/adt/businessservices/${serviceType}/unpublishjobs`,
+      ...(service
+        ? {
+            params: {
+              servicename: service.name.toUpperCase(),
+              serviceversion: service.version,
+            },
+          }
+        : {}),
       method: 'POST',
       // Measured at ~133s in both directions, so the 120s `SAP_TIMEOUT_LONG`
       // default could never have been enough. A caller who knows their system
@@ -431,15 +458,42 @@ export class AdtServiceBinding<
     const serviceType = config.serviceType as string;
     const desiredPublicationState = config.desiredPublicationState;
 
+    // **V2 needs the service name and version; V4 does not.** Measured — see
+    // `IServiceBindingPublicationParams`. The params type says so per protocol,
+    // so the only thing left here is to carry them across from the config, which
+    // has them optional because a V4 caller has no use for them. A V2 caller who
+    // omits them is refused HERE, by name, rather than by the server answering
+    // that a service called nothing does not exist.
+    const publication: IServiceBindingPublicationParams =
+      serviceType === 'odatav2'
+        ? (() => {
+            if (!config.serviceName || !config.serviceVersion) {
+              throw new Error(
+                `Publishing ${name} over OData V2 needs serviceName and ` +
+                  'serviceVersion: the job resolves the service by them, and ' +
+                  'without them it answers that an unnamed service with version ' +
+                  '0000 does not exist. V4 does not need either.',
+              );
+            }
+            return {
+              bindingName: name,
+              desiredPublicationState,
+              serviceType: 'odatav2' as const,
+              serviceName: config.serviceName,
+              serviceVersion: config.serviceVersion,
+              timeout: options?.timeout,
+            };
+          })()
+        : {
+            bindingName: name,
+            desiredPublicationState,
+            serviceType: 'odatav4' as const,
+            // The contract has always offered this; it used to stop here.
+            timeout: options?.timeout,
+          };
+
     return answering(
-      () =>
-        this.updateRequest(connection, {
-          bindingName: name,
-          desiredPublicationState,
-          serviceType: serviceType as GeneratedServiceType,
-          // The contract has always offered this; it used to stop here.
-          timeout: options?.timeout,
-        }),
+      () => this.updateRequest(connection, publication),
       this.results.updated as IResultStrategy<ReturnType<R['updated']>>,
       // A publication change IS this member's write, and the job reports its
       // outcome as `SEVERITY` inside a 200. Reading it is the caller's:
@@ -802,16 +856,25 @@ export class AdtServiceBinding<
       { serviceType, timeout: params.timeout },
     );
 
+    // For V2 the job takes the service in the query string; the type guarantees
+    // both fields are here when it does.
+    const service =
+      params.serviceType === 'odatav2'
+        ? { name: params.serviceName, version: params.serviceVersion }
+        : undefined;
+
     return params.desiredPublicationState === 'published'
       ? this.publishByServiceType(
           serviceType as 'odatav2' | 'odatav4',
           params.bindingName,
           params.timeout,
+          service,
         )
       : this.unpublishByServiceType(
           serviceType as 'odatav2' | 'odatav4',
           params.bindingName,
           params.timeout,
+          service,
         );
   }
 

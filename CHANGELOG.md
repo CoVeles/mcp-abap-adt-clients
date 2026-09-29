@@ -24,6 +24,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+### Fixed
+
+- **An OData V2 publication could not succeed.** The publish and unpublish jobs
+  were posted with no query string, so the server had no service to resolve and
+  answered `200` with `<SEVERITY>ERROR</SEVERITY>`, naming an EMPTY service and
+  version `0000`: *"Local un-publish of service ␠ with version 0000 failed —
+  Service ZMCP_PRV_SB version ␠ does not exist."* The binding was active and
+  `srvb:allowedAction` named the very action asked for.
+
+  `servicename` and `serviceversion` had been dropped from the request because a
+  capture of Eclipse showed neither and the job answered `SEVERITY OK` — measured
+  on one system, and it does not hold for V2. Measured on a trial, 2026-09-29, one
+  binding per protocol with a known publication state and a single job each, the
+  only difference being the query string:
+
+  | | no query string | with it |
+  |---|---|---|
+  | `odatav2` | the refusal above | `200`, `SEVERITY OK`, *"service ZMCP_PRV_SB with version 0001 un-published locally"* |
+  | `odatav4` | `200`, `SEVERITY OK` | not measured |
+
+  So a V2 job now carries `?servicename=<SERVICE>&serviceversion=<VERSION>` and a
+  V4 job still carries none. V4 is left exactly as it was measured working: whether
+  it also accepts the query string was never measured, and an unmeasured change is
+  not an improvement. New entry in
+  [`ERRATA.md`](docs/usage/ERRATA.md#a-v2-publication-job-resolves-the-service-by-name-and-version).
+
+### Changed
+
+- **BREAKING (types): `IServiceBindingPublicationParams` is a union per protocol.**
+  `serviceType: 'odatav2'` now requires `serviceName` and `serviceVersion`;
+  `'odatav4'` accepts neither. The demand is in the type because that is where a
+  caller sees it — the same reason `serviceType` itself was made required rather
+  than checked in the implementation. `update()` throws, naming both fields, for a
+  V2 config that omits them, which is the runtime half for JavaScript callers.
+
+  A V2 caller that passed only `serviceType` stops compiling. It also never worked:
+  that exact call is what the fix above measures failing.
+
 ### Development
 
 - `@mcp-abap-adt/connection` `^9.4.2` (was `^9.4.0`), a dev dependency: 9.4.2

@@ -192,6 +192,11 @@ activated, published and unpublished.
   unpublish**, within a second, means the unpublish came too soon after a
   publish. Repeat it minutes later; do not change the request. See
   [below](#an-unpublish-straight-after-a-publish-is-refused).
+- **"…of service ␠ with version 0000 failed — Service <NAME> version ␠ does not
+  exist"** on an OData **V2** publish or unpublish means the job was posted
+  without `servicename` and `serviceversion`. V4 does not need them; V2 cannot
+  resolve the service without them. See
+  [below](#a-v2-publication-job-resolves-the-service-by-name-and-version).
 - **A publication takes minutes.** About 133 s on an idle system, longer on a
   loaded one — pass a `timeout` above the 120 s default and wait for the job's
   own answer (`analysePublication`); nothing needs polling.
@@ -229,40 +234,41 @@ Sessions and locks
 4. [A service binding is locked to publish it](#a-service-binding-is-locked-to-publish-it)
 5. [A binding publishes only once it is active](#a-binding-publishes-only-once-it-is-active)
 6. [An unpublish straight after a publish is refused](#an-unpublish-straight-after-a-publish-is-refused)
+7. [A V2 publication job resolves the service by name and version](#a-v2-publication-job-resolves-the-service-by-name-and-version)
 
 Reading answers
 
-7. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
-8. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
-9. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
-10. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
-11. [A validation answers a taken name inside a 200](#a-validation-answers-a-taken-name-inside-a-200)
-12. [A deletion check that says no is not a failure](#a-deletion-check-that-says-no-is-not-a-failure)
-13. ["No URI-Mapping defined for URI" inside a 200](#no-uri-mapping-defined-for-uri-inside-a-200)
-14. [A package walk lists a binding's generated objects](#a-package-walk-lists-a-bindings-generated-objects)
-15. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
+8. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
+9. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
+10. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
+11. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
+12. [A validation answers a taken name inside a 200](#a-validation-answers-a-taken-name-inside-a-200)
+13. [A deletion check that says no is not a failure](#a-deletion-check-that-says-no-is-not-a-failure)
+14. ["No URI-Mapping defined for URI" inside a 200](#no-uri-mapping-defined-for-uri-inside-a-200)
+15. [A package walk lists a binding's generated objects](#a-package-walk-lists-a-bindings-generated-objects)
+16. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
 
 Creating and checking objects
 
-16. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
-17. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
-18. [An object created without a package cannot be deleted](#an-object-created-without-a-package-cannot-be-deleted)
-19. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
+17. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
+18. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
+19. [An object created without a package cannot be deleted](#an-object-created-without-a-package-cannot-be-deleted)
+20. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
 
 Activation
 
-20. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
-21. [Activation settles inside the POST](#activation-settles-inside-the-post)
+21. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
+22. [Activation settles inside the POST](#activation-settles-inside-the-post)
 
 Transports
 
-22. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
-23. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
-24. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
+23. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
+24. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
+25. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
 
 ATC
 
-25. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
+26. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
 
 ---
 
@@ -584,6 +590,48 @@ closely.
 **Where it bites.** `getServiceBinding().update()` with `desiredPublicationState:
 'unpublished'` soon after a publication — a test that publishes and unpublishes
 in one run.
+
+---
+
+## A V2 publication job resolves the service by name and version
+
+**Symptom.** An OData **V2** publish or unpublish answers `200` with
+`<SEVERITY>ERROR</SEVERITY>` and a message whose service name is BLANK and whose
+version is `0000`: *"Local un-publish of service ␠ with version 0000 failed"*,
+long text *"Service <NAME> version ␠ does not exist."* The binding is active,
+`srvb:allowedAction` names the very action asked for, and the same request
+against an OData **V4** binding answers `SEVERITY OK`.
+
+**Cause.** The job's body names the target by type and name
+(`<adtcore:objectReference adtcore:type="SCGR" adtcore:name="<BINDING>"/>`), and
+for V2 that is not enough: the service is resolved from the `servicename` and
+`serviceversion` query parameters. The blanks in the message are the server
+saying it had nothing to resolve. V4 settles it from the body alone.
+
+**Rule.** A V2 publication job carries `?servicename=<SERVICE>&serviceversion=<VERSION>`.
+A V4 one does not need it. The service is `srvb:services/@srvb:name` — which is
+not the service definition — and the version is `srvb:content/@srvb:version`.
+
+**Workaround.** None needed from a caller of this package: the publication params
+are a union per protocol, so `serviceType: 'odatav2'` requires both fields and
+`'odatav4'` accepts neither, and the demand is visible before the call. Until that
+union landed, a V2 publication through `update()` could not succeed at all.
+
+**Evidence.** Trial, 2026-09-29, one binding per protocol with a known
+publication state and a single job each, the only difference being the query
+string. V2 `ZMCP_PRV_SB`, `published=true`: without it, the refusal above; with
+`?servicename=ZMCP_PRV_SB&serviceversion=0001`, `200`, `SEVERITY OK`, *"service
+ZMCP_PRV_SB with version 0001 un-published locally"*. V4 `ZMCP_PRV_SB4U` and
+`ZMCP_PRV_SB4`: unpublished through `update()` with no query string, `SEVERITY
+OK` both. Whether V4 also ACCEPTS the query string was not measured, so it is
+not sent there.
+
+A capture of Eclipse showed no query string and the job answered `SEVERITY OK` —
+one system, and that is where this package dropped the two fields. It did not
+hold for V2.
+
+**Where it bites.** `getServiceBinding().update()` on any `ODATA_V2_*` binding,
+publish or unpublish.
 
 ---
 

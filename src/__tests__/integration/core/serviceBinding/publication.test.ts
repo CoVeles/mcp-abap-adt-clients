@@ -246,11 +246,18 @@ describe('Service binding publication (deliberate runs)', () => {
       {
         bindingName: c.bindingName,
         desiredPublicationState: desired,
-        // The binding and the protocol. The service name and version are read
-        // from config for the Eclipse report below, and deliberately not passed
-        // here: the job's URL carries no query string and its body names the
-        // target by type and name, so they would go nowhere.
-        serviceType: c.serviceType,
+        // The binding and the protocol — and for V2 the service too, because its
+        // job resolves the service by name and version in the query string and
+        // refuses without them (measured 2026-09-29: "Local un-publish of service
+        // ␠ with version 0000 failed"). V4's body settles it alone, and the type
+        // accepts neither field there, so the branch is the type's, not a guess.
+        ...(c.serviceType === 'odatav2'
+          ? {
+              serviceType: 'odatav2' as const,
+              serviceName: c.serviceName,
+              serviceVersion: c.serviceVersion,
+            }
+          : { serviceType: 'odatav4' as const }),
       },
       { timeout: c.timeoutMs, analyse: analysePublication },
     );
