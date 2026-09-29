@@ -39,10 +39,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   binding per protocol with a known publication state and a single job each, the
   only difference being the query string:
 
-  | | no query string | with it |
-  |---|---|---|
-  | `odatav2` | the refusal above | `200`, `SEVERITY OK`, *"service ZMCP_PRV_SB with version 0001 un-published locally"* |
-  | `odatav4` | `200`, `SEVERITY OK` | not measured |
+  **All four binding variants, measured** — because the branch is by protocol and
+  whether the CATEGORY mattered was the question that could have invalidated it:
+
+  | variant | no query string | with it | on the wire |
+  |---|---|---|---|
+  | `ODATA_V2_UI` | the refusal above | `200`, `SEVERITY OK`, published | `?servicename=ZMCP_PRV_V2&serviceversion=0001` |
+  | `ODATA_V2_WEB_API` | the same refusal | `200`, `SEVERITY OK`, published | `?servicename=ZMCP_PRV_WA2&serviceversion=0001` |
+  | `ODATA_V4_UI` | `200`, `SEVERITY OK` (two bindings) | not measured | — |
+  | `ODATA_V4_WEB_API` | `200`, `SEVERITY OK` | not measured | `POST …/odatav4/publishjobs`, no query string |
+
+  Web API behaves exactly as UI does on each protocol, so the category is not the
+  axis and `serviceType` is. Had Web API gone through without the query string, this
+  branch would have had to be by category instead — which is why it was measured
+  first.
 
   **Verified with the patched code against the system**, through this repository's
   own `serviceBinding/publication` integration test on a V2 binding created for it:

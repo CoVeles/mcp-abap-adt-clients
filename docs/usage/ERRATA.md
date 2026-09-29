@@ -617,14 +617,21 @@ are a union per protocol, so `serviceType: 'odatav2'` requires both fields and
 `'odatav4'` accepts neither, and the demand is visible before the call. Until that
 union landed, a V2 publication through `update()` could not succeed at all.
 
-**Evidence.** Trial, 2026-09-29, one binding per protocol with a known
-publication state and a single job each, the only difference being the query
-string. V2 `ZMCP_PRV_SB`, `published=true`: without it, the refusal above; with
-`?servicename=ZMCP_PRV_SB&serviceversion=0001`, `200`, `SEVERITY OK`, *"service
-ZMCP_PRV_SB with version 0001 un-published locally"*. V4 `ZMCP_PRV_SB4U` and
-`ZMCP_PRV_SB4`: unpublished through `update()` with no query string, `SEVERITY
-OK` both. Whether V4 also ACCEPTS the query string was not measured, so it is
-not sent there.
+**Evidence.** Trial, 2026-09-29, **all four binding variants**, each with a known
+publication state and a single job, the only difference being the query string.
+
+| variant | no query string | with it |
+|---|---|---|
+| `ODATA_V2_UI` | *"…of service ␠ with version 0000 failed"* | `SEVERITY OK`, published |
+| `ODATA_V2_WEB_API` | the same refusal | `SEVERITY OK`, published |
+| `ODATA_V4_UI` | `SEVERITY OK` (two bindings) | not measured |
+| `ODATA_V4_WEB_API` | `SEVERITY OK` | not measured |
+
+So the axis is the PROTOCOL, not the UI/Web API category: Web API behaves exactly
+as UI does on each. The V2 lines were taken with the query string visible on the
+wire — `POST …/odatav2/publishjobs?servicename=…&serviceversion=0001` → `200 OK` —
+and the V4 one without it, `POST …/odatav4/publishjobs`. Whether V4 also ACCEPTS
+the query string was not measured, so it is not sent there.
 
 A capture of Eclipse showed no query string and the job answered `SEVERITY OK` —
 one system, and that is where this package dropped the two fields. It did not
