@@ -138,22 +138,44 @@ export type IServiceBindingPublicationConfig = Partial<ISBC> & {
   serviceType: GST;
 };
 
-export interface IServiceBindingPublicationParams {
+/**
+ * What a publication job needs, which is not the same for the two protocols.
+ *
+ * **V2 requires the service name and version; V4 does not.** Measured on a trial,
+ * 2026-09-29, on one binding per protocol with a known publication state and a
+ * single job each — the only difference being the query string:
+ *
+ * ```
+ * odatav2, no query string : "Local un-publish of service ␠ with version 0000
+ *                             failed — Service ZMCP_PRV_SB version ␠ does not exist."
+ * odatav2, with it         : 200, SEVERITY OK,
+ *                           "service ZMCP_PRV_SB with version 0001 un-published locally"
+ * odatav4, no query string : 200, SEVERITY OK
+ * ```
+ *
+ * The blanks in the V2 refusal are the server saying it had nothing to resolve: the
+ * body names the target by type (`SCGR`) and name, and for V2 that is not enough.
+ * A capture of Eclipse showed no query string and the job answered `SEVERITY OK`,
+ * which is where this package dropped the two fields — a measurement from one
+ * system, and it did not hold for V2.
+ *
+ * So the demand lives in the TYPE, per protocol, rather than as an optional field
+ * with a throw a caller cannot see. V4 is left exactly as it was measured working:
+ * whether it also accepts the query string was never measured, and a change nobody
+ * has measured is not an improvement.
+ */
+export type IServiceBindingPublicationParams =
+  | IServiceBindingPublicationV2Params
+  | IServiceBindingPublicationV4Params;
+
+/** The fields both protocols need. */
+interface IServiceBindingPublicationCommon {
   bindingName: string;
   /**
    * `published` or `unpublished`. `unchanged` is refused: a binding's update
    * *is* its publication, so there is no request that changes nothing.
    */
   desiredPublicationState: DesiredPublicationState;
-  /**
-   * Which endpoint the job goes to — `odatav2` or `odatav4`.
-   *
-   * Required, and required *in the type*: it is the one thing the URL needs
-   * that the binding's name does not give, and this package no longer reads the
-   * binding to find it out. Optional here with a throw in the implementation
-   * would be the same demand made twice, once where a caller cannot see it.
-   */
-  serviceType: GeneratedServiceType;
   /**
    * How long to wait for the publication job, in milliseconds.
    *
@@ -164,6 +186,25 @@ export interface IServiceBindingPublicationParams {
    * caller no way to wait longer than the library had decided to.
    */
   timeout?: number;
+}
+
+/** OData V2, where the job resolves the service by name and version. */
+export interface IServiceBindingPublicationV2Params
+  extends IServiceBindingPublicationCommon {
+  serviceType: 'odatav2';
+  /**
+   * `srvb:services/@srvb:name`. **Required**: without it the job answers a
+   * refusal naming an empty service and version `0000`.
+   */
+  serviceName: string;
+  /** `srvb:content/@srvb:version`, e.g. `0001`. Required for the same reason. */
+  serviceVersion: string;
+}
+
+/** OData V4, where the body alone names the target. */
+export interface IServiceBindingPublicationV4Params
+  extends IServiceBindingPublicationCommon {
+  serviceType: 'odatav4';
 }
 
 /**

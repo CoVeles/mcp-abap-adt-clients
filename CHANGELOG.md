@@ -22,7 +22,64 @@ independent versions. One package at a time: `npm run publish:clients` and
   
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the package follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [23.0.5] - 2026-09-29
+
+### Fixed
+
+- **An OData V2 publication could not succeed.** The publish and unpublish jobs
+  were posted with no query string, so the server had no service to resolve and
+  answered `200` with `<SEVERITY>ERROR</SEVERITY>`, naming an EMPTY service and
+  version `0000`: *"Local un-publish of service ␠ with version 0000 failed —
+  Service ZMCP_PRV_SB version ␠ does not exist."* The binding was active and
+  `srvb:allowedAction` named the very action asked for.
+
+  `servicename` and `serviceversion` had been dropped from the request because a
+  capture of Eclipse showed neither and the job answered `SEVERITY OK` — measured
+  on one system, and it does not hold for V2. Measured on a trial, 2026-09-29, one
+  binding per protocol with a known publication state and a single job each, the
+  only difference being the query string:
+
+  **All four binding variants, measured** — because the branch is by protocol and
+  whether the CATEGORY mattered was the question that could have invalidated it:
+
+  | variant | no query string | with it | on the wire |
+  |---|---|---|---|
+  | `ODATA_V2_UI` | the refusal above | `200`, `SEVERITY OK`, published | `?servicename=ZMCP_PRV_V2&serviceversion=0001` |
+  | `ODATA_V2_WEB_API` | the same refusal | `200`, `SEVERITY OK`, published | `?servicename=ZMCP_PRV_WA2&serviceversion=0001` |
+  | `ODATA_V4_UI` | `200`, `SEVERITY OK` (two bindings) | not measured | — |
+  | `ODATA_V4_WEB_API` | `200`, `SEVERITY OK` | not measured | `POST …/odatav4/publishjobs`, no query string |
+
+  Web API behaves exactly as UI does on each protocol, so the category is not the
+  axis and `serviceType` is. Had Web API gone through without the query string, this
+  branch would have had to be by category instead — which is why it was measured
+  first.
+
+  **Verified with the patched code against the system**, through this repository's
+  own `serviceBinding/publication` integration test on a V2 binding created for it:
+  `before: published=false allowedAction=PUBLISH` → one request, `POST
+  …/odatav2/publishjobs` → *the job answered OK after 133s* → `settled at
+  published=true after 135s`. That is the same call that answered the blank-service
+  refusal before this change.
+
+  So a V2 job now carries `?servicename=<SERVICE>&serviceversion=<VERSION>` and a
+  V4 job still carries none. V4 is left exactly as it was measured working: whether
+  it also accepts the query string was never measured, and an unmeasured change is
+  not an improvement. New entry in
+  [`ERRATA.md`](docs/usage/ERRATA.md#a-v2-publication-job-resolves-the-service-by-name-and-version).
+
+### Changed
+
+- **`IServiceBindingPublicationParams` is a union per protocol.**
+  `serviceType: 'odatav2'` now requires `serviceName` and `serviceVersion`;
+  `'odatav4'` accepts neither. The demand is in the type because that is where a
+  caller sees it — the same reason `serviceType` itself was made required rather
+  than checked in the implementation. `update()` throws, naming both fields, for a
+  V2 config that omits them, which is the runtime half for JavaScript callers.
+
+  **A patch, not a break.** A V2 caller that passed only `serviceType` does stop
+  compiling — worth knowing before upgrading — but that call could not succeed
+  against any system: it is the exact request the fix above measures being refused.
+  Nothing that worked stops working, so there is no working contract to break.
 
 ### Development
 
