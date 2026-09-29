@@ -44,6 +44,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   | `odatav2` | the refusal above | `200`, `SEVERITY OK`, *"service ZMCP_PRV_SB with version 0001 un-published locally"* |
   | `odatav4` | `200`, `SEVERITY OK` | not measured |
 
+  **Verified with the patched code against the system**, through this repository's
+  own `serviceBinding/publication` integration test on a V2 binding created for it:
+  `before: published=false allowedAction=PUBLISH` → one request, `POST
+  …/odatav2/publishjobs` → *the job answered OK after 133s* → `settled at
+  published=true after 135s`. That is the same call that answered the blank-service
+  refusal before this change.
+
   So a V2 job now carries `?servicename=<SERVICE>&serviceversion=<VERSION>` and a
   V4 job still carries none. V4 is left exactly as it was measured working: whether
   it also accepts the query string was never measured, and an unmeasured change is
