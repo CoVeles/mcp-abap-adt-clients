@@ -22,7 +22,7 @@ independent versions. One package at a time: `npm run publish:clients` and
   
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the package follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [23.0.5] - 2026-09-29
 
 ### Fixed
 
@@ -69,15 +69,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ### Changed
 
-- **BREAKING (types): `IServiceBindingPublicationParams` is a union per protocol.**
+- **`IServiceBindingPublicationParams` is a union per protocol.**
   `serviceType: 'odatav2'` now requires `serviceName` and `serviceVersion`;
   `'odatav4'` accepts neither. The demand is in the type because that is where a
   caller sees it — the same reason `serviceType` itself was made required rather
   than checked in the implementation. `update()` throws, naming both fields, for a
   V2 config that omits them, which is the runtime half for JavaScript callers.
 
-  A V2 caller that passed only `serviceType` stops compiling. It also never worked:
-  that exact call is what the fix above measures failing.
+  **A patch, not a break.** A V2 caller that passed only `serviceType` does stop
+  compiling — worth knowing before upgrading — but that call could not succeed
+  against any system: it is the exact request the fix above measures being refused.
+  Nothing that worked stops working, so there is no working contract to break.
 
 ### Development
 
