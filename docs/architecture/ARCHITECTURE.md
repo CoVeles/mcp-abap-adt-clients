@@ -103,7 +103,7 @@ src/
 - `getFeatureToggle()` for FTG2/FT feature-toggle CRUD plus domain methods (switchOn, switchOff, getRuntimeState, checkState, readSource); modern on-prem and cloud only
 - `getServiceBinding()` for RAP BO service binding CRUD + lifecycle
 - `getBehaviorDefinition()`, `getBehaviorImplementation()`, `getMetadataExtension()`, `getEnhancement()`
-- `getUnitTest()`, `getCdsUnitTest()`, `getRequest()`
+- `getRequest()`
 - class include helpers: `getLocalTestClass()`, `getLocalTypes()`, `getLocalDefinitions()`, `getLocalMacros()`
 - utilities: `getUtils()`
 

@@ -1,5 +1,5 @@
 /**
- * AdtUnitTestLegacy — running ABAP Unit on legacy SAP systems (BASIS < 7.50).
+ * ClassTestRunnerLegacy — running ABAP Unit on legacy SAP systems (BASIS < 7.50).
  *
  * One endpoint differs and one behaviour differs:
  * - `/sap/bc/adt/abapunit/testruns` instead of `/sap/bc/adt/abapunit/runs`,
@@ -8,48 +8,46 @@
  * - the POST answers with the finished result (`aunit:runResult`), so there is
  *   no run to poll.
  *
- * Both differences live behind `run`, which is where running belongs. Until
- * 12.0.0 they lived behind an override of `create`, from when `create` meant
- * "start a run" — and managing a class's tests, which is what `create` means
- * now, is identical on a legacy system.
+ * The legacy format addresses classes, never a test class inside one, so a run
+ * given test definitions runs each distinct container whole.
  */
 
 import type {
   IAdtAnalyseOptions,
   IAdtError,
   IAdtResponse,
+  IClassUnitTestRunOptions,
   IResultStrategy,
 } from '@mcp-abap-adt/interfaces-adt';
 import { AdtObjectErrorCodes } from '@mcp-abap-adt/interfaces-adt';
+import { startClassUnitTestRunLegacy } from '../../core/class/runLegacy';
 import { answering, failed } from '../../utils/adtResponse';
-import { AdtUnitTest } from './AdtUnitTest';
-import { startClassUnitTestRunLegacy } from './runLegacy';
-import type {
-  IClassUnitTestDefinition,
-  IClassUnitTestRunOptions,
-  IUnitTestResults,
-  unitTestDocuments,
-} from './types';
+import {
+  ClassTestRunner,
+  type classTestRunnerDocuments,
+  type IClassTestRunnerResults,
+  type IClassTestRunTarget,
+} from './ClassTestRunner';
 
-export class AdtUnitTestLegacy<
-  R extends IUnitTestResults = typeof unitTestDocuments,
-> extends AdtUnitTest<R> {
+export class ClassTestRunnerLegacy<
+  R extends IClassTestRunnerResults = typeof classTestRunnerDocuments,
+> extends ClassTestRunner<R> {
   /**
    * Run the tests. On a legacy system the POST answers the finished result.
    *
-   * So the answer is read by this implementation's `run` strategy as it came —
-   * the result document itself, not an id. It used to be replaced by a
-   * synthetic id and kept for `getStatus` and `getResult` to replay; nothing
-   * here remembers a run any more, because the contract says every member
-   * takes the run it is about.
+   * So the answer is read by this runner's `run` strategy as it came — the
+   * result document itself, not an id.
    */
   override async run<E extends IAdtError = IAdtError>(
-    tests: IClassUnitTestDefinition[],
+    target: IClassTestRunTarget,
     options?: IClassUnitTestRunOptions & IAdtAnalyseOptions<E>,
   ): Promise<IAdtResponse<ReturnType<R['run']>, E>> {
-    this.logger?.info?.('Starting unit test run (legacy)');
+    const classNames =
+      typeof target === 'string'
+        ? [target]
+        : [...new Set(target.map((test) => test.containerClass))];
     return answering(
-      () => startClassUnitTestRunLegacy(this.connection, tests, options),
+      () => startClassUnitTestRunLegacy(this.connection, classNames),
       this.results.run as IResultStrategy<ReturnType<R['run']>>,
       options?.analyse,
     );

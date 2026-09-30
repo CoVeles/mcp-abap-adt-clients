@@ -47,7 +47,7 @@ nothing beyond the entries that apply to every type — see [Contents](#contents
   - Source code
     - [Class](#class) `getClass()` ⚠
       - [local test class, local types, local definitions, local macros](#class-includes) `getLocalTestClass()` `getLocalTypes()` `getLocalDefinitions()` `getLocalMacros()` ⚠
-      - ABAP Unit run `getUnitTest()`
+      - ABAP Unit run `AdtExecutor.getClassTestRunner()`
     - Interface `getInterface()`
     - Program `getProgram()`
       - Include `getInclude()`
@@ -68,7 +68,7 @@ nothing beyond the entries that apply to every type — see [Contents](#contents
     - [DDL source](#ddl-source) `getDdl()` ⚠
       - Access control `getAccessControl()`
       - Metadata extension `getMetadataExtension()`
-      - CDS unit test `getCdsUnitTest()`
+      - CDS test-doubles check `getDdl().checkCdsTestDoubles()`
       - Behavior definition `getBehaviorDefinition()`
         - Behavior implementation `getBehaviorImplementation()`
     - Scalar function `getScalarFunction()`
@@ -486,7 +486,7 @@ Mind the names: Eclipse's *Local Types* editor writes `includes/implementations`
 stateless. The include-level `LOCK` endpoint has never been probed.
 
 **Where it bites.** `getLocalTestClass()`, `getLocalTypes()`,
-`getLocalDefinitions()`, `getLocalMacros()`, `getUnitTest()`.
+`getLocalDefinitions()`, `getLocalMacros()`.
 
 ---
 

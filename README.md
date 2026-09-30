@@ -143,9 +143,11 @@ npm install @mcp-abap-adt/adt-clients
    - Typed execution API based on `IExecutor`
    - Executors:
      - `getClassExecutor()` for `classrun`
+     - `getClassTestRunner()` for a class's ABAP Unit tests: `run`, `getStatus`, `getResult`
      - `getProgramExecutor()` for `programrun` (on-premise systems)
    - Methods: `run`, `runWithProfiler`, and trace scheduling (`scheduleTrace`, `listRequests`, `getRequestsByUri`, `listObjectTypes`, `listProcessTypes`)
    - Each executor factory takes an optional result set, like the runtime client's
+   - `createAdtExecutor(connection)` picks `AdtExecutor` or `AdtExecutorLegacy` by system version, like `createAdtClient`; the legacy one differs only in the test runner
 
 4. **AdtAbapGitClient**
    - Standalone: `new AdtAbapGitClient(connection, logger, options?, results?)`
@@ -354,6 +356,43 @@ if (scheduled.ok) {
 // are ready — comparing against the ids you saw before the run, since position
 // in the feed is not age.
 ```
+
+### ABAP Unit
+
+A unit test is not an object type: it is a local test class in a class's
+`testclasses` include. So there is no unit-test handler — each part belongs to
+the object it touches:
+
+```typescript
+import { classTestRunnerDocuments, createAdtExecutor } from '@mcp-abap-adt/adt-clients';
+import { analyseUnitTest, analyseUnitTestStart, unitTestRunId } from '@mcp-abap-adt/adt-strategies';
+
+// The tests: the class's testclasses include, under the class's lock.
+const locked = await client.getClass().lock({ className: 'ZCL_UNDER_TEST' });
+await client.getLocalTestClass().update(
+  { className: 'ZCL_UNDER_TEST', source: testSource },
+  { lockHandle: locked.getResult().value },
+);
+await client.getClass().unlock({ className: 'ZCL_UNDER_TEST' }, locked.getResult().value);
+
+// A CDS view's tests live in a class made for them. Whether the view can be
+// tested with doubles is the view's question.
+await client.getDdl().checkCdsTestDoubles('ZI_VIEW');
+
+// Running is an executor's.
+const runner = (await createAdtExecutor(connection)).getClassTestRunner({
+  ...classTestRunnerDocuments,
+  run: unitTestRunId,
+});
+const started = await runner.run('ZCL_UNDER_TEST', { analyse: analyseUnitTestStart });
+const runId = started.getResult().value;
+await runner.getStatus(runId, true);
+const result = await runner.getResult(runId, { analyse: analyseUnitTest });
+```
+
+`run` takes a class name (every test class in it) or a list of
+`{ containerClass, testClass }`. On a legacy system the runner's `run` answers
+the finished result, and `getStatus`/`getResult` refuse without a request.
 
 **AdtUtils read type safety:**
 `readObjectMetadata` and `readObjectSource` accept strict object type unions to prevent invalid inputs like `view:ZOBJ`.
@@ -847,7 +886,7 @@ Previously the second call compiled and threw `ADT_UNSUPPORTED_OPERATION` at run
 
 Since **9.0.0** no accessor returns the wide type, and since **12.0.0** none returns a type carrying a method that throws — including `getRequest()`, `getFeatureToggle()` and `getServiceBinding()`, which were the last three.
 
-`getUnitTest()` and `getCdsUnitTest()` changed meaning rather than shape: a unit test's subject is the container class and its `testclasses` include, so `create()` creates that class and writes the tests into it, `update`/`delete`/`read` manage the include, `lock`/`unlock` take the container's lock, and running is `IAdtRunnable` — one method, with `getStatus`/`getResult` on `ITestRunInformation` because asking about a run is not running it.
+Since **24.0.0** there is no unit-test handler at all: every member `getUnitTest()` and `getCdsUnitTest()` had was another handler's request under a second name — the class's create, the local test class's read, update and delete. What was left, running, is `AdtExecutor.getClassTestRunner()` (`IAdtRunnable` plus `ITestRunInformation`), and the CDS test-doubles check is `getDdl().checkCdsTestDoubles()`. See [MIGRATION-24.md](docs/usage/MIGRATION-24.md).
 
 The runtime client narrows the same way. `AdtRuntimeClient.getAtc()` implements `IAtcRunStatusReadable & IAtcFindings`, plus `resolveCheckVariant`, `createWorklist` and `startRun` — a check run is three requests, started and then read, never created, locked, activated or versioned, and the type says so rather than offering the rest and throwing. It is not `IAdtRunnable` since 19.0.0: that atom's `run` is one call.
 

@@ -1,6 +1,7 @@
 /**
- * Integration test for AdtUnitTest
- * Tests using AdtClient for unit test operations
+ * Integration test for a class's ABAP Unit tests: the container class through
+ * getClass(), the tests through getLocalTestClass(), the run through
+ * AdtExecutor.getClassTestRunner()
  *
  * Enable debug logs:
  *   DEBUG_ADT_TESTS=true       - Integration test execution logs
@@ -23,8 +24,9 @@ import type {
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
 import * as dotenv from 'dotenv';
 import type { AdtClient } from '../../../../clients/AdtClient';
-import type { IUnitTestConfig } from '../../../../core/unitTest';
-import { unitTestDocuments } from '../../../../core/unitTest/types';
+import { AdtExecutor } from '../../../../clients/AdtExecutor';
+import { AdtExecutorLegacy } from '../../../../clients/AdtExecutorLegacy';
+import { classTestRunnerDocuments } from '../../../../executors/class/ClassTestRunner';
 import { isCloudEnvironment } from '../../../../utils/systemInfo';
 import { expectResult } from '../../../helpers/contract';
 import { expectLockReleased } from '../../../helpers/lockReleased';
@@ -74,7 +76,7 @@ const libraryLogger: ILogger = createLibraryLogger();
 // Test execution logs use DEBUG_ADT_TESTS
 const testsLogger: ILogger = createTestsLogger();
 
-describe('AdtUnitTest (using AdtClient)', () => {
+describe('ABAP Unit on a class (AdtClient + AdtExecutor)', () => {
   let connection: IAbapConnection & ISessionLifecycleAware;
   let client: AdtClient;
   let hasConfig = false;
@@ -337,19 +339,25 @@ describe('AdtUnitTest (using AdtClient)', () => {
           logTestStep('read (unit test)', testsLogger);
           // The run's id is in a header of the start's answer; the reading that
           // finds it, and the check that a start carried one, are strategies.
-          const unitTest = client.getUnitTest({
-            ...unitTestDocuments,
+          const unitTest = (
+            isLegacy
+              ? new AdtExecutorLegacy(connection, libraryLogger)
+              : new AdtExecutor(connection, libraryLogger)
+          ).getClassTestRunner({
+            ...classTestRunnerDocuments,
             run: unitTestRunId,
           });
           const readState = expectResult(
-            await unitTest.read({ className: containerClass }, 'active'),
+            await client
+              .getLocalTestClass()
+              .read({ className: containerClass }, 'active'),
             'readState',
           );
           expect(readState).toBeDefined();
           testsLogger.info?.('Tests read back from the container class');
 
           const metadataState = expectResult(
-            await unitTest.readMetadata({
+            await client.getLocalTestClass().readMetadata({
               className: containerClass,
             }),
             'metadataState',

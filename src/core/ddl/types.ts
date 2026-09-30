@@ -80,6 +80,11 @@ export interface IDdlResults {
   readonly versions: IResultStrategy<unknown>;
   /** One version's source. */
   readonly versionSource: IResultStrategy<unknown>;
+  /**
+   * What the test-doubles check answers: `SEVERITY` inside a 200.
+   * `analyseCdsTestDoubles` in @mcp-abap-adt/adt-strategies reads the verdict.
+   */
+  readonly testDoubles: IResultStrategy<unknown>;
 }
 
 /**
@@ -100,6 +105,7 @@ export const ddlDocuments = {
   deletionCheck: rawDocument,
   versions: rawDocument,
   versionSource: rawDocument,
+  testDoubles: rawDocument,
 } satisfies IDdlResults;
 
 /**

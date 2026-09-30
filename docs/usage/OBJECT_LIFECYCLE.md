@@ -341,7 +341,6 @@ to approve.
 |---|---|
 | `getLocalTestClass()`, `getLocalTypes()`, `getLocalDefinitions()`, `getLocalMacros()` | `update()` with an empty source — the class include is emptied, not removed |
 | `getMessageClassMessage()` | the message class is written without that row |
-| `getUnitTest()`, `getCdsUnitTest()` | the container class's `testclasses` include is emptied |
 
 Measured beside it: the deletion service resolves a *message class*
 (`adtcore:type="MSAG/N"`) and knows nothing of the rows inside it. The same holds

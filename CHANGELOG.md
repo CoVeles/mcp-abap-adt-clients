@@ -22,6 +22,40 @@ independent versions. One package at a time: `npm run publish:clients` and
   
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the package follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [24.0.0] - 2026-09-30
+
+### Removed — BREAKING
+
+- **The unit-test handlers: `getUnitTest()`, `getCdsUnitTest()`, `AdtUnitTest`,
+  `AdtCdsUnitTest`, `AdtUnitTestLegacy`.** A unit test is not an object type —
+  it is a local test class in a class's `testclasses` include — and measured
+  against the endpoints, no member of either handler had a request of its own:
+  create was the class's POST, read/update/delete the local test class's GET
+  and PUT, lock the class's LOCK, the CDS delete the class's DELETE. Each now
+  lives with the object it touches. See
+  [MIGRATION-24.md](docs/usage/MIGRATION-24.md).
+- **`AdtClass.lockTestClasses`, `unlockTestClasses`, `checkTestClass`.** The
+  first two were `lock`/`unlock` of the same class without the lock tracker;
+  the third was `getLocalTestClass().check`'s request.
+- **`IUnitTestResults`, `unitTestDocuments`.**
+- **The duplicate run module.** `core/unitTest/run.ts` was a byte-identical copy
+  of the ABAP Unit half of `core/class/run.ts`, and the two handlers imported
+  from both.
+
+### Added
+
+- **`AdtExecutor.getClassTestRunner()`** — running a class's ABAP Unit tests
+  (`run`, by class name or by `{ containerClass, testClass }` list) and asking
+  about the run (`getStatus`, `getResult`), with its own result set
+  `classTestRunnerDocuments`. Running is an executor's, beside `classrun`.
+- **`AdtExecutorLegacy` and `createAdtExecutor`** — the executor twin of
+  `AdtClientLegacy`/`createAdtClient`. Below 7.50 the runner posts to
+  `/abapunit/testruns`, answers the finished result, and refuses
+  `getStatus`/`getResult` without a request.
+- **`getDdl().checkCdsTestDoubles()`** — the CDS test-doubles check, on the
+  view's handler, answered through the new `ddlDocuments.testDoubles` slot.
+  `AdtDdlLegacy` refuses it without a request.
+
 ## [23.0.5] - 2026-09-29
 
 ### Fixed

@@ -117,7 +117,7 @@ async function main(): Promise<void> {
     // and the next call came back `423 ExceptionResourceInvalidLockHandle`,
     // `SADT_RESOURCE/026` — indistinguishable from somebody else holding the
     // object, and blamed on two innocent parties before the body was read.
-    // `lockTestClasses` runs the LOCK inside `inStatefulSession`, which is the
+    // `AdtClass.lock` runs the LOCK inside `inStatefulSession`, which is the
     // whole difference.
     let handle = '';
     try {

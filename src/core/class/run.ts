@@ -86,12 +86,16 @@ export async function runClass(
 export type {
   IClassUnitTestDefinition,
   IClassUnitTestRunOptions,
-} from '../unitTest/types';
+} from '@mcp-abap-adt/interfaces-adt';
 
 function boolAttr(value: boolean | undefined, fallback: boolean) {
   return (value ?? fallback) ? 'true' : 'false';
 }
 
+import type {
+  IClassUnitTestDefinition,
+  IClassUnitTestRunOptions,
+} from '@mcp-abap-adt/interfaces-adt';
 import {
   ACCEPT_JUNIT_RESULT,
   ACCEPT_SOURCE,
@@ -99,10 +103,6 @@ import {
   ACCEPT_UNIT_TEST_STATUS,
   CT_UNIT_TEST_RUN,
 } from '../../constants/contentTypes';
-import type {
-  IClassUnitTestDefinition,
-  IClassUnitTestRunOptions,
-} from '../unitTest/types';
 
 export async function startClassUnitTestRun(
   connection: IAbapConnection,
@@ -195,8 +195,9 @@ export async function getClassUnitTestResult(
 }
 
 /**
- * Start ABAP Unit test run by object (for CDS unit tests)
- * Uses osl:objectSet instead of aunit:tests
+ * Start ABAP Unit test run for a whole class, by object.
+ * Uses osl:objectSet instead of aunit:tests, so every test class in the
+ * container runs without the caller naming one.
  */
 export async function startClassUnitTestRunByObject(
   connection: IAbapConnection,

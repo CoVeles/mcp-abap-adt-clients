@@ -1,7 +1,12 @@
 export {
   ClassExecutor,
+  ClassTestRunner,
+  ClassTestRunnerLegacy,
   classExecutorDocuments,
+  classTestRunnerDocuments,
   type IClassExecutorResults,
+  type IClassTestRunnerResults,
+  type IClassTestRunTarget,
 } from './class';
 export {
   type IProgramExecutorResults,

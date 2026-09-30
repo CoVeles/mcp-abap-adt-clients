@@ -1,6 +1,7 @@
 /**
- * Integration test for AdtCdsUnitTest
- * Tests using AdtClient for CDS unit test operations
+ * Integration test for a CDS view's ABAP Unit tests: the test-doubles check
+ * through getDdl(), the container class through getClass(), the run through
+ * AdtExecutor.getClassTestRunner()
  *
  * Enable debug logs:
  *   DEBUG_ADT_TESTS=true       - Integration test execution logs
@@ -23,12 +24,9 @@ import type {
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
 import * as dotenv from 'dotenv';
 import type { AdtClient } from '../../../../clients/AdtClient';
-import type {
-  ICdsUnitTestConfig,
-  IUnitTestConfig,
-} from '../../../../core/unitTest';
-import { checkCdsTestDoublesAvailability } from '../../../../core/unitTest/checkCdsTestDoublesAvailability';
-import { unitTestDocuments } from '../../../../core/unitTest/types';
+import { AdtExecutor } from '../../../../clients/AdtExecutor';
+import { AdtExecutorLegacy } from '../../../../clients/AdtExecutorLegacy';
+import { classTestRunnerDocuments } from '../../../../executors/class/ClassTestRunner';
 import { isCloudEnvironment } from '../../../../utils/systemInfo';
 import { expectResult } from '../../../helpers/contract';
 import {
@@ -77,7 +75,7 @@ const libraryLogger: ILogger = createLibraryLogger();
 // Test execution logs use DEBUG_ADT_TESTS
 const testsLogger: ILogger = createTestsLogger();
 
-describe('AdtCdsUnitTest (using AdtClient)', () => {
+describe('ABAP Unit on a CDS view (AdtClient + AdtExecutor)', () => {
   let connection: IAbapConnection & ISessionLifecycleAware;
   let client: AdtClient;
   let hasConfig = false;
@@ -265,33 +263,27 @@ describe('AdtCdsUnitTest (using AdtClient)', () => {
               'Checking CDS view for unit test doubles:',
               ddlName,
             );
-            const checkResponse = await checkCdsTestDoublesAvailability(
-              connection,
-              ddlName,
-            );
-            expect(checkResponse).toBeDefined();
-            expect(checkResponse.status).toBe(200);
+            const checkResponse = await client
+              .getDdl()
+              .checkCdsTestDoubles(ddlName);
+            expect(checkResponse.ok).toBe(true);
             testsLogger.info?.('CDS view check passed');
           }
 
           // Step 2: Create CDS unit test class
           logTestStep('create', testsLogger);
-          const cdsUnitTestConfigForCreate: Omit<ICdsUnitTestConfig, 'source'> =
-            {
+          // A CDS view's tests live in a global class made for them from a
+          // template: an ordinary class create, final, with the template.
+          const createState = expectResult(
+            await client.getClass().create({
               className,
               packageName,
-              cdsViewName: ddlName,
               classTemplate,
-              // No source: `create` is the POST and takes none. The template is
-              // what makes this the CDS create; the tests are written by the
-              // update below.
+              final: true,
               description:
                 cdsUnitTestConfig.description || `CDS unit test for ${ddlName}`,
               transportRequest,
-            };
-
-          const createState = expectResult(
-            await client.getCdsUnitTest().create(cdsUnitTestConfigForCreate),
+            }),
             'createState',
           );
           expect(createState).toBeDefined();
@@ -326,8 +318,12 @@ describe('AdtCdsUnitTest (using AdtClient)', () => {
           logTestStep('run (unit test)', testsLogger);
           // The run's id is in a header of the start's answer; the reading that
           // finds it, and the check that a start carried one, are strategies.
-          const unitTest = client.getUnitTest({
-            ...unitTestDocuments,
+          const unitTest = (
+            isLegacy
+              ? new AdtExecutorLegacy(connection, libraryLogger)
+              : new AdtExecutor(connection, libraryLogger)
+          ).getClassTestRunner({
+            ...classTestRunnerDocuments,
             run: unitTestRunId,
           });
           const runId = expectResult(

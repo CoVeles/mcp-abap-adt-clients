@@ -365,13 +365,19 @@ with it: `LockCapability`, `VersionsCapability` and their types, the
 
 **`run` answers the document it got, and the run id is a reading.** ADT puts the
 id in a header (`Location`, `Content-Location` or `sap-adt-location`), or in
-`aunit:run@uri` — not in a body a caller would look at. `unitTestRunId` reads it:
+`aunit:run@uri` — not in a body a caller would look at. `unitTestRunId` reads it.
+
+The examples are written for 24.0.0, where these members moved from
+`client.getUnitTest()` to `executor.getClassTestRunner()` unchanged — see
+[MIGRATION-24.md](MIGRATION-24.md). On 23.x, read `client.getUnitTest(…)` and
+`unitTestDocuments` for `executor.getClassTestRunner(…)` and
+`classTestRunnerDocuments`.
 
 ```typescript
-import { unitTestDocuments } from '@mcp-abap-adt/adt-clients';
+import { classTestRunnerDocuments } from '@mcp-abap-adt/adt-clients';
 import { analyseUnitTest, analyseUnitTestStart, unitTestRunId } from '@mcp-abap-adt/adt-strategies';
 
-const unitTests = client.getUnitTest({ ...unitTestDocuments, run: unitTestRunId });
+const unitTests = executor.getClassTestRunner({ ...classTestRunnerDocuments, run: unitTestRunId });
 
 const started = await unitTests.run(tests, { analyse: analyseUnitTestStart });
 if (!started.ok) throw new Error(started.getError().message);
@@ -387,9 +393,9 @@ const result = await unitTests.getResult(runId, { analyse: analyseUnitTest });
 A caller who wants the wire response passes `wireItself` for that slot:
 
 ```typescript
-import { unitTestDocuments, wireItself } from '@mcp-abap-adt/adt-clients';
+import { classTestRunnerDocuments, wireItself } from '@mcp-abap-adt/adt-clients';
 
-const withWire = client.getUnitTest({ ...unitTestDocuments, status: wireItself });
+const withWire = executor.getClassTestRunner({ ...classTestRunnerDocuments, status: wireItself });
 ```
 
 **On a legacy system**, `run` answers the finished result — the legacy endpoint

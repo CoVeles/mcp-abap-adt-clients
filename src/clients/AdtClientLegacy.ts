@@ -41,8 +41,6 @@ import { AdtContentTypesBase } from '../core/shared/contentTypes';
 import { type IUtilResults, utilDocuments } from '../core/shared/utilResultSet';
 import { type ITransportResults, transportDocuments } from '../core/transport';
 import { AdtRequestLegacy } from '../core/transport/AdtRequestLegacy';
-import { type IUnitTestResults, unitTestDocuments } from '../core/unitTest';
-import { AdtUnitTestLegacy } from '../core/unitTest/AdtUnitTestLegacy';
 import { AdtClient } from './AdtClient';
 
 /**
@@ -166,14 +164,6 @@ export class AdtClientLegacy extends AdtClient {
     );
   }
 
-  // --- Unit tests with legacy endpoints ---
-
-  override getUnitTest<R extends IUnitTestResults = typeof unitTestDocuments>(
-    results: R = unitTestDocuments as unknown as R,
-  ): AdtUnitTestLegacy<R> {
-    return new AdtUnitTestLegacy<R>(this.connection, this.logger, results);
-  }
-
   // --- Transport with legacy URL prefix ---
 
   /**
@@ -229,17 +219,6 @@ export class AdtClientLegacy extends AdtClient {
     results: R = utilDocuments as unknown as R,
   ): AdtUtilsLegacy<R> {
     return new AdtUtilsLegacy<R>(this.connection, this.logger, results);
-  }
-
-  // --- CDS Unit Test: requires modern CDS endpoints ---
-
-  override getCdsUnitTest(): never {
-    throw new Error(
-      unsupportedError(
-        'CDS Unit Test',
-        '/sap/bc/adt/ddic/ddl/sources (CDS framework)',
-      ),
-    );
   }
 
   // --- Unsupported types: endpoints absent from legacy /sap/bc/adt/discovery ---
