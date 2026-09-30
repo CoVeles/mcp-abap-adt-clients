@@ -31,7 +31,6 @@ import type {
   IAdtReadable,
   IAdtRepositoryStructure,
   IAdtRequest,
-  IAdtRunnable,
   IAdtSystemContext,
   IAdtTransportAware,
   IAdtTransportObjectActions,
@@ -40,11 +39,8 @@ import type {
   IAdtValidatable,
   IAdtVersionable,
   ICdsTestDoubleCheckable,
-  IClassUnitTestDefinition,
-  IClassUnitTestRunOptions,
   IFeatureToggleObject,
   IIncludeConfig,
-  ITestRunInformation,
 } from '@mcp-abap-adt/interfaces-adt';
 import type {
   IAbapConnection,
@@ -237,14 +233,6 @@ import {
   type ITransportResults,
   transportDocuments,
 } from '../core/transport';
-import {
-  AdtCdsUnitTest,
-  AdtUnitTest,
-  type ICdsUnitTestConfig,
-  type IUnitTestConfig,
-  type IUnitTestResults,
-  unitTestDocuments,
-} from '../core/unitTest';
 import { withRequestTrace } from '../utils/requestTrace';
 
 /**
@@ -485,7 +473,8 @@ export type IDdlContract<R extends IDdlResults> = IAdtCreatable<
     IDdlConfig,
     ReturnType<R['versions']>,
     ReturnType<R['versionSource']>
-  >;
+  > &
+  ICdsTestDoubleCheckable<ReturnType<R['testDoubles']>>;
 export type IFunctionGroupContract<R extends IFunctionGroupResults> =
   IAdtCreatable<IFunctionGroupConfig, ReturnType<R['created']>> &
     IAdtMetadataReadable<IFunctionGroupConfig, ReturnType<R['metadata']>> &
@@ -1988,76 +1977,6 @@ export class AdtClient {
       this.lockRegistry,
       results,
     );
-  }
-
-  /**
-   * Get high-level operations for UnitTest objects.
-   *
-   * A test run is created and read, never edited: ADT exposes no update,
-   * delete, activate, check, lock or version resource for one. The declared
-   * type says so rather than promising thirteen methods of which nine throw.
-   *
-   * It also carries {@link IAdtTestRunnable} — starting a run and collecting
-   * its outcome is the reason this handler exists, and until interfaces 13.1.0
-   * no contract described it, so callers cast past the type to reach it.
-   */
-  // Concrete, like `getUtils` and `getFeatureToggle` above and for the same
-  // reason: a unit test handler runs its tests and reads their results, and
-  // the composition names none of that. Handing back the contract would take
-  // those members away from callers who have them today.
-  getUnitTest(): AdtUnitTest;
-  getUnitTest<R extends IUnitTestResults>(
-    results: R,
-  ): IAdtCreatable<IUnitTestConfig, ReturnType<R['created']>> &
-    IAdtReadable<IUnitTestConfig, ReturnType<R['source']>> &
-    IAdtMetadataReadable<IUnitTestConfig, ReturnType<R['metadata']>> &
-    IAdtUpdatable<Partial<IUnitTestConfig>, ReturnType<R['updated']>> &
-    IAdtValidatable<IUnitTestConfig, ReturnType<R['validation']>> &
-    IAdtLockable<IUnitTestConfig> &
-    IAdtRunnable<
-      IClassUnitTestDefinition[],
-      ReturnType<R['run']>,
-      IClassUnitTestRunOptions
-    > &
-    ITestRunInformation<ReturnType<R['status']>, ReturnType<R['result']>>;
-  getUnitTest<R extends IUnitTestResults = typeof unitTestDocuments>(
-    results: R = unitTestDocuments as unknown as R,
-  ): AdtUnitTest<R> {
-    this.assertConnected();
-    return new AdtUnitTest<R>(this.connection, this.logger, results);
-  }
-
-  /**
-   * Get high-level operations for CDS UnitTest objects.
-   *
-   * Same capability set as {@link getUnitTest}; the CDS-specific surface
-   * (`checkCdsTestDoubles`, `getCdsViewName`) is on the concrete class.
-   */
-  // Concrete, like `getUtils` and `getFeatureToggle` above and for the same
-  // reason: a unit test handler runs its tests and reads their results, and
-  // the composition names none of that. Handing back the contract would take
-  // those members away from callers who have them today.
-  getCdsUnitTest(): AdtCdsUnitTest;
-  getCdsUnitTest<R extends IUnitTestResults>(
-    results: R,
-  ): IAdtCreatable<ICdsUnitTestConfig, ReturnType<R['created']>> &
-    IAdtReadable<ICdsUnitTestConfig, ReturnType<R['source']>> &
-    IAdtMetadataReadable<ICdsUnitTestConfig, ReturnType<R['metadata']>> &
-    IAdtUpdatable<Partial<ICdsUnitTestConfig>, ReturnType<R['updated']>> &
-    IAdtValidatable<ICdsUnitTestConfig, ReturnType<R['validation']>> &
-    IAdtLockable<ICdsUnitTestConfig> &
-    IAdtRunnable<
-      IClassUnitTestDefinition[] | string,
-      ReturnType<R['run']>,
-      IClassUnitTestRunOptions
-    > &
-    ITestRunInformation<ReturnType<R['status']>, ReturnType<R['result']>> &
-    ICdsTestDoubleCheckable<ReturnType<R['cdsCheck']>>;
-  getCdsUnitTest<R extends IUnitTestResults = typeof unitTestDocuments>(
-    results: R = unitTestDocuments as unknown as R,
-  ): AdtCdsUnitTest<R> {
-    this.assertConnected();
-    return new AdtCdsUnitTest<R>(this.connection, this.logger, results);
   }
 
   /**

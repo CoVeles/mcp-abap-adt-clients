@@ -95,8 +95,6 @@ export type { ITransformationResults } from './core/transformation/types';
 export { transformationDocuments } from './core/transformation/types';
 export type { ITransportResults } from './core/transport/types';
 export { transportDocuments } from './core/transport/types';
-export type { IUnitTestResults } from './core/unitTest/types';
-export { unitTestDocuments } from './core/unitTest/types';
 /**
  * No error strategy ships from here.
  *

@@ -27,6 +27,7 @@ import type {
   IAdtUpdatable,
   IAdtValidatable,
   IAdtVersionable,
+  ICdsTestDoubleCheckable,
   IResultStrategy,
 } from '@mcp-abap-adt/interfaces-adt';
 import type { IAbapConnection } from '@mcp-abap-adt/interfaces-adt-connection';
@@ -48,6 +49,7 @@ import { createDdl } from './create';
 import { checkDeletion, deleteDdl } from './delete';
 import { lockDDLS } from './lock';
 import { getDdlMetadata, getDdlSource, getDdlTransport } from './read';
+import { checkCdsTestDoublesAvailability } from './testDoubles';
 import { ddlDocuments, type IDdlConfig, type IDdlResults } from './types';
 import { unlockDDLS } from './unlock';
 import { updateDdl } from './update';
@@ -74,7 +76,8 @@ export class AdtDdl<R extends IDdlResults = typeof ddlDocuments>
       IDdlConfig,
       ReturnType<R['versions']>,
       ReturnType<R['versionSource']>
-    >
+    >,
+    ICdsTestDoubleCheckable<ReturnType<R['testDoubles']>>
 {
   protected readonly connection: IAbapConnection;
   protected readonly logger?: ILogger;
@@ -432,6 +435,26 @@ export class AdtDdl<R extends IDdlResults = typeof ddlDocuments>
       this.results.versionSource as IResultStrategy<
         ReturnType<R['versionSource']>
       >,
+      options?.analyse,
+    );
+  }
+
+  /**
+   * Whether the view can be tested with test doubles
+   * (`cl_cds_test_environment`). One POST.
+   *
+   * A question about the view, so it is the view's: it is asked before a
+   * test class is written against it, because a view the doubles framework
+   * cannot handle makes that class pointless. Until 24.0.0 it lived on
+   * `AdtCdsUnitTest`, a handler for something that is not an object.
+   */
+  async checkCdsTestDoubles<E extends IAdtError = IAdtError>(
+    cdsViewName: string,
+    options?: IAdtAnalyseOptions<E>,
+  ): Promise<IAdtResponse<ReturnType<R['testDoubles']>, E>> {
+    return answering(
+      () => checkCdsTestDoublesAvailability(this.connection, cdsViewName),
+      this.results.testDoubles as IResultStrategy<ReturnType<R['testDoubles']>>,
       options?.analyse,
     );
   }

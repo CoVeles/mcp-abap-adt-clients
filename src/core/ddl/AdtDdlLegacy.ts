@@ -1,16 +1,20 @@
 /**
  * AdtDdlLegacy - DDL source handler for legacy SAP systems (BASIS < 7.50)
  *
- * Overrides delete() to use direct DELETE instead of /sap/bc/adt/deletion/ API.
+ * Overrides delete() to use direct DELETE instead of /sap/bc/adt/deletion/ API,
+ * and refuses checkCdsTestDoubles(): the CDS test-doubles framework endpoint is
+ * not present below 7.50 (issue #207).
  */
 
 import type {
+  IAdtAnalyseOptions,
   IAdtError,
   IAdtOperationOptions,
   IAdtResponse,
   IResultStrategy,
 } from '@mcp-abap-adt/interfaces-adt';
-import { answering } from '../../utils/adtResponse';
+import { AdtObjectErrorCodes } from '@mcp-abap-adt/interfaces-adt';
+import { answering, failed } from '../../utils/adtResponse';
 import { encodeSapObjectName } from '../../utils/internalUtils';
 import { deleteObjectDirect } from '../shared/deleteLegacy';
 import { AdtDdl } from './AdtDdl';
@@ -37,5 +41,18 @@ export class AdtDdlLegacy<
       this.results.deletion as IResultStrategy<ReturnType<R['deletion']>>,
       options?.analyse,
     );
+  }
+
+  /** Refused without a request: the endpoint does not exist below 7.50. */
+  override async checkCdsTestDoubles<E extends IAdtError = IAdtError>(
+    _cdsViewName: string,
+    _options?: IAdtAnalyseOptions<E>,
+  ): Promise<IAdtResponse<ReturnType<R['testDoubles']>, E>> {
+    return failed<ReturnType<R['testDoubles']>, E>({
+      origin: 'refusal',
+      code: AdtObjectErrorCodes.UNSUPPORTED_OPERATION,
+      message:
+        'The CDS test-doubles check needs BASIS 7.50 or later; this system has no such endpoint.',
+    } as E);
   }
 }

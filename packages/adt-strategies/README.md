@@ -131,7 +131,7 @@ result set:
 | `asItCame`, `rawOf` | any | the answer unchanged; `answer.data` as text |
 | `transportTree`, `transportCreated`, `transportSearchConfigurations`, `transportObjectEntries` | `getRequest`: `list`; `created`/`createdTask`; `searchConfigurations`; `objects` | `ITransportTree`, `ICreatedTransport`, `ITransportSearchConfiguration[]`, `ITransportObjectEntry[]` |
 | `objectVersions` | any versionable type: `versions` | `IObjectVersion[]` |
-| `unitTestRunId` | `getUnitTest`/`getCdsUnitTest`: `run` | the run id, from the header ADT puts it in |
+| `unitTestRunId` | `AdtExecutor.getClassTestRunner`: `run` | the run id, from the header ADT puts it in |
 | `featureToggleRuntimeState`, `featureToggleCheckState` | `getFeatureToggle`: `runtimeState`, `checkState` | the two states |
 | `utilSearchHits`, `utilNamedItems`, `utilNodeContents`, `utilInactiveObjects`, `utilActivationRunId`, `utilWhereUsedReferences` | `getUtils`: `search`, `types`, `node`, `inactive`, `activation`, `whereUsed` | the parsed shapes; `readSearchHits`, `readNamedItems`, `readNodeStructure`, `extractRunId` are the pure functions underneath |
 | `abapGitRepos`, `abapGitErrorLog`, `abapGitExternalRepo` | `AdtAbapGitClient`: `repos`, `errorLog`, `externalRepo` | `IAbapGitRepo[]` (with `repositoryId`, `pullLink`, `logLink`), log entries, branches |

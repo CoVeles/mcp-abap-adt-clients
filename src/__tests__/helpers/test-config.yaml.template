@@ -1858,6 +1858,84 @@ run_unit_test:
           format: "abapunit"  # or "junit"
 
 # Create CDS Unit Test
+# ABAP Unit on a report. The test class sits in an include the report pulls in
+# — the usual shape — and the run names the report (`osl:object type="PROG"`,
+# as Eclipse does), which finds it there. Measured on premise, 2026-09-30.
+# The test builds both objects, runs them, and deletes them.
+run_program_unit_test:
+  test_cases:
+    - name: "adt_program_unit_test"
+      enabled: true
+      available_in: ["onprem"]
+      description: "Run the ABAP Unit tests of a report whose test class is in an include"
+      params:
+        # package_name: "ZAC_PKG01"  # Uses environment.default_package if omitted
+        # transport_request: ""  # Uses environment.default_transport if omitted
+        program_name: "ZAC_UTST_PROG"
+        include_name: "ZAC_UTST_PROG_T"
+        program_source: |
+          REPORT zac_utst_prog.
+
+          INCLUDE zac_utst_prog_t.
+        include_source: |
+          CLASS ltc_program DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+            PRIVATE SECTION.
+              METHODS passes FOR TESTING.
+          ENDCLASS.
+
+          CLASS ltc_program IMPLEMENTATION.
+            METHOD passes.
+              cl_abap_unit_assert=>assert_equals( act = 1 exp = 1 ).
+            ENDMETHOD.
+          ENDCLASS.
+        expected_test_methods: ["PASSES"]
+        # skip_cleanup: false  # true leaves the report and include for analysis
+
+# ABAP Unit on a function group and on one of its modules. The test class sits
+# in an include of the group (creating it adds the INCLUDE to the group's main
+# program); the group run (`FUGR`) runs every test of the group, the module run
+# (`FUNC`, what Eclipse sends) the tests that exercise that module. Measured on
+# premise, 2026-09-30. The test builds the group, runs both, and deletes it.
+run_function_group_unit_test:
+  test_cases:
+    - name: "adt_function_group_unit_test"
+      enabled: true
+      available_in: ["onprem"]
+      description: "Run the ABAP Unit tests of a function group and of one of its modules"
+      params:
+        # package_name: "ZAC_PKG01"  # Uses environment.default_package if omitted
+        # transport_request: ""  # Uses environment.default_transport if omitted
+        function_group_name: "ZAC_UTST_FUGR"
+        function_module_name: "Z_AC_UTST_FM"
+        include_name: "LZAC_UTST_FUGRT99"
+        function_module_source: |
+          FUNCTION z_ac_utst_fm
+            IMPORTING
+              VALUE(iv_in) TYPE i
+            EXPORTING
+              VALUE(ev_out) TYPE i.
+            ev_out = iv_in * 2.
+          ENDFUNCTION.
+        include_source: |
+          CLASS ltc_module DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+            PRIVATE SECTION.
+              METHODS doubles FOR TESTING.
+          ENDCLASS.
+
+          CLASS ltc_module IMPLEMENTATION.
+            METHOD doubles.
+              DATA lv_out TYPE i.
+              CALL FUNCTION 'Z_AC_UTST_FM'
+                EXPORTING
+                  iv_in  = 2
+                IMPORTING
+                  ev_out = lv_out.
+              cl_abap_unit_assert=>assert_equals( act = lv_out exp = 4 ).
+            ENDMETHOD.
+          ENDCLASS.
+        expected_test_methods: ["DOUBLES"]
+        # skip_cleanup: false  # true leaves the group for analysis
+
 create_cds_unit_test:
   test_cases:
     - name: "cds_unit_test"

@@ -22,6 +22,81 @@ independent versions. One package at a time: `npm run publish:clients` and
   
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the package follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [24.0.0] - 2026-09-30
+
+### Removed — BREAKING
+
+- **The unit-test handlers: `getUnitTest()`, `getCdsUnitTest()`, `AdtUnitTest`,
+  `AdtCdsUnitTest`, `AdtUnitTestLegacy`.** A unit test is not an object type —
+  it is a local test class in a class's `testclasses` include — and measured
+  against the endpoints, no member of either handler had a request of its own:
+  create was the class's POST, read/update/delete the local test class's GET
+  and PUT, lock the class's LOCK, the CDS delete the class's DELETE. Each now
+  lives with the object it touches. See
+  [MIGRATION-24.md](docs/usage/MIGRATION-24.md).
+- **`AdtClass.lockTestClasses`, `unlockTestClasses`, `checkTestClass`.** The
+  first two were `lock`/`unlock` of the same class without the lock tracker;
+  the third was `getLocalTestClass().check`'s request.
+- **`IUnitTestResults`, `unitTestDocuments`.**
+- **The duplicate run module.** `core/unitTest/run.ts` was a byte-identical copy
+  of the ABAP Unit half of `core/class/run.ts`, and the two handlers imported
+  from both.
+
+### Added
+
+- **`AdtExecutor.getClassTestRunner()`** — running a class's ABAP Unit tests
+  (`run`, by class name or by `{ containerClass, testClass }` list) and asking
+  about the run (`getStatus`, `getResult`), with its own result set
+  `classTestRunnerDocuments`. Running is an executor's, beside `classrun`.
+- **`AdtExecutor.getProgramTestRunner()`** — running a report's ABAP Unit
+  tests, wherever they sit: its own source or an include it pulls in. Same
+  `/abapunit/runs` as a class, naming the report as `osl:object type="PROG"` —
+  what Eclipse sends. Measured on premise (2026-09-30) against a report with its
+  test class inline and one with it in an include; both ran. Own result set
+  `programTestRunnerDocuments`. The legacy runner refuses without a request:
+  `/abapunit/testruns` given a report's URI answered an empty result for a
+  report whose tests `/abapunit/runs` found.
+- **`AdtExecutor.getFunctionGroupTestRunner()` and
+  `getFunctionModuleTestRunner()`** — every ABAP Unit test of a function group
+  (`osl:object type="FUGR"`), or the tests that exercise one module
+  (`type="FUNC"`, what Eclipse sends). Measured on premise (2026-09-30): the
+  group run found all seven test methods of a group; the module run found the
+  seven that exercise the module and none for a module they do not. Legacy
+  variants refuse without a request, as the report's does.
+- **`AbapUnitRunner`** — the base every runner stands on: `getStatus` and
+  `getResult` by run id, and a start for one object of the runner's type. One
+  result set, `abapUnitRunnerDocuments`; the per-runner names
+  (`classTestRunnerDocuments`, `programTestRunnerDocuments`,
+  `functionGroupTestRunnerDocuments`, `functionModuleTestRunnerDocuments`) are
+  the same object.
+- **Integration tests for every runner.** `ProgramUnitTest` and
+  `FunctionGroupUnitTest` build their objects (a report with its test class in
+  an include; a group, a module and a test include), run them, assert the test
+  methods they wrote were found and raised no alert, and delete them;
+  `UnitTest` also runs its class by name. New test cases
+  `run_program_unit_test` and `run_function_group_unit_test` in
+  `test-config.yaml.template`.
+- **`core/shared/abapUnit.ts`** — starting a run for one object of any type,
+  and polling and fetching a run by id, once for every runner.
+  `startClassUnitTestRunByObject`, `getClassUnitTestStatus` and
+  `getClassUnitTestResult` stay exported and delegate to it.
+- **`AdtExecutorLegacy` and `createAdtExecutor`** — the executor twin of
+  `AdtClientLegacy`/`createAdtClient`. Below 7.50 the runner posts to
+  `/abapunit/testruns`, answers the finished result, and refuses
+  `getStatus`/`getResult` without a request.
+- **`getDdl().checkCdsTestDoubles()`** — the CDS test-doubles check, on the
+  view's handler, answered through the new `ddlDocuments.testDoubles` slot.
+  `AdtDdlLegacy` refuses it without a request.
+
+### Fixed
+
+- **A namespaced name reached ABAP Unit as another name.** The run body is XML,
+  and the object name went into it URL-encoded: `/ACME/CL_CLASS` was sent as
+  `%2FACME%2FCL_CLASS`, which XML does not decode. It is escaped for an XML
+  attribute now — in the run by object, in the `containerClass` of a run by test
+  class (both older than this release), and in `title`, `context` and the test
+  class name, which were not escaped at all.
+
 ## [23.0.5] - 2026-09-29
 
 ### Fixed

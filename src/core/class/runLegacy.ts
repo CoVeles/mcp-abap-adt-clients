@@ -12,10 +12,6 @@ import type {
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
-import type {
-  IClassUnitTestDefinition,
-  IClassUnitTestRunOptions,
-} from './types';
 
 const CT_XML = 'application/xml';
 const ACCEPT_XML = 'application/xml';
@@ -28,7 +24,7 @@ const ACCEPT_XML = 'application/xml';
  * `getClassUnitTestResultLegacy` polled `testruns/{runId}` and
  * `testruns/{runId}/results`, and were removed once the endpoint was measured:
  * the POST answers with the finished result, so there was never a run to poll.
- * Nothing called them — `AdtUnitTestLegacy` serves both from the response the
+ * Nothing called them — `ClassTestRunnerLegacy` serves both from the response the
  * POST returned — so they were an unmeasured contract kept alive by nobody
  * looking.
  *
@@ -48,16 +44,17 @@ const ACCEPT_XML = 'application/xml';
  * - Root element: aunit:runConfiguration (not aunit:run)
  * - Namespace: http://www.sap.com/adt/aunit (not http://www.sap.com/adt/api/aunit)
  * - Objects via adtcore:objectReferences with URI (not aunit:tests with containerClass/class)
+ *   — so a run covers whole classes: this format has no way to name one test
+ *   class inside its container, and a caller's test class name is not sent.
  * - Content-Type/Accept: application/xml (not versioned vnd.sap.adt.api.abapunit.*)
  */
 export async function startClassUnitTestRunLegacy(
   connection: IAbapConnection,
-  tests: IClassUnitTestDefinition[],
-  _options?: IClassUnitTestRunOptions,
+  classNames: string[],
 ): Promise<IAdtWireResponse> {
-  const objectRefs = tests
-    .map((test) => {
-      const className = encodeSapObjectName(test.containerClass).toLowerCase();
+  const objectRefs = classNames
+    .map((name) => {
+      const className = encodeSapObjectName(name).toLowerCase();
       return `        <adtcore:objectReference adtcore:uri="/sap/bc/adt/oo/classes/${className}"/>`;
     })
     .join('\n');

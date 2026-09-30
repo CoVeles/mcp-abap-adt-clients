@@ -89,8 +89,9 @@ import {
 } from '../src/__tests__/helpers/sessionConfig';
 import { createConnectionLogger } from '../src/__tests__/helpers/testLogger';
 import { AdtClient } from '../src/clients/AdtClient';
+import { AdtExecutor } from '../src/clients/AdtExecutor';
 import { transportDocuments } from '../src/core/transport/types';
-import { unitTestDocuments } from '../src/core/unitTest/types';
+import { classTestRunnerDocuments } from '../src/executors/class/ClassTestRunner';
 import { walkPackage } from './lib/packageWalk';
 
 // The client answers transport documents as they arrived; this script reads
@@ -1385,8 +1386,8 @@ async function main(): Promise<void> {
         await withCase(label, async () => {
           // The id is in a header of the start's answer: read it with the
           // strategy, since the client answers documents as they arrived.
-          const unitTest = client.getUnitTest({
-            ...unitTestDocuments,
+          const unitTest = new AdtExecutor(connection).getClassTestRunner({
+            ...classTestRunnerDocuments,
             run: unitTestRunId,
           });
           const started = await unitTest.run([
