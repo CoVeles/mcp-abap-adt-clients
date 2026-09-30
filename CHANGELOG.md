@@ -24,6 +24,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+## [24.0.1] - 2026-09-30
+
+A developer release: not published to npm.
+
 ### Changed
 
 - **Tests and documentation on `@mcp-abap-adt/connection` 10.** The credentials a connector is handed now come from `@mcp-abap-adt/auth-providers` (a dev dependency, like `connection`): `BasicAuthProvider`, and `TokenAuthProvider.fixed(token)` in place of `new TokenAuthProvider(token)`. The TLS material is no longer wired into the HTTP transport by hand — the provider hands it over at logon. The README and `docs/usage/` snippets import the providers from there. Nothing in the published package changes.
