@@ -88,6 +88,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   view's handler, answered through the new `ddlDocuments.testDoubles` slot.
   `AdtDdlLegacy` refuses it without a request.
 
+### Fixed
+
+- **A namespaced name reached ABAP Unit as another name.** The run body is XML,
+  and the object name went into it URL-encoded: `/ACME/CL_CLASS` was sent as
+  `%2FACME%2FCL_CLASS`, which XML does not decode. It is escaped for an XML
+  attribute now — in the run by object, in the `containerClass` of a run by test
+  class (both older than this release), and in `title`, `context` and the test
+  class name, which were not escaped at all.
+
 ## [23.0.5] - 2026-09-29
 
 ### Fixed

@@ -6,8 +6,8 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
+import { escapeXmlAttr } from '../../utils/xml';
 
 /**
  * Run an ABAP class that implements if_oo_adt_classrun interface.
@@ -127,11 +127,12 @@ export async function startClassUnitTestRun(
   const testsXml = tests
     .map(
       (test) =>
-        `<aunit:test containerClass="${encodeSapObjectName(test.containerClass).toUpperCase()}" class="${test.testClass}"/>`,
+        // XML attributes, not URLs — see `core/shared/abapUnit`.
+        `<aunit:test containerClass="${escapeXmlAttr(test.containerClass.toUpperCase())}" class="${escapeXmlAttr(test.testClass)}"/>`,
     )
     .join('');
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?><aunit:run xmlns:aunit="http://www.sap.com/adt/api/aunit" title="${options?.title || tests[0].testClass}" context="${options?.context || 'MCP ABAP ADT Client'}">
+  const xml = `<?xml version="1.0" encoding="UTF-8"?><aunit:run xmlns:aunit="http://www.sap.com/adt/api/aunit" title="${escapeXmlAttr(options?.title || tests[0].testClass)}" context="${escapeXmlAttr(options?.context || 'MCP ABAP ADT Client')}">
   <aunit:options>
     <aunit:scope ownTests="${boolAttr(scope.ownTests, true)}" foreignTests="${boolAttr(scope.foreignTests, false)}" addForeignTestsAsPreview="${boolAttr(scope.addForeignTestsAsPreview, true)}"/>
     <aunit:riskLevel harmless="${boolAttr(risk.harmless, true)}" dangerous="${boolAttr(risk.dangerous, true)}" critical="${boolAttr(risk.critical, true)}"/>

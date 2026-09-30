@@ -24,8 +24,8 @@ import {
   ACCEPT_UNIT_TEST_STATUS,
   CT_UNIT_TEST_RUN,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
+import { escapeXmlAttr } from '../../utils/xml';
 
 function boolAttr(value: boolean | undefined, fallback: boolean) {
   return (value ?? fallback) ? 'true' : 'false';
@@ -59,16 +59,21 @@ export async function startUnitTestRunByObject(
     medium: true,
     long: true,
   };
-  const name = encodeSapObjectName(object.name).toUpperCase();
+  // An XML attribute, not a URL: a namespaced name keeps its slashes
+  // (`/ACME/REPORT`), escaped for XML only. URL-encoding it here sent
+  // `%2FACME%2FREPORT`, which XML does not decode — a different name.
+  const name = escapeXmlAttr(object.name.toUpperCase());
+  const title = escapeXmlAttr(options?.title || object.name.toUpperCase());
+  const context = escapeXmlAttr(options?.context || 'MCP ABAP ADT Client');
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?><aunit:run xmlns:aunit="http://www.sap.com/adt/api/aunit" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:osl="http://www.sap.com/api/osl" title="${options?.title || name}" context="${options?.context || 'MCP ABAP ADT Client'}">
+  const xml = `<?xml version="1.0" encoding="UTF-8"?><aunit:run xmlns:aunit="http://www.sap.com/adt/api/aunit" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:osl="http://www.sap.com/api/osl" title="${title}" context="${context}">
   <aunit:options>
     <aunit:scope ownTests="${boolAttr(scope.ownTests, true)}" foreignTests="${boolAttr(scope.foreignTests, false)}" addForeignTestsAsPreview="${boolAttr(scope.addForeignTestsAsPreview, true)}"/>
     <aunit:riskLevel harmless="${boolAttr(risk.harmless, true)}" dangerous="${boolAttr(risk.dangerous, true)}" critical="${boolAttr(risk.critical, true)}"/>
     <aunit:duration short="${boolAttr(duration.short, true)}" medium="${boolAttr(duration.medium, true)}" long="${boolAttr(duration.long, true)}"/>
   </aunit:options>
   <osl:objectSet xsi:type="osl:flatObjectSet">
-    <osl:object name="${name}" type="${object.type}"/>
+    <osl:object name="${name}" type="${escapeXmlAttr(object.type)}"/>
   </osl:objectSet>
 </aunit:run>`;
 
