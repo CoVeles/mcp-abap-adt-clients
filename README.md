@@ -188,9 +188,9 @@ npm install @mcp-abap-adt/adt-clients
 ### Using AdtClient (Recommended - High-Level CRUD API)
 
 ```typescript
+import { BasicAuthProvider } from '@mcp-abap-adt/auth-providers';
 import {
   AdtOnPremConnector,
-  BasicAuthProvider,
   OnPremHttpTransport,
 } from '@mcp-abap-adt/connection';
 import { AdtClient, utilDocuments } from '@mcp-abap-adt/adt-clients';
