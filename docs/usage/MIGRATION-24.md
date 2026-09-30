@@ -43,8 +43,14 @@ const result = await runner.getResult(runId, { analyse: analyseUnitTest });
 
 A report's tests run the same way, through `executor.getProgramTestRunner()`
 and `run(programName)` — the test classes may sit in the report's source or in
-an include it pulls in. That is new in 24.0.0; there was no way to run them
-before.
+an include it pulls in. A function group's through
+`executor.getFunctionGroupTestRunner().run(groupName)`, one module's through
+`executor.getFunctionModuleTestRunner().run(moduleName)`. All three are new in
+24.0.0; there was no way to run them before.
+
+**Integration test config.** Two new test cases, `run_program_unit_test` and
+`run_function_group_unit_test`, are in `test-config.yaml.template`. Copy them
+into your `test-config.yaml` to run the new suites.
 
 The result set shrank to what a runner answers: `run`, `status`, `result`.
 `IUnitTestResults` and `unitTestDocuments` are gone; `IClassTestRunnerResults`

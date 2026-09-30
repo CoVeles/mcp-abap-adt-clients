@@ -56,6 +56,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   `programTestRunnerDocuments`. The legacy runner refuses without a request:
   `/abapunit/testruns` given a report's URI answered an empty result for a
   report whose tests `/abapunit/runs` found.
+- **`AdtExecutor.getFunctionGroupTestRunner()` and
+  `getFunctionModuleTestRunner()`** — every ABAP Unit test of a function group
+  (`osl:object type="FUGR"`), or the tests that exercise one module
+  (`type="FUNC"`, what Eclipse sends). Measured on premise (2026-09-30): the
+  group run found all seven test methods of a group; the module run found the
+  seven that exercise the module and none for a module they do not. Legacy
+  variants refuse without a request, as the report's does.
+- **`AbapUnitRunner`** — the base every runner stands on: `getStatus` and
+  `getResult` by run id, and a start for one object of the runner's type. One
+  result set, `abapUnitRunnerDocuments`; the per-runner names
+  (`classTestRunnerDocuments`, `programTestRunnerDocuments`,
+  `functionGroupTestRunnerDocuments`, `functionModuleTestRunnerDocuments`) are
+  the same object.
+- **Integration tests for every runner.** `ProgramUnitTest` and
+  `FunctionGroupUnitTest` build their objects (a report with its test class in
+  an include; a group, a module and a test include), run them, assert the test
+  methods they wrote were found and raised no alert, and delete them;
+  `UnitTest` also runs its class by name. New test cases
+  `run_program_unit_test` and `run_function_group_unit_test` in
+  `test-config.yaml.template`.
 - **`core/shared/abapUnit.ts`** — starting a run for one object of any type,
   and polling and fetching a run by id, once for every runner.
   `startClassUnitTestRunByObject`, `getClassUnitTestStatus` and

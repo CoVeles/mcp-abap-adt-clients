@@ -11,6 +11,16 @@ import {
   type IClassTestRunnerResults,
 } from '../executors/class/ClassTestRunner';
 import {
+  FunctionGroupTestRunner,
+  functionGroupTestRunnerDocuments,
+  type IFunctionGroupTestRunnerResults,
+} from '../executors/functionGroup/FunctionGroupTestRunner';
+import {
+  FunctionModuleTestRunner,
+  functionModuleTestRunnerDocuments,
+  type IFunctionModuleTestRunnerResults,
+} from '../executors/functionModule/FunctionModuleTestRunner';
+import {
   type IProgramExecutorResults,
   ProgramExecutor,
   programExecutorDocuments,
@@ -69,5 +79,39 @@ export class AdtExecutor {
     results: R = programTestRunnerDocuments as unknown as R,
   ): ProgramTestRunner<R> {
     return new ProgramTestRunner<R>(this.connection, this.logger, results);
+  }
+
+  /**
+   * Running every ABAP Unit test of a function group, and asking about the
+   * run. The tests are written through `AdtClient.getFunctionInclude()`.
+   */
+  getFunctionGroupTestRunner<
+    R extends
+      IFunctionGroupTestRunnerResults = typeof functionGroupTestRunnerDocuments,
+  >(
+    results: R = functionGroupTestRunnerDocuments as unknown as R,
+  ): FunctionGroupTestRunner<R> {
+    return new FunctionGroupTestRunner<R>(
+      this.connection,
+      this.logger,
+      results,
+    );
+  }
+
+  /**
+   * Running the ABAP Unit tests that exercise one function module, and asking
+   * about the run.
+   */
+  getFunctionModuleTestRunner<
+    R extends
+      IFunctionModuleTestRunnerResults = typeof functionModuleTestRunnerDocuments,
+  >(
+    results: R = functionModuleTestRunnerDocuments as unknown as R,
+  ): FunctionModuleTestRunner<R> {
+    return new FunctionModuleTestRunner<R>(
+      this.connection,
+      this.logger,
+      results,
+    );
   }
 }

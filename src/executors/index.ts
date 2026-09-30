@@ -1,4 +1,9 @@
 export {
+  AbapUnitRunner,
+  abapUnitRunnerDocuments,
+  type IAbapUnitRunnerResults,
+} from './abapUnitRunner';
+export {
   ClassExecutor,
   ClassTestRunner,
   ClassTestRunnerLegacy,
@@ -8,6 +13,18 @@ export {
   type IClassTestRunnerResults,
   type IClassTestRunTarget,
 } from './class';
+export {
+  FunctionGroupTestRunner,
+  FunctionGroupTestRunnerLegacy,
+  functionGroupTestRunnerDocuments,
+  type IFunctionGroupTestRunnerResults,
+} from './functionGroup';
+export {
+  FunctionModuleTestRunner,
+  FunctionModuleTestRunnerLegacy,
+  functionModuleTestRunnerDocuments,
+  type IFunctionModuleTestRunnerResults,
+} from './functionModule';
 export {
   type IProgramExecutorResults,
   type IProgramTestRunnerResults,

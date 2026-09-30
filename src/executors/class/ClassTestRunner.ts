@@ -27,19 +27,16 @@ import type {
   IClassUnitTestDefinition,
   IClassUnitTestRunOptions,
   IResultStrategy,
-  ITestRunInformation,
-  IUnitTestResultOptions,
 } from '@mcp-abap-adt/interfaces-adt';
 import type { IAbapConnection } from '@mcp-abap-adt/interfaces-adt-connection';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
-import {
-  getClassUnitTestResult,
-  getClassUnitTestStatus,
-  startClassUnitTestRun,
-  startClassUnitTestRunByObject,
-} from '../../core/class/run';
+import { startClassUnitTestRun } from '../../core/class/run';
 import { answering } from '../../utils/adtResponse';
-import { rawDocument } from '../../utils/resultStrategy';
+import {
+  AbapUnitRunner,
+  abapUnitRunnerDocuments,
+  type IAbapUnitRunnerResults,
+} from '../abapUnitRunner';
 
 /**
  * What a run is given: named test classes in their containers, or one class
@@ -48,102 +45,52 @@ import { rawDocument } from '../../utils/resultStrategy';
 export type IClassTestRunTarget = IClassUnitTestDefinition[] | string;
 
 /** One strategy per distinct answer: starting a run, polling it, its result. */
-export interface IClassTestRunnerResults {
-  /** What starting a run answers. `unitTestRunId` in adt-strategies reads the id. */
-  readonly run: IResultStrategy<unknown>;
-  /** What polling a run answers. */
-  readonly status: IResultStrategy<unknown>;
-  /** What a finished run's result document answers. */
-  readonly result: IResultStrategy<unknown>;
-}
+export type IClassTestRunnerResults = IAbapUnitRunnerResults;
 
-/**
- * The shipped default: documents as they arrived. A run's id is in a header of
- * the start's answer, not its body, so a caller who wants it passes
- * `unitTestRunId` from @mcp-abap-adt/adt-strategies for `run`.
- *
- * `satisfies`, never an annotation — see `classDocuments` for why.
- */
-export const classTestRunnerDocuments = {
-  run: rawDocument,
-  status: rawDocument,
-  result: rawDocument,
-} satisfies IClassTestRunnerResults;
+/** The shipped default: documents as they arrived. */
+export const classTestRunnerDocuments = abapUnitRunnerDocuments;
 
 export class ClassTestRunner<
-  R extends IClassTestRunnerResults = typeof classTestRunnerDocuments,
-> implements
+    R extends IClassTestRunnerResults = typeof classTestRunnerDocuments,
+  >
+  extends AbapUnitRunner<R>
+  implements
     IAdtRunnable<
       IClassTestRunTarget,
       ReturnType<R['run']>,
       IClassUnitTestRunOptions
-    >,
-    ITestRunInformation<ReturnType<R['status']>, ReturnType<R['result']>>
+    >
 {
-  protected readonly connection: IAbapConnection;
-  protected readonly logger?: ILogger;
-  protected readonly results: R;
-
   constructor(
     connection: IAbapConnection,
     logger?: ILogger,
     // The one cast in this file, and it is on the default. See AdtClass.
     results: R = classTestRunnerDocuments as unknown as R,
   ) {
-    this.connection = connection;
-    this.logger = logger;
-    this.results = results;
+    super(connection, logger, results);
   }
 
   /**
    * Run the tests. One POST.
    *
    * Needs no write before it: the tests may have been in the class for years.
-   * A class name runs every test class in it, by object; an array runs the
-   * named test classes in their containers. The run's id is in a header of the
-   * answer — construct this with `unitTestRunId` from
-   * @mcp-abap-adt/adt-strategies for `run` to be answered the id, and pass
-   * `analyseUnitTestStart` to have an id-less answer read as a failure.
+   * A class name runs every test class in it, by object — `osl:object
+   * type="CLAS"`, what Eclipse sends; an array runs the named test classes in
+   * their containers. The run's id is in a header of the answer — construct
+   * this with `unitTestRunId` from @mcp-abap-adt/adt-strategies for `run` to be
+   * answered the id, and pass `analyseUnitTestStart` to have an id-less answer
+   * read as a failure.
    */
   async run<E extends IAdtError = IAdtError>(
     target: IClassTestRunTarget,
     options?: IClassUnitTestRunOptions & IAdtAnalyseOptions<E>,
   ): Promise<IAdtResponse<ReturnType<R['run']>, E>> {
+    if (typeof target === 'string') {
+      return this.startByObject(target, 'CLAS', options);
+    }
     return answering(
-      () =>
-        typeof target === 'string'
-          ? startClassUnitTestRunByObject(this.connection, target, options)
-          : startClassUnitTestRun(this.connection, target, options),
+      () => startClassUnitTestRun(this.connection, target, options),
       this.results.run as IResultStrategy<ReturnType<R['run']>>,
-      options?.analyse,
-    );
-  }
-
-  /**
-   * Poll a run. Takes the run it is about: nothing here remembers the last one
-   * started, because ADT does not either — any holder of the id may ask.
-   */
-  async getStatus<E extends IAdtError = IAdtError>(
-    runId: string,
-    withLongPolling: boolean | undefined = true,
-    options?: IAdtAnalyseOptions<E>,
-  ): Promise<IAdtResponse<ReturnType<R['status']>, E>> {
-    return answering(
-      () =>
-        getClassUnitTestStatus(this.connection, runId, withLongPolling ?? true),
-      this.results.status as IResultStrategy<ReturnType<R['status']>>,
-      options?.analyse,
-    );
-  }
-
-  /** The result document of a finished run. */
-  async getResult<E extends IAdtError = IAdtError>(
-    runId: string,
-    options?: IUnitTestResultOptions & IAdtAnalyseOptions<E>,
-  ): Promise<IAdtResponse<ReturnType<R['result']>, E>> {
-    return answering(
-      () => getClassUnitTestResult(this.connection, runId, options),
-      this.results.result as IResultStrategy<ReturnType<R['result']>>,
       options?.analyse,
     );
   }

@@ -28,6 +28,7 @@ import { AdtExecutor } from '../../../../clients/AdtExecutor';
 import { AdtExecutorLegacy } from '../../../../clients/AdtExecutorLegacy';
 import { classTestRunnerDocuments } from '../../../../executors/class/ClassTestRunner';
 import { isCloudEnvironment } from '../../../../utils/systemInfo';
+import { runToCompletion } from '../../../helpers/abapUnitRun';
 import { expectResult } from '../../../helpers/contract';
 import { expectLockReleased } from '../../../helpers/lockReleased';
 import { presenceOf } from '../../../helpers/objectPresence';
@@ -435,6 +436,15 @@ describe('ABAP Unit on a class (AdtClient + AdtExecutor)', () => {
             'resultResponse',
           );
           expect(resultResponse).toBeDefined();
+
+          // Step 9: The same tests run the way Eclipse runs a class — by its
+          // name, every test class in it. Legacy runs whole classes either way.
+          logTestStep('run by class name', testsLogger);
+          if (!isLegacy) {
+            const byName = await runToCompletion(unitTest, containerClass);
+            expect(byName.methods.length).toBeGreaterThan(0);
+            expect(byName.alerts).toEqual([]);
+          }
 
           // Log detailed result information
           if (resultResponse) {

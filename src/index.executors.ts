@@ -18,6 +18,14 @@ export {
   type IClassTestRunTarget,
 } from './executors/class/ClassTestRunner';
 export {
+  functionGroupTestRunnerDocuments,
+  type IFunctionGroupTestRunnerResults,
+} from './executors/functionGroup/FunctionGroupTestRunner';
+export {
+  functionModuleTestRunnerDocuments,
+  type IFunctionModuleTestRunnerResults,
+} from './executors/functionModule/FunctionModuleTestRunner';
+export {
   type IProgramExecutorResults,
   programExecutorDocuments,
 } from './executors/program/ProgramExecutor';

@@ -236,7 +236,7 @@ Top-level client classes instantiated directly (not via `AdtClient.getXxx()`). T
 
 ### AdtExecutor
 - Source: `src/clients/AdtExecutor.ts`
-- Public methods: `getClassExecutor`, `getClassTestRunner`, `getProgramExecutor`, `getProgramTestRunner`
+- Public methods: `getClassExecutor`, `getClassTestRunner`, `getFunctionGroupTestRunner`, `getFunctionModuleTestRunner`, `getProgramExecutor`, `getProgramTestRunner`
 
 ### AdtExecutorLegacy
 - Source: `src/clients/AdtExecutorLegacy.ts`

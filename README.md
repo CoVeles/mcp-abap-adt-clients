@@ -145,6 +145,7 @@ npm install @mcp-abap-adt/adt-clients
      - `getClassExecutor()` for `classrun`
      - `getClassTestRunner()` for a class's ABAP Unit tests: `run`, `getStatus`, `getResult`
      - `getProgramTestRunner()` for a report's ABAP Unit tests, in its source or its includes
+     - `getFunctionGroupTestRunner()` / `getFunctionModuleTestRunner()` for a function group's tests, or the ones exercising one module
      - `getProgramExecutor()` for `programrun` (on-premise systems)
    - Methods: `run`, `runWithProfiler`, and trace scheduling (`scheduleTrace`, `listRequests`, `getRequestsByUri`, `listObjectTypes`, `listProcessTypes`)
    - Each executor factory takes an optional result set, like the runtime client's
@@ -398,7 +399,10 @@ the finished result, and `getStatus`/`getResult` refuse without a request.
 A report's tests are local classes in its source or in an include it pulls in —
 written through `getProgram().update()` or `getInclude().update()` — and run
 through `executor.getProgramTestRunner().run(programName)`, with the same
-`getStatus`/`getResult`. Below 7.50 that runner refuses without a request.
+`getStatus`/`getResult`. A function group's are written in an include of the
+group (`getFunctionInclude()`) and run through `getFunctionGroupTestRunner()`
+for the whole group or `getFunctionModuleTestRunner()` for one module. Below
+7.50 these three runners refuse without a request.
 
 **AdtUtils read type safety:**
 `readObjectMetadata` and `readObjectSource` accept strict object type unions to prevent invalid inputs like `view:ZOBJ`.

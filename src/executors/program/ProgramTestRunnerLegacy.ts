@@ -10,22 +10,12 @@
  */
 
 import type { IAdtError, IAdtResponse } from '@mcp-abap-adt/interfaces-adt';
-import { AdtObjectErrorCodes } from '@mcp-abap-adt/interfaces-adt';
-import { failed } from '../../utils/adtResponse';
+import { refusedBelow750 } from '../abapUnitRunner';
 import {
   type IProgramTestRunnerResults,
   ProgramTestRunner,
   type programTestRunnerDocuments,
 } from './ProgramTestRunner';
-
-function refusal<T, E extends IAdtError>(): IAdtResponse<T, E> {
-  return failed<T, E>({
-    origin: 'refusal',
-    code: AdtObjectErrorCodes.UNSUPPORTED_OPERATION,
-    message:
-      "Running a report's ABAP Unit tests is not supported below BASIS 7.50: the legacy endpoint answered no tests for a report that has them.",
-  } as E);
-}
 
 export class ProgramTestRunnerLegacy<
   R extends IProgramTestRunnerResults = typeof programTestRunnerDocuments,
@@ -33,18 +23,18 @@ export class ProgramTestRunnerLegacy<
   override async run<E extends IAdtError = IAdtError>(): Promise<
     IAdtResponse<ReturnType<R['run']>, E>
   > {
-    return refusal<ReturnType<R['run']>, E>();
+    return refusedBelow750<ReturnType<R['run']>, E>("a report's");
   }
 
   override async getStatus<E extends IAdtError = IAdtError>(): Promise<
     IAdtResponse<ReturnType<R['status']>, E>
   > {
-    return refusal<ReturnType<R['status']>, E>();
+    return refusedBelow750<ReturnType<R['status']>, E>("a report's");
   }
 
   override async getResult<E extends IAdtError = IAdtError>(): Promise<
     IAdtResponse<ReturnType<R['result']>, E>
   > {
-    return refusal<ReturnType<R['result']>, E>();
+    return refusedBelow750<ReturnType<R['result']>, E>("a report's");
   }
 }
