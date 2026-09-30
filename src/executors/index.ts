@@ -10,8 +10,12 @@ export {
 } from './class';
 export {
   type IProgramExecutorResults,
+  type IProgramTestRunnerResults,
   ProgramExecutor,
+  ProgramTestRunner,
+  ProgramTestRunnerLegacy,
   programExecutorDocuments,
+  programTestRunnerDocuments,
 } from './program';
 export {
   type ITraceSchedulingResults,

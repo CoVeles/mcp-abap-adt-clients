@@ -144,6 +144,7 @@ npm install @mcp-abap-adt/adt-clients
    - Executors:
      - `getClassExecutor()` for `classrun`
      - `getClassTestRunner()` for a class's ABAP Unit tests: `run`, `getStatus`, `getResult`
+     - `getProgramTestRunner()` for a report's ABAP Unit tests, in its source or its includes
      - `getProgramExecutor()` for `programrun` (on-premise systems)
    - Methods: `run`, `runWithProfiler`, and trace scheduling (`scheduleTrace`, `listRequests`, `getRequestsByUri`, `listObjectTypes`, `listProcessTypes`)
    - Each executor factory takes an optional result set, like the runtime client's
@@ -393,6 +394,11 @@ const result = await runner.getResult(runId, { analyse: analyseUnitTest });
 `run` takes a class name (every test class in it) or a list of
 `{ containerClass, testClass }`. On a legacy system the runner's `run` answers
 the finished result, and `getStatus`/`getResult` refuse without a request.
+
+A report's tests are local classes in its source or in an include it pulls in —
+written through `getProgram().update()` or `getInclude().update()` — and run
+through `executor.getProgramTestRunner().run(programName)`, with the same
+`getStatus`/`getResult`. Below 7.50 that runner refuses without a request.
 
 **AdtUtils read type safety:**
 `readObjectMetadata` and `readObjectSource` accept strict object type unions to prevent invalid inputs like `view:ZOBJ`.

@@ -48,6 +48,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
   (`run`, by class name or by `{ containerClass, testClass }` list) and asking
   about the run (`getStatus`, `getResult`), with its own result set
   `classTestRunnerDocuments`. Running is an executor's, beside `classrun`.
+- **`AdtExecutor.getProgramTestRunner()`** — running a report's ABAP Unit
+  tests, wherever they sit: its own source or an include it pulls in. Same
+  `/abapunit/runs` as a class, naming the report as `osl:object type="PROG"` —
+  what Eclipse sends. Measured on premise (2026-09-30) against a report with its
+  test class inline and one with it in an include; both ran. Own result set
+  `programTestRunnerDocuments`. The legacy runner refuses without a request:
+  `/abapunit/testruns` given a report's URI answered an empty result for a
+  report whose tests `/abapunit/runs` found.
+- **`core/shared/abapUnit.ts`** — starting a run for one object of any type,
+  and polling and fetching a run by id, once for every runner.
+  `startClassUnitTestRunByObject`, `getClassUnitTestStatus` and
+  `getClassUnitTestResult` stay exported and delegate to it.
 - **`AdtExecutorLegacy` and `createAdtExecutor`** — the executor twin of
   `AdtClientLegacy`/`createAdtClient`. Below 7.50 the runner posts to
   `/abapunit/testruns`, answers the finished result, and refuses

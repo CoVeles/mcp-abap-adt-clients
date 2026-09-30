@@ -138,6 +138,7 @@ const RUNTIME_EXPORTS = [
   'profilerDocuments',
   'programDocuments',
   'programExecutorDocuments',
+  'programTestRunnerDocuments',
   'rawDocument',
   'resolveBindingVariant',
   'resolveContentTypes',

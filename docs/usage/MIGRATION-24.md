@@ -41,6 +41,11 @@ const status = await runner.getStatus(runId, true);
 const result = await runner.getResult(runId, { analyse: analyseUnitTest });
 ```
 
+A report's tests run the same way, through `executor.getProgramTestRunner()`
+and `run(programName)` — the test classes may sit in the report's source or in
+an include it pulls in. That is new in 24.0.0; there was no way to run them
+before.
+
 The result set shrank to what a runner answers: `run`, `status`, `result`.
 `IUnitTestResults` and `unitTestDocuments` are gone; `IClassTestRunnerResults`
 and `classTestRunnerDocuments` replace them. A caller who put a strategy into

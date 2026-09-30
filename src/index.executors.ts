@@ -22,6 +22,10 @@ export {
   programExecutorDocuments,
 } from './executors/program/ProgramExecutor';
 export {
+  type IProgramTestRunnerResults,
+  programTestRunnerDocuments,
+} from './executors/program/ProgramTestRunner';
+export {
   type ITraceSchedulingResults,
   traceSchedulingDocuments,
 } from './executors/traceScheduling';

@@ -96,13 +96,12 @@ import type {
   IClassUnitTestDefinition,
   IClassUnitTestRunOptions,
 } from '@mcp-abap-adt/interfaces-adt';
+import { ACCEPT_SOURCE, CT_UNIT_TEST_RUN } from '../../constants/contentTypes';
 import {
-  ACCEPT_JUNIT_RESULT,
-  ACCEPT_SOURCE,
-  ACCEPT_UNIT_TEST_RESULT,
-  ACCEPT_UNIT_TEST_STATUS,
-  CT_UNIT_TEST_RUN,
-} from '../../constants/contentTypes';
+  getUnitTestRunResult,
+  getUnitTestRunStatus,
+  startUnitTestRunByObject,
+} from '../shared/abapUnit';
 
 export async function startClassUnitTestRun(
   connection: IAbapConnection,
@@ -154,45 +153,11 @@ export async function startClassUnitTestRun(
   });
 }
 
-export async function getClassUnitTestStatus(
-  connection: IAbapConnection,
-  runId: string,
-  withLongPolling: boolean = true,
-): Promise<IAdtWireResponse> {
-  const query = withLongPolling ? '?withLongPolling=true' : '';
-  return connection.makeAdtRequest({
-    url: `/sap/bc/adt/abapunit/runs/${runId}${query}`,
-    method: 'GET',
-    timeout: getTimeout('default'),
-    headers: {
-      Accept: ACCEPT_UNIT_TEST_STATUS,
-    },
-  });
-}
+/** Poll a run. The run id is ADT's, not a class's — see `core/shared/abapUnit`. */
+export const getClassUnitTestStatus = getUnitTestRunStatus;
 
-export async function getClassUnitTestResult(
-  connection: IAbapConnection,
-  runId: string,
-  options?: { withNavigationUris?: boolean; format?: 'abapunit' | 'junit' },
-): Promise<IAdtWireResponse> {
-  const params: string[] = [];
-  if (options?.withNavigationUris === false) {
-    params.push('withNavigationUris=false');
-  }
-  const query = params.length ? `?${params.join('&')}` : '';
-  const format = options?.format || 'abapunit';
-  const accept =
-    format === 'junit' ? ACCEPT_JUNIT_RESULT : ACCEPT_UNIT_TEST_RESULT;
-
-  return connection.makeAdtRequest({
-    url: `/sap/bc/adt/abapunit/results/${runId}${query}`,
-    method: 'GET',
-    timeout: getTimeout('default'),
-    headers: {
-      Accept: accept,
-    },
-  });
-}
+/** A finished run's result document — see `core/shared/abapUnit`. */
+export const getClassUnitTestResult = getUnitTestRunResult;
 
 /**
  * Start ABAP Unit test run for a whole class, by object.
@@ -204,40 +169,9 @@ export async function startClassUnitTestRunByObject(
   className: string,
   options?: IClassUnitTestRunOptions,
 ): Promise<IAdtWireResponse> {
-  const scope = options?.scope ?? {
-    ownTests: true,
-    foreignTests: false,
-    addForeignTestsAsPreview: true,
-  };
-  const risk = options?.riskLevel ?? {
-    harmless: true,
-    dangerous: true,
-    critical: true,
-  };
-  const duration = options?.duration ?? {
-    short: true,
-    medium: true,
-    long: true,
-  };
-
-  const xml = `<?xml version="1.0" encoding="UTF-8"?><aunit:run xmlns:aunit="http://www.sap.com/adt/api/aunit" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:osl="http://www.sap.com/api/osl" title="${options?.title || className}" context="${options?.context || 'MCP ABAP ADT Client'}">
-  <aunit:options>
-    <aunit:scope ownTests="${boolAttr(scope.ownTests, true)}" foreignTests="${boolAttr(scope.foreignTests, false)}" addForeignTestsAsPreview="${boolAttr(scope.addForeignTestsAsPreview, true)}"/>
-    <aunit:riskLevel harmless="${boolAttr(risk.harmless, true)}" dangerous="${boolAttr(risk.dangerous, true)}" critical="${boolAttr(risk.critical, true)}"/>
-    <aunit:duration short="${boolAttr(duration.short, true)}" medium="${boolAttr(duration.medium, true)}" long="${boolAttr(duration.long, true)}"/>
-  </aunit:options>
-  <osl:objectSet xsi:type="osl:flatObjectSet">
-    <osl:object name="${encodeSapObjectName(className).toUpperCase()}" type="CLAS"/>
-  </osl:objectSet>
-</aunit:run>`;
-
-  return connection.makeAdtRequest({
-    url: '/sap/bc/adt/abapunit/runs',
-    method: 'POST',
-    timeout: getTimeout('default'),
-    data: xml,
-    headers: {
-      'Content-Type': CT_UNIT_TEST_RUN,
-    },
-  });
+  return startUnitTestRunByObject(
+    connection,
+    { name: className, type: 'CLAS' },
+    options,
+  );
 }

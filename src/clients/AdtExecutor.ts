@@ -15,6 +15,11 @@ import {
   ProgramExecutor,
   programExecutorDocuments,
 } from '../executors/program/ProgramExecutor';
+import {
+  type IProgramTestRunnerResults,
+  ProgramTestRunner,
+  programTestRunnerDocuments,
+} from '../executors/program/ProgramTestRunner';
 import { withRequestTrace } from '../utils/requestTrace';
 
 export class AdtExecutor {
@@ -51,5 +56,18 @@ export class AdtExecutor {
     R extends IProgramExecutorResults = typeof programExecutorDocuments,
   >(results: R = programExecutorDocuments as unknown as R): ProgramExecutor<R> {
     return new ProgramExecutor<R>(this.connection, this.logger, results);
+  }
+
+  /**
+   * Running a report's ABAP Unit tests — in its own source or its includes —
+   * and asking about the run. The tests are written through
+   * `AdtClient.getProgram()` or `getInclude()`.
+   */
+  getProgramTestRunner<
+    R extends IProgramTestRunnerResults = typeof programTestRunnerDocuments,
+  >(
+    results: R = programTestRunnerDocuments as unknown as R,
+  ): ProgramTestRunner<R> {
+    return new ProgramTestRunner<R>(this.connection, this.logger, results);
   }
 }
