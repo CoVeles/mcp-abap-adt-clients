@@ -72,7 +72,8 @@ export async function getFeedVariants(
  * Build query string from IFeedQueryOptions.
  * Shared by all feed-backed runtime modules.
  *
- * @param options - Query options
+ * @param options - Query options; `query`, when set, is the `$query` sent
+ *   as given and `user` is not turned into one of its own
  * @param userAttribute - Feed-specific user attribute name ('user' for dumps, 'username' for gateway)
  */
 export function buildFeedQueryParams(
@@ -81,7 +82,11 @@ export function buildFeedQueryParams(
 ): string {
   if (!options) return '';
   const params = new URLSearchParams();
-  if (options.user) {
+  // One request carries one `$query`: a caller filtering on more than the user
+  // states the whole expression, the user included, and it is sent as given.
+  if (options.query?.trim()) {
+    params.set('$query', options.query.trim());
+  } else if (options.user) {
     params.set(
       '$query',
       `and ( equals ( ${userAttribute} , ${options.user.trim()} ) )`,
