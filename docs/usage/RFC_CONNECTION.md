@@ -76,9 +76,9 @@ the wire an on-prem system is reached over is now an argument, because that is
 what it always was.
 
 ```typescript
+import { BasicAuthProvider } from '@mcp-abap-adt/auth-providers';
 import {
   AdtOnPremConnector,
-  BasicAuthProvider,
   RfcTransport,
   rfcConversationFrom,
 } from '@mcp-abap-adt/connection';

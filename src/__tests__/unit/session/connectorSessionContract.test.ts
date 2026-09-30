@@ -24,9 +24,9 @@
  *   npx jest src/__tests__/unit/session
  */
 
+import { BasicAuthProvider } from '@mcp-abap-adt/auth-providers';
 import {
   AdtOnPremConnector,
-  BasicAuthProvider,
   OnPremHttpTransport,
 } from '@mcp-abap-adt/connection';
 import type {

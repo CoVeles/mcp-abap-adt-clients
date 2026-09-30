@@ -5,9 +5,9 @@ This guide shows how to validate local test classes using `AdtClient`.
 ## Using AdtClient
 
 ```typescript
+import { BasicAuthProvider } from '@mcp-abap-adt/auth-providers';
 import {
   AdtOnPremConnector,
-  BasicAuthProvider,
   OnPremHttpTransport,
 } from '@mcp-abap-adt/connection';
 import { AdtClient } from '@mcp-abap-adt/adt-clients';

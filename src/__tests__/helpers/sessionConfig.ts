@@ -6,13 +6,15 @@
 import type { AgentOptions } from 'node:https';
 import {
   BasicAuthProvider,
+  TokenAuthProvider,
+} from '@mcp-abap-adt/auth-providers';
+import {
   CloudHttpTransport,
   LegacyOnPremHttpTransport,
   OnPremHttpTransport,
   RfcTransport,
   rfcConversationFrom,
   type SapConfig,
-  TokenAuthProvider,
 } from '@mcp-abap-adt/connection';
 import type { IAdtClientOptions } from '@mcp-abap-adt/interfaces-adt';
 import type {
@@ -350,7 +352,7 @@ export async function createTestConnection(
           // was silently a no-op against a cloud system — the flag was set, the
           // file stayed empty, and the run looked like it had nothing to say.
           withWireLog(
-            new CloudHttpTransport(materialOf(credential), logger, wire),
+            new CloudHttpTransport((): AgentOptions => ({}), logger, wire),
           ),
           logger,
         )
@@ -529,25 +531,12 @@ function credentialFor(config: SapConfig): IAuthProvider {
     // and there is nothing behind it to renew from. It is good for the length
     // of a run — which is why an expired one must fail loudly rather than be
     // mistaken for "SAP is not configured here".
-    return new TokenAuthProvider(config.jwtToken as string);
+    return TokenAuthProvider.fixed(config.jwtToken as string);
   }
   return new BasicAuthProvider(
     config.username as string,
     config.password as string,
   );
-}
-
-/**
- * The TLS material a wire should present, asked for when the wire needs it.
- *
- * A thunk rather than a value because the material is loaded during
- * `connect()`: a wire that read it at construction would read nothing, and
- * mTLS would silently not happen — the connection builds, the requests go out,
- * and the server refuses them for a reason that says nothing about the
- * certificate.
- */
-function materialOf(credential: IAuthProvider): () => AgentOptions {
-  return () => credential.transportMaterial() as AgentOptions;
 }
 
 /**
@@ -566,7 +555,9 @@ function onPremWire(
   if (getConnectionType() === 'rfc') {
     return withWireLog(new RfcTransport(rfcConversationFrom(config), logger));
   }
-  const material = materialOf(credentialFor(config));
+  // Agent settings only: the credential's TLS material reaches the wire at
+  // logon, through the provider's establish() (connection 10).
+  const material = (): AgentOptions => ({});
   return withWireLog(
     isLegacyEnvironment()
       ? new LegacyOnPremHttpTransport(material, logger, wire)

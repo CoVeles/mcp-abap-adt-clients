@@ -290,10 +290,10 @@ Contract notes:
 `AdtAbapGitClient` is a **standalone top-level class**, not a factory on `AdtClient`. `AdtClient` is reserved for per-object-type implementations — separate clients stand on their own and are instantiated directly, same pattern as `AdtClient`, `AdtRuntimeClient`, `AdtExecutor`, and `AdtClientsWS`.
 
 ```typescript
+import { TokenAuthProvider } from '@mcp-abap-adt/auth-providers';
 import {
   AdtCloudConnector,
   CloudHttpTransport,
-  TokenAuthProvider,
 } from '@mcp-abap-adt/connection';
 import {
   AdtAbapGitClient,
@@ -319,7 +319,7 @@ const connection = new AdtCloudConnector(
   config,
   // A refresher, not a bare string, for anything long-lived: the provider
   // renews on an expiry it can see, on every call that asks for a header.
-  new TokenAuthProvider(config.jwtToken),
+  TokenAuthProvider.fixed(config.jwtToken),
   new CloudHttpTransport(() => ({}), null, {
     client: config.client,
     baseUrl: config.url,
