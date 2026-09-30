@@ -24,6 +24,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+## [24.1.0] - 2026-10-01
+
+### Added
+
+- **A feed's `$query`, sent as given.** `IFeedQueryOptions.query`
+  (`@mcp-abap-adt/interfaces-adt` 11.1.0) reaches every feed-backed reader —
+  dumps, system messages, the gateway error log — through
+  `buildFeedQueryParams`. A runtime feed filters on the attributes its
+  descriptor declares (the dumps feed: user, runtime error, exception, object,
+  package, component, the responsible people, date/time), combined with
+  `and`/`or`; `user` alone reached one of them. When `query` is set, `user` is
+  not turned into a query of its own: one request carries one `$query`, so the
+  caller puts the user into the expression.
+
 ## [24.0.1] - 2026-09-30
 
 A developer release: not published to npm.
