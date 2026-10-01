@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { DATA_ELEMENT } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteDataElementParams } from './types';
 
@@ -25,8 +25,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { data_element_name } = params;
 
-  const encodedName = encodeSapObjectName(data_element_name);
-  const objectUri = `/sap/bc/adt/ddic/dataelements/${encodedName}`;
+  const objectUri = `${DATA_ELEMENT.uri(data_element_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -58,8 +57,7 @@ export async function deleteDataElement(
 ): Promise<IAdtWireResponse> {
   const { data_element_name, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(data_element_name);
-  const objectUri = `/sap/bc/adt/ddic/dataelements/${encodedName}`;
+  const objectUri = `${DATA_ELEMENT.uri(data_element_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

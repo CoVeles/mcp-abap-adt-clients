@@ -8,6 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { DATA_ELEMENT } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -33,7 +34,7 @@ export async function validateDataElementName(
   description: string,
   packageName?: string,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/ddic/dataelements/validation`;
+  const url = DATA_ELEMENT.validation;
   const queryParams = new URLSearchParams({
     objtype: 'dtel',
     objname: dataElementName,

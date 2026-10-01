@@ -109,6 +109,8 @@ import { type ITransportResults, transportDocuments } from '../core/transport';
 import { AdtRequestLegacy } from '../core/transport/AdtRequestLegacy';
 import {
   ACCESS_CONTROL,
+  DATA_ELEMENT,
+  DOMAIN,
   METADATA_EXTENSION,
   STRUCTURE,
   TABLE,
@@ -290,11 +292,7 @@ export class AdtClientLegacy extends AdtClient {
   override getDomain<R extends IDomainResults = typeof domainDocuments>(
     _results?: R,
   ): AdtDomain<R> {
-    return absentOnLegacy<AdtDomain<R>>(
-      AdtDomain,
-      'Domain',
-      '/sap/bc/adt/ddic/domains',
-    );
+    return absentOnLegacy<AdtDomain<R>>(AdtDomain, 'Domain', DOMAIN.collection);
   }
 
   override getDataElement<
@@ -303,7 +301,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtDataElement<R>>(
       AdtDataElement,
       'DataElement',
-      '/sap/bc/adt/ddic/dataelements',
+      DATA_ELEMENT.collection,
     );
   }
 

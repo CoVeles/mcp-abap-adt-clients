@@ -36,6 +36,8 @@ const ENFORCED: readonly (keyof typeof RECORDS)[] = [
   'TABLE',
   'STRUCTURE',
   'TABLE_TYPE',
+  'DOMAIN',
+  'DATA_ELEMENT',
 ];
 
 const ROOT = path.resolve(__dirname, '../../../..');

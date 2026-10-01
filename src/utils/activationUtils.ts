@@ -15,8 +15,10 @@ import { getEnhancementUri } from '../core/enhancement/types';
 import {
   ACCESS_CONTROL,
   CLASS,
+  DATA_ELEMENT,
   DDIC_VIEW,
   DDL_SOURCE,
+  DOMAIN,
   FUNCTION_GROUP,
   FUNCTION_INCLUDE,
   FUNCTION_MODULE,
@@ -127,11 +129,11 @@ export function buildObjectUri(
 
     case 'DTEL/DE':
     case 'DTEL':
-      return `/sap/bc/adt/ddic/dataelements/${lowerName}`;
+      return `${DATA_ELEMENT.uri(name)}`;
 
     case 'DOMA/DD':
     case 'DOMA':
-      return `/sap/bc/adt/ddic/domains/${lowerName}`;
+      return `${DOMAIN.uri(name)}`;
 
     case 'INTF/OI':
     case 'INTF':

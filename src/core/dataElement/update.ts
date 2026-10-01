@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_DATA_ELEMENT } from '../../constants/contentTypes';
+import { DATA_ELEMENT } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateDataElementParams } from './types';
@@ -30,10 +31,7 @@ export async function updateDataElement(
   document: string,
   lockHandle?: string,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(
-    params.data_element_name.toLowerCase(),
-  );
-  const url = `/sap/bc/adt/ddic/dataelements/${encodedName}${writeQuery(lockHandle, params.transport_request)}`;
+  const url = `${DATA_ELEMENT.uri(params.data_element_name.toLowerCase())}${writeQuery(lockHandle, params.transport_request)}`;
 
   return connection.makeAdtRequest({
     url,

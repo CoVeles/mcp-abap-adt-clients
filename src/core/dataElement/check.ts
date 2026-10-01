@@ -10,8 +10,8 @@ import {
   ACCEPT_CHECK_MESSAGES,
   CT_CHECK_OBJECTS,
 } from '../../constants/contentTypes';
+import { DATA_ELEMENT } from '../../endpoints/objects';
 import { type CheckRunVersion, runCheckRun } from '../../utils/checkRun';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -37,8 +37,7 @@ export async function checkDataElement(
 
   if (xmlContent) {
     // Check with XML content (for unsaved changes or new content validation)
-    const encodedName = encodeSapObjectName(dataElementName.toLowerCase());
-    const objectUri = `/sap/bc/adt/ddic/dataelements/${encodedName}`;
+    const objectUri = `${DATA_ELEMENT.uri(dataElementName)}`;
     const base64Content = Buffer.from(xmlContent, 'utf-8').toString('base64');
 
     // TODO: analyze whether chkrun:contentType can be extracted to a constant

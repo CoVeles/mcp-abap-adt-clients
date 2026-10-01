@@ -10,6 +10,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_DOMAIN } from '../../constants/contentTypes';
+import { DOMAIN } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateDomainParams } from './types';
@@ -36,8 +37,7 @@ export async function updateDomain(
   document: string,
   lockHandle?: string,
 ): Promise<IAdtWireResponse> {
-  const domainNameEncoded = encodeSapObjectName(args.domain_name.toLowerCase());
-  const url = `/sap/bc/adt/ddic/domains/${domainNameEncoded}${writeQuery(lockHandle, args.transport_request)}`;
+  const url = `${DOMAIN.uri(args.domain_name)}${writeQuery(lockHandle, args.transport_request)}`;
 
   return connection.makeAdtRequest({
     url,

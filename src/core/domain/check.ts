@@ -11,8 +11,8 @@ import {
   ACCEPT_CHECK_MESSAGES,
   CT_CHECK_OBJECTS,
 } from '../../constants/contentTypes';
+import { DOMAIN } from '../../endpoints/objects';
 import { runCheckRun } from '../../utils/checkRun';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -37,8 +37,7 @@ export async function checkDomainSyntax(
 
   if (xmlContent) {
     // Check with XML content (for unsaved changes or new content validation)
-    const encodedName = encodeSapObjectName(domainName.toLowerCase());
-    const objectUri = `/sap/bc/adt/ddic/domains/${encodedName}`;
+    const objectUri = `${DOMAIN.uri(domainName)}`;
     const base64Content = Buffer.from(xmlContent, 'utf-8').toString('base64');
 
     // TODO: analyze whether chkrun:contentType can be extracted to a constant

@@ -6,7 +6,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { DOMAIN } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -21,8 +21,7 @@ export async function unlockDomain(
   domainName: string,
   lockHandle: string,
 ): Promise<IAdtWireResponse> {
-  const domainNameEncoded = encodeSapObjectName(domainName.toLowerCase());
-  const url = `/sap/bc/adt/ddic/domains/${domainNameEncoded}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`;
+  const url = `${DOMAIN.uri(domainName)}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`;
 
   return await connection.makeAdtRequest({
     url,

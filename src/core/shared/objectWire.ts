@@ -38,7 +38,9 @@ import {
 } from '../../constants/contentTypes';
 import {
   CLASS,
+  DATA_ELEMENT,
   DDL_SOURCE,
+  DOMAIN,
   FUNCTION_GROUP,
   FUNCTION_MODULE,
   INTERFACE,
@@ -50,7 +52,6 @@ import {
   TABLE_TYPE,
 } from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
 export async function objectSourceWire(
@@ -137,8 +138,6 @@ export function getObjectMetadataUri(
   objectName: string,
   functionGroup?: string,
 ): string {
-  const encodedName = encodeSapObjectName(objectName);
-
   switch (objectType.toLowerCase()) {
     case 'class':
     case 'clas/oc':
@@ -167,10 +166,10 @@ export function getObjectMetadataUri(
       return `${TABLE_TYPE.uri(objectName)}`;
     case 'domain':
     case 'doma/dd':
-      return `/sap/bc/adt/ddic/domains/${encodedName}`;
+      return `${DOMAIN.uri(objectName)}`;
     case 'dataelement':
     case 'dtel':
-      return `/sap/bc/adt/ddic/dataelements/${encodedName}`;
+      return `${DATA_ELEMENT.uri(objectName)}`;
     case 'functiongroup':
     case 'fugr':
       return `${FUNCTION_GROUP.uri(objectName)}`;
@@ -233,7 +232,6 @@ export function getObjectSourceUri(
   functionGroup?: string,
   version?: 'active' | 'inactive',
 ): string {
-  const encodedName = encodeSapObjectName(objectName);
   const versionParam = version ? `?version=${version}` : '';
 
   switch (objectType.toLowerCase()) {

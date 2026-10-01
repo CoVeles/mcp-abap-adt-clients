@@ -13,7 +13,9 @@ import {
 import {
   ACCESS_CONTROL,
   CLASS,
+  DATA_ELEMENT,
   DDL_SOURCE,
+  DOMAIN,
   FUNCTION_GROUP,
   FUNCTION_MODULE,
   INTERFACE,
@@ -66,10 +68,10 @@ export function getObjectUri(objectType: string, objectName: string): string {
     case 'ddlx/ex':
       return `${METADATA_EXTENSION.uri(objectName)}`;
     case 'domain':
-      return `/sap/bc/adt/ddic/domains/${encodedName}`;
+      return `${DOMAIN.uri(objectName)}`;
     case 'data_element':
     case 'dtel':
-      return `/sap/bc/adt/ddic/dataelements/${encodedName}`;
+      return `${DATA_ELEMENT.uri(objectName)}`;
     case 'package':
     case 'devc/k':
       return `${PACKAGE.uri(objectName)}`;

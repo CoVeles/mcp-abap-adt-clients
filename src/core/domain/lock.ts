@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { DOMAIN } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -21,9 +21,8 @@ export async function lockDomain(
   connection: IAbapConnection,
   domainName: string,
 ): Promise<IAdtWireResponse> {
-  const domainNameEncoded = encodeSapObjectName(domainName.toLowerCase());
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/ddic/domains/${domainNameEncoded}?_action=LOCK&accessMode=MODIFY`,
+    url: `${DOMAIN.uri(domainName)}?_action=LOCK&accessMode=MODIFY`,
     method: 'POST',
     timeout: getTimeout('default'),
     data: null,
