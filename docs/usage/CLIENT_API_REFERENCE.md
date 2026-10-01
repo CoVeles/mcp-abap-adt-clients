@@ -1105,7 +1105,9 @@ try {
 
 A binding just created has no active version, and publishing it answers `200`
 with *"Service Binding … does not exist"*: `activate()` it first. See
-[ERRATA.md](ERRATA.md#a-service-binding-is-locked-to-publish-it).
+[ERRATA.md](ERRATA.md#a-binding-publishes-only-once-it-is-active). For the
+`403` on the LOCK, see
+[ERRATA.md](ERRATA.md#a-403-on-the-lock-before-a-publication-is-not-a-refusal).
 
 Why the library does not do that for you: **how long a lock is held is a
 policy**, and it is not one policy. Eclipse holds a binding's lock for as long

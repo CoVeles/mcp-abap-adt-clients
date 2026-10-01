@@ -183,7 +183,7 @@ activated, published and unpublished.
   lock without a handle (`''`), you publish, and you send no UNLOCK. Every other
   refusal stays one. If the `403` should stop you, pass `analyseException`
   instead. See
-  [below](#a-service-binding-is-locked-to-publish-it).
+  [below](#a-403-on-the-lock-before-a-publication-is-not-a-refusal).
 - **"Service Binding … does not exist" on a publish** — inside a `200` — means
   the binding is not active yet; a binding just created has only an inactive
   version. `activate()` it, then publish. See
@@ -232,49 +232,50 @@ Sessions and locks
 2. [The session-type header is per request](#the-session-type-header-is-per-request)
 3. [A class include is written under the class lock](#a-class-include-is-written-under-the-class-lock)
 4. [A service binding is locked to publish it](#a-service-binding-is-locked-to-publish-it)
-5. [A binding publishes only once it is active](#a-binding-publishes-only-once-it-is-active)
-6. [An unpublish straight after a publish is refused](#an-unpublish-straight-after-a-publish-is-refused)
-7. [A V2 publication job resolves the service by name and version](#a-v2-publication-job-resolves-the-service-by-name-and-version)
+5. [A 403 on the LOCK before a publication is not a refusal](#a-403-on-the-lock-before-a-publication-is-not-a-refusal)
+6. [A binding publishes only once it is active](#a-binding-publishes-only-once-it-is-active)
+7. [An unpublish straight after a publish is refused](#an-unpublish-straight-after-a-publish-is-refused)
+8. [A V2 publication job resolves the service by name and version](#a-v2-publication-job-resolves-the-service-by-name-and-version)
 
 Reading answers
 
-8. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
-9. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
-10. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
-11. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
-12. [A validation answers a taken name inside a 200](#a-validation-answers-a-taken-name-inside-a-200)
-13. [A deletion check that says no is not a failure](#a-deletion-check-that-says-no-is-not-a-failure)
-14. ["No URI-Mapping defined for URI" inside a 200](#no-uri-mapping-defined-for-uri-inside-a-200)
-15. [A package walk lists a binding's generated objects](#a-package-walk-lists-a-bindings-generated-objects)
-16. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
+9. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
+10. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
+11. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
+12. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
+13. [A validation answers a taken name inside a 200](#a-validation-answers-a-taken-name-inside-a-200)
+14. [A deletion check that says no is not a failure](#a-deletion-check-that-says-no-is-not-a-failure)
+15. ["No URI-Mapping defined for URI" inside a 200](#no-uri-mapping-defined-for-uri-inside-a-200)
+16. [A package walk lists a binding's generated objects](#a-package-walk-lists-a-bindings-generated-objects)
+17. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
 
 Creating and checking objects
 
-17. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
-18. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
-19. [An object created without a package cannot be deleted](#an-object-created-without-a-package-cannot-be-deleted)
-20. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
+18. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
+19. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
+20. [An object created without a package cannot be deleted](#an-object-created-without-a-package-cannot-be-deleted)
+21. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
 
 Activation
 
-21. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
-22. [Activation settles inside the POST](#activation-settles-inside-the-post)
+22. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
+23. [Activation settles inside the POST](#activation-settles-inside-the-post)
 
 Transports
 
-23. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
-24. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
-25. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
+24. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
+25. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
+26. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
 
 ATC
 
-26. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
+27. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
 
 Legacy (BASIS 7.40)
 
-27. [On BASIS 7.40 a lock over HTTP holds nothing](#on-basis-740-a-lock-over-http-holds-nothing)
-28. [On BASIS 7.40 the inactive-objects list is another document](#on-basis-740-the-inactive-objects-list-is-another-document)
-29. [On BASIS 7.40 a group activation answers an empty 200](#on-basis-740-a-group-activation-answers-an-empty-200)
+28. [On BASIS 7.40 a lock over HTTP holds nothing](#on-basis-740-a-lock-over-http-holds-nothing)
+29. [On BASIS 7.40 the inactive-objects list is another document](#on-basis-740-the-inactive-objects-list-is-another-document)
+30. [On BASIS 7.40 a group activation answers an empty 200](#on-basis-740-a-group-activation-answers-an-empty-200)
 
 ---
 
@@ -511,16 +512,14 @@ publish job finishes. An open Eclipse editor on the binding holds the lock for
 the same user from a different session.
 
 **Rule.** The lock spans an editing session. From elsewhere, a held lock looks
-like a 403; it is usually someone's open Eclipse, not a leaked lock. Eclipse
-itself meets a `403` on its own LOCK when its editor already holds the binding,
-and posts the job anyway: the job does not need the caller's lock.
+like a 403; it is usually someone's open Eclipse, not a leaked lock. A `403` on
+your own LOCK before a publish or unpublish is its own case — see
+[A 403 on the LOCK before a publication is not a refusal](#a-403-on-the-lock-before-a-publication-is-not-a-refusal).
 
 **Workaround.** For a library there is no editor, so the edit is the operation:
 `lock()`, `update()` with the desired publication state, `unlock()` in a
-`finally`. Pass `analysePublicationLock` to the `lock()`: a `403` then answers
-a lock without a handle (`''`), the publication goes ahead, and there is
-nothing to unlock. A caller who wants the `403` to stop them passes
-`analyseException` instead. The publish job took about 133 seconds on the systems measured,
+`finally` — and for the `403` on that `lock()`, see
+[A 403 on the LOCK before a publication is not a refusal](#a-403-on-the-lock-before-a-publication-is-not-a-refusal). The publish job took about 133 seconds on the systems measured,
 above the 120 s default — pass a larger `timeout`. Read the job's own answer
 (`analysePublication` from `@mcp-abap-adt/adt-strategies` reads its
 `SEVERITY`); nothing needs polling. For a binding locked elsewhere, close the
@@ -538,6 +537,40 @@ sent its own `LOCK` → `403` on the enqueue session and then `POST
 alive with `GET /sap/bc/adt/core/http/sessions`.
 
 **Where it bites.** `getServiceBinding()`: `lock`, `update`, `delete`.
+
+---
+
+## A 403 on the LOCK before a publication is not a refusal
+
+**Symptom.** `_action=LOCK` on a service binding, sent before a publish or an
+unpublish, answers `403 ExceptionResourceNoAccess`, *"User … is currently
+editing <SERVICE_BINDING>"*.
+
+**Cause.** An editing session holds the binding — usually an open Eclipse
+editor, which keeps its lock after a publication until the editor closes (see
+[A service binding is locked to publish it](#a-service-binding-is-locked-to-publish-it)).
+The publication job does not run under the caller's lock and does not need it.
+
+**Rule.** This `403` is neither an error nor a success: it says someone holds
+the binding, not that the publication is refused. Eclipse ADT meets it on its
+own LOCK and posts the job anyway. Every other refusal on the LOCK stays a
+refusal.
+
+**Workaround.** The choice is the caller's, made at the call site. Pass
+`analysePublicationLock` from `@mcp-abap-adt/adt-strategies` to `lock()`: the
+`403` then answers a lock without a handle (`''`), you post the publication
+job, and you send no UNLOCK — there is nothing of yours to release. A caller
+who wants the `403` to stop them passes `analyseException` instead; choosing
+differently from Eclipse belongs in a comment at the call site.
+
+**Evidence.** Eclipse ADT 3.60.3 against the BTP trial, 2026-09-05: a second
+`LOCK` before the unpublish → `403` while the first was held. Eclipse, cloud
+system, 2026-09-27: after a publish its editor kept the lock; the unpublish that
+followed sent its own `LOCK` → `403` on the enqueue session and then `POST
+…/unpublishjobs` → `200`, 132 s.
+
+**Where it bites.** `getServiceBinding()`: `lock` before a publish or an
+unpublish.
 
 ---
 
