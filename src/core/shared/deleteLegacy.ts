@@ -4,7 +4,13 @@
  * Uses direct DELETE on the object URL with lockHandle,
  * instead of the modern /sap/bc/adt/deletion/check + /deletion/delete API.
  *
- * Flow: lock → DELETE {objectUrl}?lockHandle=... → unlock on failure
+ * One request, the DELETE. The lock is the caller's, on both sides: take it
+ * before and give it back after. Without a handle BASIS 7.40 answers `400`
+ * "Parameter lockHandle could not be found"; and over RFC the lock outlives a
+ * successful delete — a create of the same name straight after answers `403`
+ * "User … is currently editing …" until the UNLOCK (measured on premise,
+ * 2026-10-01). See ERRATA "On BASIS 7.40 a delete needs the caller's lock, and
+ * keeps it".
  */
 
 import type { IAbapConnection } from '@mcp-abap-adt/interfaces-adt-connection';

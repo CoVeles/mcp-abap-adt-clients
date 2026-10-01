@@ -270,6 +270,14 @@ ATC
 
 26. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
 
+Legacy (BASIS 7.40)
+
+27. [On BASIS 7.40 a lock over HTTP holds nothing](#on-basis-740-a-lock-over-http-holds-nothing)
+28. [On BASIS 7.40 UNLOCK answers 200 for any handle](#on-basis-740-unlock-answers-200-for-any-handle)
+29. [On BASIS 7.40 a delete needs the caller's lock, and keeps it](#on-basis-740-a-delete-needs-the-callers-lock-and-keeps-it)
+30. [On BASIS 7.40 the inactive-objects list is another document](#on-basis-740-the-inactive-objects-list-is-another-document)
+31. [On BASIS 7.40 a group activation answers an empty 200](#on-basis-740-a-group-activation-answers-an-empty-200)
+
 ---
 
 ## A package can be saved only once per ABAP session
@@ -1339,3 +1347,146 @@ the `406` says *"Accepted content types: application/atc.worklist.v1+xml"*.
 
 **Where it bites.** `AdtRuntimeClient.getAtc()`: `resolveCheckVariant`,
 `getFindings`.
+
+---
+
+## On BASIS 7.40 a lock over HTTP holds nothing
+
+**Symptom.** Over HTTP, `LOCK` answers `200` with a `LOCK_HANDLE`, and the very
+next write under that handle answers `423`:
+
+```
+POST {object}?_action=LOCK&accessMode=MODIFY   -> 200, <LOCK_HANDLE>...</LOCK_HANDLE>
+PUT  {object}/source/main?lockHandle=...       -> 423 "Resource ... is not locked (invalid lock handle: ...)"
+```
+
+**Cause.** The lock does not outlive the `LOCK` request. The answer sets no
+`sap-contextid` cookie — with the `x-sap-adt-sessiontype: stateful` header or
+without it — so there is no stateful context for a later request to reach.
+
+**Rule.** On BASIS 7.40 HTTP is read-only. No session shape the client chooses
+changes it: no header; the header on `LOCK`/`UNLOCK` only, writes outside the
+context; the header and the full cookie jar on every request — all three end in
+the same `423`.
+
+**Workaround.** Edit over RFC (`SADT_REST_RFC_ENDPOINT`, see
+[RFC_CONNECTION.md](RFC_CONNECTION.md)): there `LOCK` → `PUT` → `PUT` →
+`UNLOCK` answers `200` four times on the same system.
+
+**Evidence.** On premise, BASIS 7.40, 2026-10-01: the three shapes above on one
+existing program, raw requests, cookie names recorded per exchange — no
+`sap-contextid` set at any point, `423` on every `PUT`. Over RFC on the same
+system: create → lock → two writes → unlock → activate → delete, all accepted.
+
+**Where it bites.** Every `update`, `delete` and source write of an
+`AdtClientLegacy` object over an HTTP connection.
+
+---
+
+## On BASIS 7.40 UNLOCK answers 200 for any handle
+
+**Symptom.** `UNLOCK` with a handle that was never issued — or with a string
+that is no handle at all — answers `200` with an empty body.
+
+**Cause.** The legacy endpoint does not check the handle against a lock.
+
+**Rule.** A `200` on `UNLOCK` does not say a lock was released, or that there was
+one.
+
+**Workaround.** To know the object is free, ask something that would refuse a
+locked one — a `LOCK` from a second session, or the write you intended.
+
+**Evidence.** On premise, BASIS 7.40, 2026-10-01: `UNLOCK` with the literal
+`[object Object]` as the handle, over RFC and over HTTP, answered `200`; the
+object stayed locked, and a create of the same name was refused with
+"currently editing".
+
+**Where it bites.** `unlock` of every `AdtClientLegacy` object.
+
+---
+
+## On BASIS 7.40 a delete needs the caller's lock, and keeps it
+
+**Symptom.** `DELETE {object}` without a handle answers `400` "Parameter
+lockHandle could not be found". With one, it answers `200` — and a create of the
+same name straight after answers `403` "User ... is currently editing ...".
+
+**Cause.** The legacy delete is a plain `DELETE` on the object, which requires a
+lock handle as a parameter, and does not release the lock it was given. Over RFC
+the lock lives in the conversation, so it stays until an `UNLOCK` or until the
+conversation ends.
+
+**Rule.** Lock, delete, unlock — the unlock too, after a successful delete.
+
+**Workaround.** `lock()`, then `delete(config, { lockHandle })`, then
+`unlock(config, lockHandle)` — `AdtClientLegacy` issues each as its own request
+and takes no lock on the caller's behalf (Decision 15).
+
+**Evidence.** On premise, BASIS 7.40, 2026-10-01, over RFC: nine deletes sent
+without a handle (programs, classes, interfaces, function groups) answered `400`
+as above; lock → delete answered `200`, the following create of the same name
+`403` "currently editing"; lock → delete → unlock, then a read, answered `404`
+for seven objects in a row.
+
+**Where it bites.** `delete` of every `AdtClientLegacy` object.
+
+---
+
+## On BASIS 7.40 the inactive-objects list is another document
+
+**Symptom.** `/sap/bc/adt/activation/inactiveobjects` answers `200`, and a
+reading written for `ioc:inactiveObjects` finds nothing in it.
+
+**Cause.** BASIS 7.40 answers the older document, whatever `Accept` asked for: a
+flat `adtcore:objectReferences`, one `adtcore:objectReference` per object with
+`adtcore:uri`, `adtcore:type`, `adtcore:name` — a function module carrying its
+group as `adtcore:parentUri`, a class or program its `adtcore:packageName`.
+
+```xml
+<adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">
+  <adtcore:objectReference adtcore:uri="/sap/bc/adt/functions/groups/<group>"
+      adtcore:type="FUGR/F" adtcore:name="<GROUP>"/>
+  <adtcore:objectReference adtcore:uri="/sap/bc/adt/functions/groups/<group>/fmodules/<module>"
+      adtcore:type="FUGR/FF" adtcore:name="<MODULE>"
+      adtcore:parentUri="/sap/bc/adt/functions/groups/<group>"/>
+</adtcore:objectReferences>
+```
+
+**Rule.** Read both documents. A reading that finds neither root has not been
+told "nothing is inactive" — it has been told something it does not know.
+
+**Workaround.** `getInactiveObjects()` keeps the document (`inactive:
+rawDocument`); the reading is yours. Refuse an unrecognised root rather than
+answer an empty list — an activation confirmed off that empty list is confirmed
+over objects that are still inactive.
+
+**Evidence.** On premise, BASIS 7.40, 2026-10-01: eight objects just created and
+not activated came back in the document above; a reading of
+`ioc:inactiveObjects` answered `count: 0` over them.
+
+**Where it bites.** `getUtils().getInactiveObjects()` on a legacy system, and
+everything that confirms an activation off it.
+
+---
+
+## On BASIS 7.40 a group activation answers an empty 200
+
+**Symptom.** `activateObjectsGroup()` on `AdtClientLegacy` answers `200` with
+zero bytes: no checklist, no messages, no run id.
+
+**Cause.** The legacy endpoint is the synchronous `POST
+/sap/bc/adt/activation?method=activate`; there is no `/activation/runs`, and a
+success is reported by the absence of a document.
+
+**Rule.** An empty `200` is not a refusal and not a confirmation. As on a modern
+system ([Activation settles inside the POST](#activation-settles-inside-the-post)),
+acceptance is not "active now".
+
+**Workaround.** Read `getInactiveObjects()` afterwards (see the entry above for
+its document on this release): the objects no longer listed activated.
+
+**Evidence.** On premise, BASIS 7.40, 2026-10-01: a group of six — two classes,
+two function groups, two function modules — answered `200`, empty; the
+inactive-objects list read straight after named none of them.
+
+**Where it bites.** `AdtUtilsLegacy.activateObjectsGroup`.

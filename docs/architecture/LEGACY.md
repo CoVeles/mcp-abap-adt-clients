@@ -4,11 +4,13 @@
 
 Legacy SAP systems (BASIS versions older than 7.50) lack many ADT endpoints available on modern systems. The library provides `AdtClientLegacy` — a subclass of `AdtClient` that blocks unsupported operations and uses legacy-compatible alternatives where possible.
 
-System detection is automatic: `createAdtClient()` checks `/sap/bc/adt/core/discovery` (present only on modern systems) and returns either `AdtClient` or `AdtClientLegacy`.
+System detection is automatic: `createAdtClient()` asks `/sap/bc/adt/core/discovery` and returns `AdtClient` only when the answer is XML, `AdtClientLegacy` otherwise. "Absent" is not one answer on a legacy system: BASIS 7.40 answers `404` "No application class found for URI" over RFC and `200 text/html` with an empty body over HTTP — which is why `isModernAdtSystem()` reads the content type rather than the status. Measured on premise, BASIS 7.40, 2026-10-01: over RFC `isModernAdtSystem()` answers `false` and `createAdtClient()` returns `AdtClientLegacy`.
 
 ## Connection: RFC vs HTTP
 
 Legacy systems do not support the `x-sap-adt-sessiontype: stateful` HTTP header (introduced in BASIS 7.50). Without stateful sessions, lock handles are lost between HTTP requests — making create/update/delete operations impossible.
+
+Measured on premise, BASIS 7.40, 2026-10-01, three session shapes over HTTP: no header at all; the header on `LOCK`/`UNLOCK` only; the header and the context cookie on every request. In each, `LOCK` answers `200` with a `LOCK_HANDLE` but sets no `sap-contextid`, and the next `PUT` under that handle answers `423` "Resource … is not locked (invalid lock handle: …)". No session shape a client chooses changes it: **over HTTP a legacy system is read-only, and editing goes over RFC.** See [ERRATA](../usage/ERRATA.md#on-basis-740-a-lock-over-http-holds-nothing).
 
 **RFC transport** solves this by using SAP's `SADT_REST_RFC_ENDPOINT` function module (the same mechanism Eclipse ADT uses via JCo). RFC connections are inherently stateful — one ABAP session per connection — so lock handles persist across calls.
 
@@ -29,9 +31,9 @@ See [RFC_CONNECTION.md](../usage/RFC_CONNECTION.md) for setup and configuration.
 ```text
 createAdtClient(connection)
   │
-  ├── /sap/bc/adt/core/discovery available? → AdtClient (modern, full CRUD)
+  ├── /sap/bc/adt/core/discovery answers XML? → AdtClient (modern, full CRUD)
   │
-  └── not available? → AdtClientLegacy
+  └── 404, or anything but XML? → AdtClientLegacy
         ├── Supported types: *Legacy handlers (direct DELETE, v1 content types)
         ├── Unsupported types: throw error with missing endpoint name
         └── Content types: AdtContentTypesBase (versionless headers)
@@ -42,7 +44,7 @@ createAdtClient(connection)
 | Component | Modern (AdtClient) | Legacy (AdtClientLegacy) |
 |-----------|-------------------|--------------------------|
 | Content types | `AdtContentTypesModern` (v2+/v3+/v4+) | `AdtContentTypesBase` (v1 / versionless) |
-| Delete | `POST /sap/bc/adt/deletion/check` + `/delete` | Direct `DELETE {objectUrl}?lockHandle=...` |
+| Delete | `POST /sap/bc/adt/deletion/check` + `/delete` | Direct `DELETE {objectUrl}?lockHandle=...` — the caller locks first and unlocks after; see [ERRATA](../usage/ERRATA.md#on-basis-740-a-delete-needs-the-callers-lock-and-keeps-it) |
 | Transport | `/sap/bc/adt/cts/transportrequests` | `/sap/bc/cts/transportrequests` |
 | Source content type | `text/plain; charset=utf-8` | `text/plain` (requires `SAP_UNICODE=false` in `.env`) |
 
@@ -59,13 +61,14 @@ These types have dedicated `*Legacy` handler classes with legacy-compatible dele
 | Interface | `getInterface()` | `/sap/bc/adt/oo/interfaces` | ✅ | ✅ | ✅ | ✅ | ✅¹ | ✅ | ✅ |
 | Function Group | `getFunctionGroup()` | `/sap/bc/adt/functions/groups` | ✅ | ✅ | ✅ | ✅ | ✅¹ | ✅ | ✅ |
 | Function Module | `getFunctionModule()` | `/sap/bc/adt/functions/groups/.../fmodules` | ✅ | ✅ | ✅ | ✅ | ✅¹ | ✅ | ✅ |
-| Function Include | `getFunctionInclude()` | `/sap/bc/adt/functions/groups/.../includes` | ✅ | ✅ | ✅ | ✅ | ✅¹ | ✅ | ✅ |
+| Function Include | `getFunctionInclude()` | `/sap/bc/adt/functions/groups/.../includes` | ✅ | ❌⁴ | ✅ | ✅ | ✅¹ | ✅ | ✅ |
 | DDL Source (CDS view, AMDP table function) | `getDdl()` | `/sap/bc/adt/ddic/ddl/sources` | ✅ | ✅ | ✅ | ✅ | ✅¹ | ✅ | ✅ |
 | Package | `getPackage()` | `/sap/bc/adt/packages` | ❌² | ❌³ | ✅ | ✅ | ✅¹ | — | — |
 
 ¹ Delete uses direct `DELETE` with lockHandle (no `/sap/bc/adt/deletion/check` + `/delete` API)
 ² `/sap/bc/adt/packages/validation` not present in legacy discovery
 ³ Package creation on legacy systems is only possible via SAP GUI (SE80/SE21)
+⁴ `create` sends `application/vnd.sap.adt.functions.fincludes.v2+xml` straight from `constants/contentTypes.ts`, past `IAdtContentTypes`, and BASIS 7.40 answers `400` "No content handler found for content type 'application/vnd.sap.adt.functions.fincludes.v2+xml'" (measured on premise, 2026-10-01). The discovery document of that system names no function-include type at all, so the type it does accept is still to be measured
 
 ### Not supported (endpoints absent from discovery)
 
@@ -122,6 +125,7 @@ answered there.
 | Inactive objects | `getInactiveObjects()` | `/sap/bc/adt/activation/inactiveobjects` |
 | Discovery | `getDiscovery()` | `/sap/bc/adt/discovery` |
 | Single activation | (used internally) | `POST /sap/bc/adt/activation?method=activate` |
+| Group activation | `activateObjectsGroup()` (`AdtUtilsLegacy`) | `POST /sap/bc/adt/activation?method=activate` — synchronous, no `/activation/runs`; a success answers `200` with an empty body ([ERRATA](../usage/ERRATA.md#on-basis-740-a-group-activation-answers-an-empty-200)) |
 | Check runs | (used internally) | `/sap/bc/adt/checkruns` |
 
 ### Not available on legacy
@@ -129,7 +133,6 @@ answered there.
 | Utility | Method | Missing Endpoint | Legacy Alternative |
 |---------|--------|------------------|--------------------|
 | Where-used | `getWhereUsedScope()`, `modifyWhereUsedScope()`, `getWhereUsed()` | `/sap/bc/adt/repository/informationsystem/usageReferences` | Old API exists: `POST .../whereused?RIS_REQUEST_TYPE=WHERE_USED_LAZY` + `.../fullnamemapping` — not yet implemented |
-| Group activation | `activateObjectsGroup()` | `/sap/bc/adt/activation/runs` | Sync API exists: `POST /sap/bc/adt/activation?method=activate` — not yet adapted for group use |
 | Group deletion | `checkDeletionGroup()`, `deleteObjectsGroup()` | `/sap/bc/adt/deletion/check` + `/delete` | Direct `DELETE` per object (used by Legacy handlers) |
 | Table contents | `getTableContents()` | `/sap/bc/adt/datapreview/ddic` | None |
 | SQL query | `getSqlQuery()` | `/sap/bc/adt/datapreview/freestyle` | None |
