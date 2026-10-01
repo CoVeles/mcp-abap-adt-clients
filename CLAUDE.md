@@ -215,7 +215,7 @@ See `docs/usage/RFC_CONNECTION.md` and `docs/development/RFC_TESTING.md` for ful
 - `fast-xml-parser` — XML parsing for ADT responses
 - `axios` — HTTP client (used internally by connection layer)
 - `@mcp-abap-adt/connection` — **dev only** — concrete `IAbapConnection` implementation for tests; `@mcp-abap-adt/interfaces-auth` and `-auth-sap` are dev-only too
-- `@mcp-abap-adt/adt-strategies` — workspace package in `packages/adt-strategies`, not a dependency of adt-clients: the readings and verdicts consumers (and the tests) pass in
+- `@mcp-abap-adt/adt-strategies` — lives in `packages/adt-strategies`, published on its own, and **not a workspace**: no local link. adt-clients' tests take it from npm as a devDependency (`^0.6.0`); the package builds and tests against what it installs from the registry (`npm ci --prefix packages/adt-strategies`). A strategy change that adt-clients' tests need is published first.
 
 ## Public API (`src/index.ts`)
 

@@ -1143,11 +1143,7 @@ async function checkPackageExists(connection, packageName) {
   try {
     // Dynamically required to avoid circular dependencies
     const { searchObjects } = require('../../core/shared/search');
-    // The source path: the reading is new in adt-strategies and its built
-    // entry point does not carry it until it is released.
-    const {
-      readSearchHits,
-    } = require('../../../packages/adt-strategies/src/results/utils');
+    const { readSearchHits } = require('@mcp-abap-adt/adt-strategies');
 
     const answer = await searchObjects(connection, {
       query: `${packageName}*`,
@@ -2507,9 +2503,7 @@ async function activateSharedFunctionGroup(
   // The list read into references by `utilInactiveObjects`; the shipped
   // default answers the document as it came.
   const { utilDocuments } = require('../../core/shared/utilResultSet');
-  const {
-    utilInactiveObjects,
-  } = require('../../../packages/adt-strategies/src/results/utils');
+  const { utilInactiveObjects } = require('@mcp-abap-adt/adt-strategies');
   const listed = await client
     .getUtils({ ...utilDocuments, inactive: utilInactiveObjects })
     .getInactiveObjects();
