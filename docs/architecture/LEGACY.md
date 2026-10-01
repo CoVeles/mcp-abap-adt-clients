@@ -8,9 +8,9 @@ System detection is automatic: `createAdtClient()` asks `/sap/bc/adt/core/discov
 
 ## Connection: RFC vs HTTP
 
-Legacy systems do not support the `x-sap-adt-sessiontype: stateful` HTTP header (introduced in BASIS 7.50). Without stateful sessions, lock handles are lost between HTTP requests — making create/update/delete operations impossible.
+Legacy systems do not support the `x-sap-adt-sessiontype: stateful` HTTP header (introduced in BASIS 7.50). Without stateful sessions, lock handles are lost between HTTP requests — making updates, which are written under a lock, impossible. Create and delete need no lock.
 
-Measured on premise, BASIS 7.40, 2026-10-01, three session shapes over HTTP: no header at all; the header on `LOCK`/`UNLOCK` only; the header and the context cookie on every request. In each, `LOCK` answers `200` with a `LOCK_HANDLE` but sets no `sap-contextid`, and the next `PUT` under that handle answers `423` "Resource … is not locked (invalid lock handle: …)". No session shape a client chooses changes it: **over HTTP a legacy system is read-only, and editing goes over RFC.** See [ERRATA](../usage/ERRATA.md#on-basis-740-a-lock-over-http-holds-nothing).
+Measured on premise, BASIS 7.40, 2026-10-01, three session shapes over HTTP: no header at all; the header on `LOCK`/`UNLOCK` only; the header and the context cookie on every request. In each, `LOCK` answers `200` with a `LOCK_HANDLE` but sets no `sap-contextid`, and the next `PUT` under that handle answers `423` "Resource … is not locked (invalid lock handle: …)". No session shape a client chooses changes it: **over HTTP a legacy system cannot update an object, and updates go over RFC.** See [ERRATA](../usage/ERRATA.md#on-basis-740-a-lock-over-http-holds-nothing).
 
 **RFC transport** solves this by using SAP's `SADT_REST_RFC_ENDPOINT` function module (the same mechanism Eclipse ADT uses via JCo). RFC connections are inherently stateful — one ABAP session per connection — so lock handles persist across calls.
 
@@ -44,7 +44,7 @@ createAdtClient(connection)
 | Component | Modern (AdtClient) | Legacy (AdtClientLegacy) |
 |-----------|-------------------|--------------------------|
 | Content types | `AdtContentTypesModern` (v2+/v3+/v4+) | `AdtContentTypesBase` (v1 / versionless) |
-| Delete | `POST /sap/bc/adt/deletion/check` + `/delete` | Direct `DELETE {objectUrl}?lockHandle=...` — the caller locks first and unlocks after; see [ERRATA](../usage/ERRATA.md#on-basis-740-a-delete-needs-the-callers-lock-and-keeps-it) |
+| Delete | `POST /sap/bc/adt/deletion/check` + `/delete` | Direct `DELETE {objectUrl}` — no lock is needed; a `lockHandle` is passed through only when the caller gives one |
 | Transport | `/sap/bc/adt/cts/transportrequests` | `/sap/bc/cts/transportrequests` |
 | Source content type | `text/plain; charset=utf-8` | `text/plain` (requires `SAP_UNICODE=false` in `.env`) |
 
@@ -65,7 +65,7 @@ These types have dedicated `*Legacy` handler classes with legacy-compatible dele
 | DDL Source (CDS view, AMDP table function) | `getDdl()` | `/sap/bc/adt/ddic/ddl/sources` | ✅ | ✅ | ✅ | ✅ | ✅¹ | ✅ | ✅ |
 | Package | `getPackage()` | `/sap/bc/adt/packages` | ❌² | ❌³ | ✅ | ✅ | ✅¹ | — | — |
 
-¹ Delete uses direct `DELETE` with lockHandle (no `/sap/bc/adt/deletion/check` + `/delete` API)
+¹ Delete uses direct `DELETE` on the object (no `/sap/bc/adt/deletion/check` + `/delete` API); it needs no lock
 ² `/sap/bc/adt/packages/validation` not present in legacy discovery
 ³ Package creation on legacy systems is only possible via SAP GUI (SE80/SE21)
 ⁴ `create` sends `application/vnd.sap.adt.functions.fincludes.v2+xml` straight from `constants/contentTypes.ts`, past `IAdtContentTypes`, and BASIS 7.40 answers `400` "No content handler found for content type 'application/vnd.sap.adt.functions.fincludes.v2+xml'" (measured on premise, 2026-10-01). The discovery document of that system names no function-include type at all, so the type it does accept is still to be measured
