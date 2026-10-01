@@ -49,6 +49,8 @@ See [LEGACY.md](LEGACY.md) for the complete support matrix and RFC transport det
 
 ```text
 src/
+  endpoints/
+    objects.ts                # every ADT object address, one record per kind
   clients/
     AdtClient.ts
     AdtClientLegacy.ts
