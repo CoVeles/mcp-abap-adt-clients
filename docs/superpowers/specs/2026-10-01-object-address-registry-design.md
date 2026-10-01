@@ -163,10 +163,22 @@ widens to every ADT path.
 
 **Verification on real systems:**
 
-- **`adt-nc` matrix**, E19 and the trial, per kind: GET of the address, of
-  `source/main` where the kind has one, of `versions` where it has one, in lower
-  and upper case; all three include kinds. The measured statuses go into the PR
-  description.
+- **`adt-nc` matrix — every read-only path**, E19 and the trial, per kind:
+  - GET of the address, of `source/main` where the kind has one, of `versions`
+    where it has one, in lower and upper case; all three include kinds;
+  - **`validation`, sent as the kind's module sends it** — `POST` with that
+    module's own query parameters (`objname`, `packagename`, `description`, …),
+    twice: for a name that exists and for one that does not. Both answers must be
+    the endpoint's own verdict (a refusal naming the existing object, an OK for
+    the free name), not a `404` or `No URI-Mapping defined for URI`, which is
+    what a wrong path answers.
+
+  The measured statuses go into the PR description.
+- **Paths that write** — `lockUri` (`?_action=LOCK`/`UNLOCK`), `transportUri`,
+  `publishjobs`/`unpublishjobs`, the feature toggle's `toggle`/`states` — are not
+  sent by hand: each is confirmed by the integration test that already exercises
+  it, and the PR names that test per path. A path neither the matrix nor a test
+  reaches is listed as **unconfirmed**, not counted as confirmed.
 - **A full integration run after the switch**, the trial then E19, one at a
   time, compared with the baseline. No new failure is accepted; every
   difference is read, not waved through.
@@ -189,6 +201,8 @@ widens to every ADT path.
 - No object-address literal in `src/` outside `src/endpoints/`, enforced by the
   parser test.
 - The five tables take every address from the registry; defects 1–5 fixed.
-- Every registry record confirmed by a request on E19 and the trial (legacy
-  records stated as unmeasured).
+- Every path a registry record builds confirmed on E19 and the trial — read-only
+  paths and `validation` by the `adt-nc` matrix, writing paths by a named
+  integration test; anything else listed as unconfirmed, and legacy records
+  stated as unmeasured.
 - The integration run after the switch has no failure the baseline did not have.
