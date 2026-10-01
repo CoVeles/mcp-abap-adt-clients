@@ -147,7 +147,8 @@ Names in request bodies and in query parameters (`?checkVariant=`,
    that exists nowhere now throws.
 
 **Enforcement**: a unit test reads `src/` with the TypeScript parser (decision 3)
-and fails on any string or template literal outside `src/endpoints/` that starts
+— **excluding `src/__tests__/`**, as the inventory above did — and fails on any
+string or template literal outside `src/endpoints/` that starts
 with **any path a registry record declares** — every string-valued field of every
 record: `collection`, `validation`, the legacy collections. Collection roots alone
 are not enough: `validation` often sits under a different prefix
@@ -155,6 +156,11 @@ are not enough: `validation` often sits under a different prefix
 `/oo/validation/objectname`, `/functions/validation`, `/ddic/ddl/validation`) and
 would pass unseen. The list is taken from the registry, so a new kind — or a new
 path on an existing one — is enforced the moment it is added.
+
+Tests are excluded because a test states the wire string it expects — stage 1's
+unit tests compare each builder against an exact address, and fixtures and
+helpers name addresses the same way. A test that took its expectation from the
+registry would only compare the registry with itself.
 
 Not "every `/sap/bc/adt/` literal with an allow-list": until step 2 the ~177
 service-endpoint literals stay in their modules on purpose, and listing them as
