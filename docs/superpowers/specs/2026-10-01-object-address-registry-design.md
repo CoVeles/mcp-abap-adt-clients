@@ -148,8 +148,18 @@ Names in request bodies and in query parameters (`?checkVariant=`,
 
 **Enforcement**: a unit test reads `src/` with the TypeScript parser (decision 3)
 and fails on any string or template literal outside `src/endpoints/` that starts
-with a collection root of a registry record. The list of roots is taken from the
-registry, so a new kind is enforced the moment it is added.
+with **any path a registry record declares** — every string-valued field of every
+record: `collection`, `validation`, the legacy collections. Collection roots alone
+are not enough: `validation` often sits under a different prefix
+(`/sap/bc/adt/programs/validation` against `/sap/bc/adt/programs/programs`, also
+`/oo/validation/objectname`, `/functions/validation`, `/ddic/ddl/validation`) and
+would pass unseen. The list is taken from the registry, so a new kind — or a new
+path on an existing one — is enforced the moment it is added.
+
+Not "every `/sap/bc/adt/` literal with an allow-list": until step 2 the ~177
+service-endpoint literals stay in their modules on purpose, and listing them as
+exceptions would be step 2 done backwards. Step 2 decides whether the check
+widens to every ADT path.
 
 **Verification on real systems:**
 
