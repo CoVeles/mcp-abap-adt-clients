@@ -2,7 +2,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { PROGRAM, sourceUri, versionsUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IProgramConfig } from './types';
 
@@ -20,7 +20,7 @@ export async function getProgramVersions(
   config: Partial<IProgramConfig>,
 ): Promise<IAdtWireResponse> {
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/programs/programs/${encodeSapObjectName(config.programName as string)}/source/main/versions`,
+    url: `${versionsUri(sourceUri(PROGRAM.uri(config.programName as string)))}`,
     method: 'GET',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_VERSION_FEED },

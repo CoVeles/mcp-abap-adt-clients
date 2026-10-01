@@ -16,6 +16,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
+import { PROGRAM_INCLUDE } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import { escapeXmlAttr } from '../../utils/xml';
@@ -45,7 +46,7 @@ export async function create(
   const responsibleAttr = args.responsible
     ? ` adtcore:responsible="${escapeXmlAttr(args.responsible)}"`
     : '';
-  const url = `/sap/bc/adt/programs/includes${args.transportRequest ? `?corrNr=${args.transportRequest}` : ''}`;
+  const url = `${PROGRAM_INCLUDE.collection}${args.transportRequest ? `?corrNr=${args.transportRequest}` : ''}`;
 
   const metadataXml = `<?xml version="1.0" encoding="UTF-8"?><include:abapInclude xmlns:include="http://www.sap.com/adt/programs/includes" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${lang}" adtcore:name="${name}" adtcore:type="PROG/I" adtcore:masterLanguage="${lang}"${masterSystemAttr}${responsibleAttr}>
   <adtcore:packageRef adtcore:name="${pkg}"/>

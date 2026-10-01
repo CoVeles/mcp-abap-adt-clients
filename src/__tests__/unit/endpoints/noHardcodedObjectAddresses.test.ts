@@ -17,7 +17,10 @@ import * as path from 'node:path';
 import * as ts from 'typescript';
 import { RECORDS } from '../../../endpoints/objects';
 
-const ENFORCED: readonly (keyof typeof RECORDS)[] = [];
+const ENFORCED: readonly (keyof typeof RECORDS)[] = [
+  'PROGRAM',
+  'PROGRAM_INCLUDE',
+];
 
 const ROOT = path.resolve(__dirname, '../../../..');
 

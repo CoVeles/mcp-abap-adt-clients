@@ -12,6 +12,7 @@ import type {
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_ACTIVATION } from '../constants/contentTypes';
 import { getEnhancementUri } from '../core/enhancement/types';
+import { PROGRAM, PROGRAM_INCLUDE } from '../endpoints/objects';
 import { encodeSapObjectName } from './internalUtils';
 import { getTimeout } from './timeouts';
 
@@ -36,10 +37,10 @@ export function buildObjectUri(
     if (name.startsWith('ZCL_') || name.startsWith('CL_')) {
       return `/sap/bc/adt/oo/classes/${lowerName}`;
     } else if (name.startsWith('Z') && name.includes('_PROGRAM')) {
-      return `/sap/bc/adt/programs/programs/${lowerName}`;
+      return `${PROGRAM.uri(name)}`;
     }
     // Default: assume program
-    return `/sap/bc/adt/programs/programs/${lowerName}`;
+    return `${PROGRAM.uri(name)}`;
   }
 
   // Map type to URI path
@@ -60,10 +61,10 @@ export function buildObjectUri(
 
     case 'PROG/P':
     case 'PROG':
-      return `/sap/bc/adt/programs/programs/${lowerName}`;
+      return `${PROGRAM.uri(name)}`;
 
     case 'PROG/I':
-      return `/sap/bc/adt/programs/includes/${lowerName}`;
+      return `${PROGRAM_INCLUDE.uri(name)}`;
 
     case 'FUGR/FF': {
       if (parentName) {

@@ -36,6 +36,7 @@ import {
   ACCEPT_TABLE_TYPE,
   CT_VIEW,
 } from '../../constants/contentTypes';
+import { PROGRAM, sourceUri } from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
 import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
@@ -132,7 +133,7 @@ export function getObjectMetadataUri(
       return `/sap/bc/adt/oo/classes/${encodedName}`;
     case 'program':
     case 'prog/p':
-      return `/sap/bc/adt/programs/programs/${encodedName}`;
+      return `${PROGRAM.uri(objectName)}`;
     case 'interface':
     case 'intf/if':
       return `/sap/bc/adt/oo/interfaces/${encodedName}`;
@@ -230,7 +231,7 @@ export function getObjectSourceUri(
       return `/sap/bc/adt/oo/classes/${encodedName}/source/main${versionParam}`;
     case 'program':
     case 'prog/p':
-      return `/sap/bc/adt/programs/programs/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(PROGRAM.uri(objectName))}${versionParam}`;
     case 'interface':
     case 'intf/if':
       return `/sap/bc/adt/oo/interfaces/${encodedName}/source/main${versionParam}`;

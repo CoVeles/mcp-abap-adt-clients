@@ -11,11 +11,11 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { PROGRAM_INCLUDE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 function includeUrl(includeName: string): string {
-  return `/sap/bc/adt/programs/includes/${encodeSapObjectName(includeName).toLowerCase()}`;
+  return `${PROGRAM_INCLUDE.uri(includeName)}`;
 }
 
 /**
