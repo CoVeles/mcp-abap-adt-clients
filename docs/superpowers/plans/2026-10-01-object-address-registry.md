@@ -37,7 +37,7 @@
 
 - [ ] **PR #194 (`scripts/adt-nc.ts`) is merged.** Task 3 imports its connection code.
 - [ ] **PR #192 is merged** (it touches `src/clients/AdtClientLegacy.ts` and adds `src/clients/absentOnLegacy.ts`, which name object paths).
-- [ ] **An E19 `test-config.yaml` exists** for the baseline and after runs: `system: "onprem"`, `default_master_system: "E19"`, `shared_dependencies.super_package: "TEST_MCP"`, `shared_dependencies.package: "TEST_AC_SHR_PKG"`, `shared_dependencies.software_component: "LOCAL"` (values from issue #130). `default_package`, `default_transport` and `transport_layer` come from the owner. Keep it at `~/.config/mcp-abap-adt/test-config.e19.yaml`, never in the repo. Swap it in for the E19 runs only.
+- [x] **An E19 `test-config.yaml` exists** at `~/.config/mcp-abap-adt/test-config.e19.yaml`, never in the repo. It is a copy of the working trial config, and **every package and object name is the same** (the owner's rule). Only the system-type values differ: `system: "onprem"`, `default_master_system: "E19"`, `default_transport: ""` (the trial's `TRLK…` request does not exist on E19), and `software_component: "LOCAL"` in place of `"ZLOCAL"` (environment and `create_package`). If the trial config changes before the run, re-copy it and re-apply those lines. Swap it in for the E19 runs only.
 - [ ] The E19 tunnel is up: `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/sap/public/info` prints `200`.
 
 ## Kind-to-file inventory
