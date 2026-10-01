@@ -14,7 +14,7 @@
 
 - The registry is internal: nothing from `src/endpoints/` is exported from `src/index.ts`. `src/__tests__/unit/publicApiSurface.test.ts` must stay green unchanged.
 - Literal full paths in each record. `validation` is stated per kind, never derived.
-- `seg(name) = encodeURIComponent(name.toLowerCase())`, unless the measurement in Task 3 finds a kind case-sensitive. That kind then gets its own `seg` with the measurement in a comment.
+- `seg(name) = encodeURIComponent(name.toLowerCase())` (escapes in uppercase hex: `%2F`), unless the measurement in Task 3 finds a kind case-sensitive. That kind then gets its own `seg` with the measurement in a comment.
 - No `lockUri`: `?_action=…` query strings stay in the modules unchanged. Only the address comes from the registry.
 - Do not change query strings, headers, methods or bodies, except to replace an embedded object address with the registry's.
 - The enforcement test reads `src/` excluding `src/__tests__/`. It fails on any string or template literal outside `src/endpoints/` that **contains** a path a record declares (boundary-aware).
@@ -25,7 +25,7 @@
 
 ## Review Focus
 
-1. **Namespaced names** (`/ABC/ZCL_X`): `seg` must give `%2fabc%2fzcl_x`, never a raw `/`. Pinned in Task 1.
+1. **Namespaced names** (`/ABC/ZCL_X`): `seg` must give `%2Fabc%2Fzcl_x`, never a raw `/`, and ADT must accept it. Pinned in Task 1, measured in Task 3 (one namespaced object per system).
 2. **Case sensitivity per kind:** a kind whose ADT path is case-sensitive would break silently once `seg` lowercases it. Measured in Task 3 before any switch. Pinned by the Task 3 matrix result.
 3. **A name containing characters `encodeURIComponent` keeps** (`$TMP`, `*`): `seg('$TMP')` must be `%24tmp`. Pinned in Task 1.
 4. **Boundary false positives in the enforcement test:** `/sap/bc/adt/programs/programs` must not match `/sap/bc/adt/programs/programrun`, and `/sap/bc/adt/ddic/tables` must not match a longer sibling segment. Pinned in Task 2.
@@ -81,6 +81,10 @@ Counted with the TypeScript parser at `8dfbc578`. Line numbers will have shifted
 cd /home/okyslytsia/prj/mcp-abap-adt-clients
 git fetch -q && git worktree add -b refactor/object-address-registry ../adt-clients-address-registry origin/main
 cd ../adt-clients-address-registry && npm ci && npm run build -w packages/adt-strategies
+# test-config.yaml and .env are gitignored, so a new worktree has neither.
+cp ../mcp-abap-adt-clients/src/__tests__/helpers/test-config.yaml src/__tests__/helpers/test-config.yaml
+grep -nE '^\s+system:' src/__tests__/helpers/test-config.yaml   # expect: system: "cloud" (the trial)
+cp ~/.config/mcp-abap-adt/sessions/trial.env .env
 ```
 
 - [ ] **Step 2: Confirm a green start**
@@ -142,7 +146,9 @@ describe('seg', () => {
     expect(seg('ZCL_X')).toBe('zcl_x');
   });
   it('encodes a namespace, never a raw slash', () => {
-    expect(seg('/ABC/ZCL_X')).toBe('%2fabc%2fzcl_x');
+    // encodeURIComponent's own uppercase hex; RFC 3986 makes %2F and %2f
+    // equivalent, and Task 3 reads a namespaced object to confirm ADT agrees.
+    expect(seg('/ABC/ZCL_X')).toBe('%2Fabc%2Fzcl_x');
   });
   it('encodes $ in local packages', () => {
     expect(seg('$TMP')).toBe('%24tmp');
@@ -192,6 +198,8 @@ describe('records', () => {
     );
   });
   it('service binding and its jobs', () => {
+    expect(SERVICE_BINDING.root).toBe('/sap/bc/adt/businessservices');
+    expect(SERVICE_BINDING.release).toBe('/sap/bc/adt/businessservices/release');
     expect(SERVICE_BINDING.uri('ZUI_B')).toBe(
       '/sap/bc/adt/businessservices/bindings/zui_b',
     );
@@ -272,7 +280,8 @@ import type { EnhancementType } from '@mcp-abap-adt/interfaces-adt';
 /**
  * The only way a name enters an address: lowercased and percent-encoded, as in
  * the addresses ADT itself answers with. A namespace `/ABC/` becomes
- * `%2fabc%2f`.
+ * `%2Fabc%2F`: encodeURIComponent's uppercase hex, which RFC 3986 makes
+ * equivalent to the `%2f` ADT writes.
  */
 export function seg(name: string): string {
   return encodeURIComponent(name.toLowerCase());
@@ -404,6 +413,13 @@ export const SERVICE_DEFINITION = {
 } as const;
 
 export const SERVICE_BINDING = {
+  /**
+   * The root the jobs and OData addresses hang off. Declared as a string so the
+   * enforcement test sees it: the builders below are functions of the service
+   * type, and a test that read only string fields would miss them.
+   */
+  root: '/sap/bc/adt/businessservices',
+  release: '/sap/bc/adt/businessservices/release',
   collection: '/sap/bc/adt/businessservices/bindings',
   bindingTypes: '/sap/bc/adt/businessservices/bindings/bindingtypes',
   uri: (name: string) => `/sap/bc/adt/businessservices/bindings/${seg(name)}`,
@@ -666,6 +682,28 @@ describe('containsPath', () => {
   });
 });
 
+describe('every builder lands under a declared path', () => {
+  // A function-valued field is invisible to declaredPaths(). Each one must build
+  // an address under some string path the record family declares, or a literal
+  // spelling that address elsewhere would pass the check unseen.
+  const sample: Record<string, string[]> = {
+    CLASS_INCLUDE: ['zcl_x', 'testclasses'],
+    ENHANCEMENT: ['enhoxh', 'zenh'],
+    SERVICE_BINDING: ['odatav2', 'zui_b'],
+  };
+  const all = declaredPaths(Object.keys(RECORDS) as (keyof typeof RECORDS)[]);
+  for (const [name, record] of Object.entries(RECORDS)) {
+    for (const [field, value] of Object.entries(record)) {
+      if (typeof value !== 'function') continue;
+      it(`${name}.${field}`, () => {
+        const args = sample[name] ?? ['zz1', 'zz2'];
+        const built = (value as (...a: string[]) => string)(...args);
+        expect(all.some((p) => containsPath(built, p))).toBe(true);
+      });
+    }
+  }
+});
+
 describe('object addresses come from src/endpoints/ only', () => {
   it('no enforced path is written anywhere else in src/', () => {
     expect(violations(declaredPaths(ENFORCED))).toEqual([]);
@@ -758,13 +796,32 @@ import { answerOf, connectionFor, resolveTarget } from './lib/adtTarget';
 type Args = string[];
 type Objects = Record<string, Record<string, Args[]>>;
 
-const WITH_SOURCE = new Set([
-  'PROGRAM', 'PROGRAM_INCLUDE', 'CLASS', 'INTERFACE', 'FUNCTION_MODULE',
-  'FUNCTION_INCLUDE', 'DDL_SOURCE', 'TABLE', 'STRUCTURE', 'TABLE_TYPE',
-  'BEHAVIOR_DEFINITION', 'SERVICE_DEFINITION', 'ACCESS_CONTROL',
-  'METADATA_EXTENSION', 'TRANSFORMATION', 'SCALAR_FUNCTION',
-  'SCALAR_FUNCTION_IMPLEMENTATION',
-]);
+/**
+ * Each kind's readable resources, exactly as its module builds them — they are
+ * not uniform: a function include has `/versions` on the include itself, a class
+ * keeps versions per include (`/includes/<kind>/versions`), a program include
+ * has none. Read from `src/core/<kind>/versions.ts` and `read.ts` on 2026-10-01.
+ */
+const RESOURCES: Record<string, { source?: (u: string) => string; versions?: (u: string) => string }> = {
+  PROGRAM: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  PROGRAM_INCLUDE: { source: sourceUri },
+  CLASS: { source: sourceUri, versions: (u) => versionsUri(`${u}/includes/implementations`) },
+  CLASS_INCLUDE: { versions: versionsUri },
+  INTERFACE: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  FUNCTION_MODULE: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  FUNCTION_INCLUDE: { source: sourceUri, versions: versionsUri },
+  DDL_SOURCE: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  TABLE: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  STRUCTURE: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  TABLE_TYPE: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  BEHAVIOR_DEFINITION: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  SERVICE_DEFINITION: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  ACCESS_CONTROL: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  METADATA_EXTENSION: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  TRANSFORMATION: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  SCALAR_FUNCTION: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+  SCALAR_FUNCTION_IMPLEMENTATION: { source: sourceUri, versions: (u) => versionsUri(sourceUri(u)) },
+};
 
 /** Arguments that are names (lowercased by `seg`); the rest are kinds/subtypes. */
 const NAME_ARGS: Record<string, number[]> = {
@@ -772,7 +829,15 @@ const NAME_ARGS: Record<string, number[]> = {
   ENHANCEMENT: [1],
 };
 
-const silent = {} as ILogger;
+// A transport calls logger.debug() and friends unconditionally: an empty object
+// fails with "this.logger?.debug is not a function".
+const noop = () => undefined;
+const silent: ILogger = {
+  debug: noop,
+  info: noop,
+  warn: noop,
+  error: noop,
+} as ILogger;
 
 function asGiven(uri: string, args: Args, kind: string): string {
   let out = uri;
@@ -829,12 +894,18 @@ async function main(): Promise<void> {
           const agrees = a.status === b.status && a.body === b.body;
           if (a.status !== 200 || !agrees) failed = true;
           lines.push(`| ${target.label} | ${kind} | GET ${lower} | ${a.status} | ${agrees ? 'yes' : `NO — as given: ${b.status}`} |`);
-          if (WITH_SOURCE.has(kind)) {
-            const src = await get(connection, sourceUri(lower), 'text/plain');
-            const ver = await get(connection, versionsUri(sourceUri(lower)), 'application/atom+xml;type=feed');
-            if (src.status !== 200 || ver.status !== 200) failed = true;
-            lines.push(`| ${target.label} | ${kind} | GET …/source/main | ${src.status} | |`);
-            lines.push(`| ${target.label} | ${kind} | GET …/source/main/versions | ${ver.status} | |`);
+          const res = RESOURCES[kind] ?? {};
+          if (res.source) {
+            const url = res.source(lower);
+            const src = await get(connection, url, 'text/plain');
+            if (src.status !== 200) failed = true;
+            lines.push(`| ${target.label} | ${kind} | GET ${url} | ${src.status} | |`);
+          }
+          if (res.versions) {
+            const url = res.versions(lower);
+            const ver = await get(connection, url, 'application/atom+xml;type=feed');
+            if (ver.status !== 200) failed = true;
+            lines.push(`| ${target.label} | ${kind} | GET ${url} | ${ver.status} | |`);
           }
         }
       }
@@ -857,7 +928,7 @@ main().catch((error: unknown) => {
 });
 ```
 
-`CLASS_INCLUDE` with kind `testclasses` on a class without test classes answers 404: pick a class include that exists. Check with `adt-nc` first.
+`CLASS_INCLUDE` with kind `testclasses` on a class without test classes answers 404: pick a class include that exists. Check with `adt-nc` first. Add **one namespaced object per system** (any kind, e.g. a `/UI2/` class; list them with `adt-nc` and the information-system search, `query=/UI2/*`) so `%2F` in an address is read once on each.
 
 Run: `npx ts-node scripts/address-matrix.ts --objects ~/.config/mcp-abap-adt/address-matrix.objects.json --to e19-tunnel --to trial:cloud --out address-matrix.md > t3.log 2>&1; echo $?`
 Expected: `0` if every measured row is 200 and agrees, `1` otherwise. Read `address-matrix.md` whole.
@@ -907,10 +978,13 @@ The flow calls `validate()` for every kind with its own config. `BaseTester` ski
 
 ```bash
 for s in trial e19; do
-  awk '/^(GET|POST|PUT|DELETE) /{req=$0; next} /^  <- /{ if (req ~ /validation/) print req "  " $0; req="" }' wire-baseline-$s.txt | sort | uniq -c > validation-baseline-$s.txt
+  # Whole exchange per validation request — request line, status, headers and
+  # body — because a wrong path can answer 200 with "No URI-Mapping" in the body.
+  awk '/^(GET|POST|PUT|DELETE|PATCH) /{keep = ($2 ~ /validation/)} keep' wire-baseline-$s.txt > validation-baseline-$s.txt
+  grep -nE '^  <- |No URI-Mapping' validation-baseline-$s.txt > validation-baseline-$s.summary
 done
 ```
-Read both files. Any `<- 404`, or a validation request whose logged body says `No URI-Mapping`, is a wrong path **before** the switch. List it in `baseline-failures.md` as a pre-existing defect: the registry's record for it must be corrected in its migration task, and the PR says so.
+Read both `.summary` files, then the full `.txt` around any line that is not the endpoint's own verdict. Any `<- 404`, or `No URI-Mapping` anywhere in a validation exchange (whatever the status), is a wrong path **before** the switch. List it in `baseline-failures.md` as a pre-existing defect: the registry's record for it must be corrected in its migration task, and the PR says so.
 
 - [ ] **Step 4: Nothing to commit**
 
@@ -1416,7 +1490,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `src/core/service/lock.ts` (lines 34)
   - `src/utils/activationUtils.ts` (lines 136)
 
-Service bindings: `AdtServiceBinding.encodeName` (`src/core/service/AdtService.ts:114`) is exactly `seg` and goes. The publish and unpublish jobs become `SERVICE_BINDING.publishJobs(type)` / `unpublishJobs(type)`, and the OData service addresses (`AdtService.ts:966`, `:1010`) become `SERVICE_BINDING.odataService(type, name)`, with the encoding Task 3 settled. `/sap/bc/adt/businessservices/release` is a service endpoint and is left alone. The deletion-check payload at `AdtService.ts:736` embeds the binding's address: use `SERVICE_BINDING.uri(name)`.
+Service bindings: `AdtServiceBinding.encodeName` (`src/core/service/AdtService.ts:114`) is exactly `seg` and goes. The publish and unpublish jobs become `SERVICE_BINDING.publishJobs(type)` / `unpublishJobs(type)`, and the OData service addresses (`AdtService.ts:966`, `:1010`) become `SERVICE_BINDING.odataService(type, name)`, with the encoding Task 3 settled. `/sap/bc/adt/businessservices/release` becomes `SERVICE_BINDING.release`: it sits under the declared root, so the enforcement test lists it. The deletion-check payload at `AdtService.ts:736` embeds the binding's address: use `SERVICE_BINDING.uri(name)`.
 
 - [ ] **Step 1:** add 'BEHAVIOR_DEFINITION', 'SERVICE_DEFINITION', 'SERVICE_BINDING' to `ENFORCED`.
 - [ ] **Step 2:** run the enforcement test; it fails with the list.

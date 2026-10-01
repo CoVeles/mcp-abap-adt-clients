@@ -126,9 +126,12 @@ for literals that merely *start* with a path would miss all twenty-one. Service 
 ### 2. The name in an address
 
 `seg(name)` is the only way a name enters an address:
-`encodeURIComponent(name.toLowerCase())`. A namespace `/ABC/` becomes
-`%2fabc%2f`, as in the addresses ADT itself answers with
-(`/sap/bc/adt/programs/includes/zaber_alv_report_cli`, E19, 2026-10-01).
+`encodeURIComponent(name.toLowerCase())`, lowercase as in the addresses ADT
+itself answers with (`/sap/bc/adt/programs/includes/zaber_alv_report_cli`, E19,
+2026-10-01). A namespace `/ABC/` becomes `%2Fabc%2F` — the percent-escapes in
+`encodeURIComponent`'s own uppercase hex. Today both spellings go out (87 sites
+lowercase the escapes, 77 do not); RFC 3986 makes them equivalent, and the
+matrix reads a namespaced object on each system to confirm ADT agrees.
 Address-building calls to `encodeSapObjectName` go.
 
 Case-insensitivity of the address is **an assumption until measured**. Before
