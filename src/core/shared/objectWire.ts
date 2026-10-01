@@ -44,7 +44,10 @@ import {
   INTERFACE,
   PACKAGE,
   PROGRAM,
+  STRUCTURE,
   sourceUri,
+  TABLE,
+  TABLE_TYPE,
 } from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
 import { encodeSapObjectName } from '../../utils/internalUtils';
@@ -155,13 +158,13 @@ export function getObjectMetadataUri(
       return `${DDL_SOURCE.uri(objectName)}`;
     case 'structure':
     case 'stru/dt':
-      return `/sap/bc/adt/ddic/structures/${encodedName}`;
+      return `${STRUCTURE.uri(objectName)}`;
     case 'table':
     case 'tabl/dt':
-      return `/sap/bc/adt/ddic/tables/${encodedName}`;
+      return `${TABLE.uri(objectName)}`;
     case 'tabletype':
     case 'ttyp/df':
-      return `/sap/bc/adt/ddic/tabletypes/${encodedName}`;
+      return `${TABLE_TYPE.uri(objectName)}`;
     case 'domain':
     case 'doma/dd':
       return `/sap/bc/adt/ddic/domains/${encodedName}`;
@@ -252,13 +255,13 @@ export function getObjectSourceUri(
       return `${sourceUri(DDL_SOURCE.uri(objectName))}${versionParam}`;
     case 'structure':
     case 'stru/dt':
-      return `/sap/bc/adt/ddic/structures/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(STRUCTURE.uri(objectName))}${versionParam}`;
     case 'table':
     case 'tabl/dt':
-      return `/sap/bc/adt/ddic/tables/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(TABLE.uri(objectName))}${versionParam}`;
     case 'tabletype':
     case 'ttyp/df':
-      return `/sap/bc/adt/ddic/tabletypes/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(TABLE_TYPE.uri(objectName))}${versionParam}`;
     default:
       throw new Error(
         `Object type ${objectType} does not support source code reading`,

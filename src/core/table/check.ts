@@ -11,7 +11,7 @@ import {
   ACCEPT_CHECK_MESSAGES,
   CT_CHECK_OBJECTS,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { TABLE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -25,8 +25,7 @@ function buildCheckRunPayload(
   sourceCode?: string,
   version: CheckRunVersion = 'new',
 ): string {
-  const uriName = encodeSapObjectName(tableName).toLowerCase();
-  const objectUri = `/sap/bc/adt/ddic/tables/${uriName}`;
+  const objectUri = `${TABLE.uri(tableName)}`;
 
   if (sourceCode) {
     // Check with source code content (for unsaved changes or new code validation)

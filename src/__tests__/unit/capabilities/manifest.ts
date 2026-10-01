@@ -377,7 +377,10 @@ export const HANDLERS = {
       lock: '/sap/bc/adt/ddic/tabletypes/ZGUARD_TTYP',
       unlock: '/sap/bc/adt/ddic/tabletypes/ZGUARD_TTYP',
       getVersions:
-        '/sap/bc/adt/ddic/tabletypes/ZGUARD_TTYP/source/main/versions',
+        // A table type has no /source/main (discovery documents none for it on
+        // an on-premise or a cloud system); its rel=versions link is on the
+        // object, and <object>/versions answered 200 on both.
+        '/sap/bc/adt/ddic/tabletypes/zguard_ttyp/versions',
       readTransport: '/sap/bc/adt/ddic/tabletypes/ZGUARD_TTYP/transport',
     },
     // Not FULL since 36.0.0: a table type is its own document and has no source,

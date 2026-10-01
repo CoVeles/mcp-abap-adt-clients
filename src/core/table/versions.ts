@@ -2,7 +2,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { sourceUri, TABLE, versionsUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { ITableConfig } from './types';
 
@@ -20,7 +20,7 @@ export async function getTableVersions(
   config: Partial<ITableConfig>,
 ): Promise<IAdtWireResponse> {
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/ddic/tables/${encodeSapObjectName(config.tableName as string)}/source/main/versions`,
+    url: `${versionsUri(sourceUri(TABLE.uri(config.tableName as string)))}`,
     method: 'GET',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_VERSION_FEED },

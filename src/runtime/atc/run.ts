@@ -32,6 +32,7 @@ import {
   FUNCTION_GROUP,
   INTERFACE,
   PACKAGE,
+  TABLE,
 } from '../../endpoints/objects';
 import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
@@ -58,7 +59,7 @@ const URI_TEMPLATES: Partial<Record<AtcObjectType, string>> = {
   function_group: `${FUNCTION_GROUP.collection}/`,
   package: `${PACKAGE.collection}/`,
   ddl_source: `${DDL_SOURCE.collection}/`,
-  table: '/sap/bc/adt/ddic/tables/',
+  table: `${TABLE.collection}/`,
   behavior_definition: '/sap/bc/adt/bo/behaviordefinitions/',
 };
 

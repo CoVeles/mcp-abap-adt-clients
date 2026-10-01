@@ -33,6 +33,9 @@ const ENFORCED: readonly (keyof typeof RECORDS)[] = [
   'DDIC_VIEW',
   'METADATA_EXTENSION',
   'ACCESS_CONTROL',
+  'TABLE',
+  'STRUCTURE',
+  'TABLE_TYPE',
 ];
 
 const ROOT = path.resolve(__dirname, '../../../..');

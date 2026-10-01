@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
+import { sourceUri, TABLE } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateTableParams } from './types';
@@ -24,7 +25,7 @@ export async function updateTable(
   lockHandle?: string,
 ): Promise<IAdtWireResponse> {
   const tableName = params.table_name.toUpperCase();
-  const url = `/sap/bc/adt/ddic/tables/${encodeSapObjectName(tableName).toLowerCase()}/source/main${writeQuery(lockHandle, params.transport_request)}`;
+  const url = `${sourceUri(TABLE.uri(tableName))}${writeQuery(lockHandle, params.transport_request)}`;
 
   const headers = {
     'Content-Type': CT_SOURCE,

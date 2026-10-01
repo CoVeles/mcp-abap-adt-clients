@@ -20,6 +20,8 @@ import {
   METADATA_EXTENSION,
   PACKAGE,
   PROGRAM,
+  STRUCTURE,
+  TABLE,
 } from '../endpoints/objects';
 import { encodeSapObjectName } from './internalUtils';
 import { getTimeout } from './timeouts';
@@ -53,10 +55,10 @@ export function getObjectUri(objectType: string, objectName: string): string {
     }
     case 'table':
     case 'tabl/dt':
-      return `/sap/bc/adt/ddic/tables/${encodedName}`;
+      return `${TABLE.uri(objectName)}`;
     case 'structure':
     case 'stru/dt':
-      return `/sap/bc/adt/ddic/structures/${encodedName}`;
+      return `${STRUCTURE.uri(objectName)}`;
     case 'view':
     case 'ddls/df':
       return `${DDL_SOURCE.uri(objectName)}`;
@@ -82,7 +84,7 @@ export function getObjectUri(objectType: string, objectName: string): string {
       return `/sap/bc/adt/ddic/dsfi/${encodedName}`;
     case 'append_structure':
     case 'tabl/ds':
-      return `/sap/bc/adt/ddic/structures/${encodedName}`;
+      return `${STRUCTURE.uri(objectName)}`;
     case 'access_control':
     case 'dcls/dl':
       return `${ACCESS_CONTROL.uri(objectName)}`;

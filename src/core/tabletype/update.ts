@@ -11,6 +11,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_TABLE_TYPE } from '../../constants/contentTypes';
+import { TABLE_TYPE } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateTableTypeParams } from './types';
@@ -34,10 +35,7 @@ export async function updateTableType(
   document: string,
   lockHandle?: string,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(
-    params.tabletype_name.toUpperCase(),
-  ).toLowerCase();
-  const url = `/sap/bc/adt/ddic/tabletypes/${encodedName}${writeQuery(lockHandle, params.transport_request)}`;
+  const url = `${TABLE_TYPE.uri(params.tabletype_name.toUpperCase())}${writeQuery(lockHandle, params.transport_request)}`;
 
   return connection.makeAdtRequest({
     url,

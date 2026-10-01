@@ -107,7 +107,13 @@ import {
 } from '../core/tabletype';
 import { type ITransportResults, transportDocuments } from '../core/transport';
 import { AdtRequestLegacy } from '../core/transport/AdtRequestLegacy';
-import { ACCESS_CONTROL, METADATA_EXTENSION } from '../endpoints/objects';
+import {
+  ACCESS_CONTROL,
+  METADATA_EXTENSION,
+  STRUCTURE,
+  TABLE,
+  TABLE_TYPE,
+} from '../endpoints/objects';
 import { AdtClient } from './AdtClient';
 import { absentOnLegacy } from './absentOnLegacy';
 
@@ -307,18 +313,14 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtStructure<R>>(
       AdtStructure,
       'Structure',
-      '/sap/bc/adt/ddic/structures',
+      STRUCTURE.collection,
     );
   }
 
   override getTable<R extends ITableResults = typeof tableDocuments>(
     _results?: R,
   ): AdtTable<R> {
-    return absentOnLegacy<AdtTable<R>>(
-      AdtTable,
-      'Table',
-      '/sap/bc/adt/ddic/tables',
-    );
+    return absentOnLegacy<AdtTable<R>>(AdtTable, 'Table', TABLE.collection);
   }
 
   override getTableType<
@@ -327,7 +329,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtDdicTableType<R>>(
       AdtDdicTableType,
       'TableType',
-      '/sap/bc/adt/ddic/tabletypes',
+      TABLE_TYPE.collection,
     );
   }
 

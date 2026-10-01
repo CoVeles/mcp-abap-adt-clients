@@ -25,6 +25,9 @@ import {
   PACKAGE,
   PROGRAM,
   PROGRAM_INCLUDE,
+  STRUCTURE,
+  TABLE,
+  TABLE_TYPE,
 } from '../endpoints/objects';
 import { encodeSapObjectName } from './internalUtils';
 import { getTimeout } from './timeouts';
@@ -107,12 +110,12 @@ export function buildObjectUri(
 
     case 'TABL/DT':
     case 'TABL':
-      return `/sap/bc/adt/ddic/tables/${lowerName}`;
+      return `${TABLE.uri(name)}`;
 
     case 'TABL/DS':
     case 'STRU/DS':
     case 'STRU':
-      return `/sap/bc/adt/ddic/structures/${lowerName}`;
+      return `${STRUCTURE.uri(name)}`;
 
     case 'DDLS/DF':
     case 'DDLS':
@@ -137,7 +140,7 @@ export function buildObjectUri(
     case 'TTYP/DF':
     case 'TTYP/TT':
     case 'TTYP':
-      return `/sap/bc/adt/ddic/tabletypes/${lowerName}`;
+      return `${TABLE_TYPE.uri(name)}`;
 
     case 'SRVD/SRV':
     case 'SRVD':

@@ -2,7 +2,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { TABLE_TYPE, versionsUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { ITableTypeConfig } from './types';
 
@@ -20,8 +20,10 @@ export async function getTableTypeVersions(
   connection: IAbapConnection,
   config: Partial<ITableTypeConfig>,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(config.tableTypeName as string);
-  const url = `/sap/bc/adt/ddic/tabletypes/${encodedName}/source/main/versions`;
+  // A table type has no /source/main: discovery documents none for it on an
+  // on-premise or a cloud system, and its rel=versions link is on the object.
+  // <object>/source/main/versions answered 404 "No suitable resource found".
+  const url = versionsUri(TABLE_TYPE.uri(config.tableTypeName as string));
   return connection.makeAdtRequest({
     url,
     method: 'GET',
