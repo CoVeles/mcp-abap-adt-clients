@@ -2,7 +2,11 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import {
+  METADATA_EXTENSION,
+  sourceUri,
+  versionsUri,
+} from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IMetadataExtensionConfig } from './types';
 
@@ -20,11 +24,8 @@ export async function getMetadataExtensionVersions(
   connection: IAbapConnection,
   config: Partial<IMetadataExtensionConfig>,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(
-    (config.name as string).toLowerCase(),
-  );
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/ddic/ddlx/sources/${encodedName}/source/main/versions`,
+    url: versionsUri(sourceUri(METADATA_EXTENSION.uri(config.name as string))),
     method: 'GET',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_VERSION_FEED },

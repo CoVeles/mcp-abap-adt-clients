@@ -286,7 +286,9 @@ export const HANDLERS = {
       lock: '/sap/bc/adt/ddic/ddl/sources/zguard_ddl',
       unlock: '/sap/bc/adt/ddic/ddl/sources/zguard_ddl',
       getVersions:
-        '/sap/bc/adt/ddic/ddl/sources/ZGUARD_DDL/source/main/versions',
+        // ADT's own rel=versions link; /source/main/versions answered 404 'No
+        // suitable resource found' on an on-premise and a cloud system.
+        '/sap/bc/adt/ddic/ddl/sources/zguard_ddl/versions',
       readTransport: '/sap/bc/adt/ddic/ddl/sources/ZGUARD_DDL/transport',
     },
     capabilities: FULL,
@@ -418,7 +420,8 @@ export const HANDLERS = {
       lock: '/sap/bc/adt/acm/dcl/sources/zguard_dcl',
       unlock: '/sap/bc/adt/acm/dcl/sources/zguard_dcl',
       getVersions:
-        '/sap/bc/adt/acm/dcl/sources/zguard_dcl/source/main/versions',
+        // ADT's own rel=versions link, as for DDL sources.
+        '/sap/bc/adt/acm/dcl/sources/zguard_dcl/versions',
       readTransport: '/sap/bc/adt/acm/dcl/sources/zguard_dcl/transport',
     },
     capabilities: FULL,

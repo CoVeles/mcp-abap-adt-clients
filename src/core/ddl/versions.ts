@@ -2,7 +2,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { DDL_SOURCE, versionsUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDdlConfig } from './types';
 
@@ -20,7 +20,9 @@ export async function getDdlVersions(
   config: Partial<IDdlConfig>,
 ): Promise<IAdtWireResponse> {
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/ddic/ddl/sources/${encodeSapObjectName(config.ddlName as string)}/source/main/versions`,
+    // ADT's own rel=versions link; /source/main/versions answered 404 "No
+    // suitable resource found" on an on-premise and a cloud system (2026-10-01).
+    url: versionsUri(DDL_SOURCE.uri(config.ddlName as string)),
     method: 'GET',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_VERSION_FEED },

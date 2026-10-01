@@ -11,10 +11,13 @@ import {
   CT_CHECK_OBJECTS,
 } from '../constants/contentTypes';
 import {
+  ACCESS_CONTROL,
   CLASS,
+  DDL_SOURCE,
   FUNCTION_GROUP,
   FUNCTION_MODULE,
   INTERFACE,
+  METADATA_EXTENSION,
   PACKAGE,
   PROGRAM,
 } from '../endpoints/objects';
@@ -56,10 +59,10 @@ export function getObjectUri(objectType: string, objectName: string): string {
       return `/sap/bc/adt/ddic/structures/${encodedName}`;
     case 'view':
     case 'ddls/df':
-      return `/sap/bc/adt/ddic/ddl/sources/${encodedName}`;
+      return `${DDL_SOURCE.uri(objectName)}`;
     case 'metadata_extension':
     case 'ddlx/ex':
-      return `/sap/bc/adt/ddic/ddlx/sources/${encodedName}`;
+      return `${METADATA_EXTENSION.uri(objectName)}`;
     case 'domain':
       return `/sap/bc/adt/ddic/domains/${encodedName}`;
     case 'data_element':
@@ -82,7 +85,7 @@ export function getObjectUri(objectType: string, objectName: string): string {
       return `/sap/bc/adt/ddic/structures/${encodedName}`;
     case 'access_control':
     case 'dcls/dl':
-      return `/sap/bc/adt/acm/dcl/sources/${encodedName}`;
+      return `${ACCESS_CONTROL.uri(objectName)}`;
     case 'transformation':
     case 'xslt/vt':
       return `/sap/bc/adt/xslt/transformations/${encodedName}`;

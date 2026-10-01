@@ -107,6 +107,7 @@ import {
 } from '../core/tabletype';
 import { type ITransportResults, transportDocuments } from '../core/transport';
 import { AdtRequestLegacy } from '../core/transport/AdtRequestLegacy';
+import { ACCESS_CONTROL, METADATA_EXTENSION } from '../endpoints/objects';
 import { AdtClient } from './AdtClient';
 import { absentOnLegacy } from './absentOnLegacy';
 
@@ -336,7 +337,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtAccessControl<R>>(
       AdtAccessControl,
       'AccessControl',
-      '/sap/bc/adt/acm/dcl/sources',
+      ACCESS_CONTROL.collection,
     );
   }
 
@@ -386,7 +387,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtMetadataExtension<R>>(
       AdtMetadataExtension,
       'MetadataExtension',
-      '/sap/bc/adt/ddic/ddlx/sources',
+      METADATA_EXTENSION.collection,
     );
   }
 

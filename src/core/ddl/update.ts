@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
+import { DDL_SOURCE, sourceUri } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
@@ -26,7 +27,7 @@ export async function updateDdl(
   lockHandle?: string,
   transportRequest?: string,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/ddic/ddl/sources/${encodeSapObjectName(ddlName).toLowerCase()}/source/main${writeQuery(lockHandle, transportRequest)}`;
+  const url = `${sourceUri(DDL_SOURCE.uri(ddlName))}${writeQuery(lockHandle, transportRequest)}`;
 
   const headers = {
     'Content-Type': CT_SOURCE,

@@ -10,6 +10,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { METADATA_EXTENSION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IMetadataExtensionValidationParams } from './types';
 
@@ -31,7 +32,7 @@ export async function validateMetadataExtension(
   connection: IAbapConnection,
   params: IMetadataExtensionValidationParams,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/ddic/ddlx/sources/validation`;
+  const url = METADATA_EXTENSION.validation;
   const queryParams = new URLSearchParams({
     objtype: 'ddlxex',
     objname: params.name,

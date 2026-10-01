@@ -15,8 +15,12 @@ import {
   ACCEPT_TRANSPORT,
   CT_METADATA_EXTENSION,
 } from '../../constants/contentTypes';
+import {
+  METADATA_EXTENSION,
+  sourceUri,
+  transportUri,
+} from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IReadOptions } from '../shared/types';
 
@@ -38,9 +42,8 @@ export async function readMetadataExtension(
   options?: IReadOptions,
   logger?: ILogger,
 ): Promise<IAdtWireResponse> {
-  const lowerName = encodeSapObjectName(name).toLowerCase();
   const query = options?.withLongPolling ? '?withLongPolling=true' : '';
-  const url = `/sap/bc/adt/ddic/ddlx/sources/${lowerName}${query}`;
+  const url = `${METADATA_EXTENSION.uri(name)}${query}`;
 
   const headers = {
     Accept: options?.accept ?? CT_METADATA_EXTENSION,
@@ -79,14 +82,13 @@ export async function readMetadataExtensionSource(
   options?: IReadOptions,
   logger?: ILogger,
 ): Promise<IAdtWireResponse> {
-  const lowerName = encodeSapObjectName(name).toLowerCase();
   const versionQuery = version === 'inactive' ? '?version=inactive' : '';
   const longPollingQuery = options?.withLongPolling
     ? versionQuery
       ? '&withLongPolling=true'
       : '?withLongPolling=true'
     : '';
-  const url = `/sap/bc/adt/ddic/ddlx/sources/${lowerName}/source/main${versionQuery}${longPollingQuery}`;
+  const url = `${sourceUri(METADATA_EXTENSION.uri(name))}${versionQuery}${longPollingQuery}`;
 
   const headers = {
     Accept: options?.accept ?? ACCEPT_SOURCE,
@@ -115,9 +117,8 @@ export async function getMetadataExtensionTransport(
   name: string,
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const lowerName = encodeSapObjectName(name).toLowerCase();
   const query = options?.withLongPolling ? '?withLongPolling=true' : '';
-  const url = `/sap/bc/adt/ddic/ddlx/sources/${lowerName}/transport${query}`;
+  const url = `${transportUri(METADATA_EXTENSION.uri(name))}${query}`;
 
   const headers = {
     Accept: options?.accept ?? ACCEPT_TRANSPORT,

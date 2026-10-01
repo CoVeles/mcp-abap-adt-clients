@@ -3,6 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
+import { ACCESS_CONTROL, sourceUri } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateAccessControlParams } from './types';
@@ -20,11 +21,7 @@ export async function updateAccessControl(
   args: IUpdateAccessControlParams,
   lockHandle?: string,
 ): Promise<IAdtWireResponse> {
-  const accessControlNameEncoded = encodeSapObjectName(
-    args.access_control_name.toLowerCase(),
-  );
-
-  const url = `/sap/bc/adt/acm/dcl/sources/${accessControlNameEncoded}/source/main${writeQuery(lockHandle, args.transport_request)}`;
+  const url = `${sourceUri(ACCESS_CONTROL.uri(args.access_control_name.toLowerCase()))}${writeQuery(lockHandle, args.transport_request)}`;
 
   const headers: Record<string, string> = {
     Accept: ACCEPT_SOURCE,

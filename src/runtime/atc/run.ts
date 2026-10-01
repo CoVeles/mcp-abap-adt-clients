@@ -28,6 +28,7 @@ import {
 } from '../../constants/contentTypes';
 import {
   CLASS,
+  DDL_SOURCE,
   FUNCTION_GROUP,
   INTERFACE,
   PACKAGE,
@@ -56,7 +57,7 @@ const URI_TEMPLATES: Partial<Record<AtcObjectType, string>> = {
   interface: `${INTERFACE.collection}/`,
   function_group: `${FUNCTION_GROUP.collection}/`,
   package: `${PACKAGE.collection}/`,
-  ddl_source: '/sap/bc/adt/ddic/ddl/sources/',
+  ddl_source: `${DDL_SOURCE.collection}/`,
   table: '/sap/bc/adt/ddic/tables/',
   behavior_definition: '/sap/bc/adt/bo/behaviordefinitions/',
 };

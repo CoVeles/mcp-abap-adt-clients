@@ -2,7 +2,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { ACCESS_CONTROL, versionsUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IAccessControlConfig } from './types';
 
@@ -21,11 +21,10 @@ export async function getAccessControlVersions(
   connection: IAbapConnection,
   config: Partial<IAccessControlConfig>,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(
-    (config.accessControlName as string).toLowerCase(),
-  );
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/acm/dcl/sources/${encodedName}/source/main/versions`,
+    // ADT's own rel=versions link; /source/main/versions answered 404 "No
+    // suitable resource found" on an on-premise and a cloud system (2026-10-01).
+    url: versionsUri(ACCESS_CONTROL.uri(config.accessControlName as string)),
     method: 'GET',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_VERSION_FEED },

@@ -38,6 +38,7 @@ import {
 } from '../../constants/contentTypes';
 import {
   CLASS,
+  DDL_SOURCE,
   FUNCTION_GROUP,
   FUNCTION_MODULE,
   INTERFACE,
@@ -151,7 +152,7 @@ export function getObjectMetadataUri(
     }
     case 'view':
     case 'ddls/df':
-      return `/sap/bc/adt/ddic/ddl/sources/${encodedName}`;
+      return `${DDL_SOURCE.uri(objectName)}`;
     case 'structure':
     case 'stru/dt':
       return `/sap/bc/adt/ddic/structures/${encodedName}`;
@@ -248,7 +249,7 @@ export function getObjectSourceUri(
     }
     case 'view':
     case 'ddls/df':
-      return `/sap/bc/adt/ddic/ddl/sources/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(DDL_SOURCE.uri(objectName))}${versionParam}`;
     case 'structure':
     case 'stru/dt':
       return `/sap/bc/adt/ddic/structures/${encodedName}/source/main${versionParam}`;

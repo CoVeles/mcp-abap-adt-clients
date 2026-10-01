@@ -29,6 +29,10 @@ const ENFORCED: readonly (keyof typeof RECORDS)[] = [
   'PACKAGE',
   'TRANSPORT_REQUEST',
   'TRANSPORT_REQUEST_LEGACY',
+  'DDL_SOURCE',
+  'DDIC_VIEW',
+  'METADATA_EXTENSION',
+  'ACCESS_CONTROL',
 ];
 
 const ROOT = path.resolve(__dirname, '../../../..');

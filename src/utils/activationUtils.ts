@@ -13,11 +13,15 @@ import type {
 import { CT_ACTIVATION } from '../constants/contentTypes';
 import { getEnhancementUri } from '../core/enhancement/types';
 import {
+  ACCESS_CONTROL,
   CLASS,
+  DDIC_VIEW,
+  DDL_SOURCE,
   FUNCTION_GROUP,
   FUNCTION_INCLUDE,
   FUNCTION_MODULE,
   INTERFACE,
+  METADATA_EXTENSION,
   PACKAGE,
   PROGRAM,
   PROGRAM_INCLUDE,
@@ -112,11 +116,11 @@ export function buildObjectUri(
 
     case 'DDLS/DF':
     case 'DDLS':
-      return `/sap/bc/adt/ddic/ddl/sources/${lowerName}`;
+      return `${DDL_SOURCE.uri(name)}`;
 
     case 'VIEW/DV':
     case 'VIEW':
-      return `/sap/bc/adt/ddic/views/${lowerName}`;
+      return `${DDIC_VIEW.uri(name)}`;
 
     case 'DTEL/DE':
     case 'DTEL':
@@ -145,7 +149,7 @@ export function buildObjectUri(
 
     case 'DDLX/EX':
     case 'DDLX':
-      return `/sap/bc/adt/ddic/ddlx/sources/${lowerName}`;
+      return `${METADATA_EXTENSION.uri(name)}`;
 
     case 'BDEF/BDO':
     case 'BDEF':
@@ -158,7 +162,7 @@ export function buildObjectUri(
 
     case 'DCLS/DL':
     case 'DCLS':
-      return `/sap/bc/adt/acm/dcl/sources/${lowerName}`;
+      return `${ACCESS_CONTROL.uri(name)}`;
 
     case 'DSFD/SCF':
       return `/sap/bc/adt/ddic/dsfd/sources/${lowerName}`;

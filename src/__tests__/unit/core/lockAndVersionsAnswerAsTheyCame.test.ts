@@ -103,7 +103,7 @@ const VERSIONS: Array<
   [
     'accessControl',
     (c) => getAccessControlVersions(c, { accessControlName: 'ZDCL' }),
-    '/sap/bc/adt/acm/dcl/sources/zdcl/source/main/versions',
+    '/sap/bc/adt/acm/dcl/sources/zdcl/versions',
   ],
   [
     'appendStructure',

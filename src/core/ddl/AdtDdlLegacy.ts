@@ -14,8 +14,8 @@ import type {
   IResultStrategy,
 } from '@mcp-abap-adt/interfaces-adt';
 import { AdtObjectErrorCodes } from '@mcp-abap-adt/interfaces-adt';
+import { DDL_SOURCE } from '../../endpoints/objects';
 import { answering, failed } from '../../utils/adtResponse';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { deleteObjectDirect } from '../shared/deleteLegacy';
 import { AdtDdl } from './AdtDdl';
 import type { ddlDocuments, IDdlConfig, IDdlResults } from './types';
@@ -29,7 +29,7 @@ export class AdtDdlLegacy<
   ): Promise<IAdtResponse<ReturnType<R['deletion']>, E>> {
     const name = config.ddlName as string;
 
-    const objectUrl = `/sap/bc/adt/ddic/ddl/sources/${encodeSapObjectName(name).toLowerCase()}`;
+    const objectUrl = `${DDL_SOURCE.uri(name)}`;
     return answering(
       () =>
         deleteObjectDirect(

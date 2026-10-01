@@ -3,6 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { ACCESS_CONTROL } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -21,7 +22,7 @@ export async function validateAccessControlName(
   packageName: string,
   description?: string,
 ): Promise<IAdtWireResponse> {
-  const url = '/sap/bc/adt/acm/dcl/validation';
+  const url = ACCESS_CONTROL.validation;
   const queryParams = new URLSearchParams({
     objname: accessControlName,
     packagename: packageName,
