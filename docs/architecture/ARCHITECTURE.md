@@ -6,7 +6,7 @@
 
 Primary public entry points:
 - `AdtClient` - high-level CRUD-style object operations.
-- `AdtClientLegacy` - extends `AdtClient` for legacy systems (BASIS < 7.50): blocks unsupported types, uses legacy deletion and versionless content types.
+- `AdtClientLegacy` - extends `AdtClient` for legacy systems (BASIS < 7.50): answers a refusal, without a request, from every member of a type the old system lacks, uses legacy deletion and versionless content types.
 - `createAdtClient()` - factory that auto-detects system version and returns `AdtClient` or `AdtClientLegacy`.
 - `AdtRuntimeClient` - stable runtime operations (traces, dumps, logs, feeds, ATC check runs, DDIC runtime helpers).
 - `AdtClientsWS` - WebSocket request/event facade.
