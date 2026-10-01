@@ -989,7 +989,7 @@ member uses it on your behalf; `create()` and `update()` issue one request each.
 - **[Documentation index](docs/README.md)**
 - **[Migrating to 23.0.0](docs/usage/MIGRATION-23.md)** – the replacing code for every removed behaviour
 - **[Client API reference](docs/usage/CLIENT_API_REFERENCE.md)** – every client, member and result set
-- **[SAP ADT errata](docs/usage/ERRATA.md)** – what SAP answers that it does not mean, and what to do: the object tree with each branch's cases (a `403` on a service binding's LOCK that is to be ignored, among them), then every case with its evidence. Ships in this package under `docs/usage/`, and in `@mcp-abap-adt/adt-strategies`
+- **[SAP ADT errata](docs/usage/ERRATA.md)** – what SAP ADT answers that a caller would misread: a `403` on a service binding's LOCK, which Eclipse ignores, and why `analysePublicationLock` exists. Ships in this package under `docs/usage/`, and in `@mcp-abap-adt/adt-strategies`
 - **[Architecture](docs/architecture/ARCHITECTURE.md)** – package structure and design decisions
 - **[Decisions](docs/architecture/DECISIONS.md)** – the choices that could have gone the other way, and why
 - **[Operation Delays](docs/usage/OPERATION_DELAYS.md)** – configurable delays for SAP operations in tests
