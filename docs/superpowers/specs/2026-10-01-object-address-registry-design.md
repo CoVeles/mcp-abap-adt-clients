@@ -86,11 +86,17 @@ export const CLASS_INCLUDE = {
 - **Literal full paths** in each record: `collection`, and `validation` where
   the kind has one. `validation` is not derivable from the collection —
   `/programs/validation`, `/oo/validation/objectname`, `/functions/validation`,
-  `/ddic/ddl/validation`, but `/ddic/ddlx/sources/validation` — so it is stated
-  per kind.
+  `/ddic/ddl/validation`, `/includes/validation` (program include), but
+  `/ddic/ddlx/sources/validation` — so it is stated per kind. Two kinds may
+  declare the same one (class and interface: `/oo/validation/objectname`;
+  function group and module: `/functions/validation`).
 - **Tails shared by many kinds are functions of an address**, not literals in
   modules: `sourceUri(uri)` (`/source/main`), `versionsUri(…)`,
-  `transportUri(uri)`, `lockUri(uri)`. A tail one kind alone has (`publishjobs`,
+  `transportUri(uri)`. **Not `lockUri`**: the `_action` query is not an address,
+  and it differs by module — 35 bare `?_action=LOCK`, 32 with
+  `&accessMode=MODIFY`, `LOCK_MSG` for message classes (counted 2026-10-01).
+  Unifying it would change traffic, so the module keeps its query and takes only
+  the address from the registry. A tail one kind alone has (`publishjobs`,
   `unpublishjobs`, `/check`, `/states`, `/toggle`) lives in that kind's record.
 - **A kind addressed differently on legacy gets two explicit records** —
   `TRANSPORT_REQUEST` (`/sap/bc/adt/cts/transportrequests`) and
@@ -159,7 +165,8 @@ a registry record declares — not only one that starts with it — every string
 record: `collection`, `validation`, the legacy collections. Collection roots alone
 are not enough: `validation` often sits under a different prefix
 (`/sap/bc/adt/programs/validation` against `/sap/bc/adt/programs/programs`, also
-`/oo/validation/objectname`, `/functions/validation`, `/ddic/ddl/validation`) and
+`/oo/validation/objectname`, `/functions/validation`, `/ddic/ddl/validation`,
+`/includes/validation`) and
 would pass unseen. The list is taken from the registry, so a new kind — or a new
 path on an existing one — is enforced the moment it is added.
 
@@ -186,7 +193,7 @@ widens to every ADT path.
     what a wrong path answers.
 
   The measured statuses go into the PR description.
-- **Paths that write** — `lockUri` (`?_action=LOCK`/`UNLOCK`), `transportUri`,
+- **Paths that write** — an address under `?_action=LOCK`/`UNLOCK`, `transportUri`,
   `publishjobs`/`unpublishjobs`, the feature toggle's `toggle`/`states` — are not
   sent by hand: each is confirmed by the integration test that already exercises
   it, and the PR names that test per path. A path neither the matrix nor a test
