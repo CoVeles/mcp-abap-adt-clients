@@ -83,10 +83,10 @@ describe('whereUsedObjectUri', () => {
   it('throws for a type neither vocabulary knows, and for none at all', () => {
     // `intf/if` and `stru/dt` were where-used's own spellings; ADT uses neither.
     expect(() => whereUsedObjectUri('ZIF_X', 'intf/if')).toThrow(
-      /Unsupported object type/,
+      /No ADT address is known for object type/,
     );
     expect(() => whereUsedObjectUri('ZX', 'NOPE/XX')).toThrow(
-      /Unsupported object type/,
+      /No ADT address is known for object type/,
     );
     expect(() => whereUsedObjectUri('ZX', '')).toThrow(/object type/);
   });
@@ -118,7 +118,7 @@ describe('AdtUtils where-used members', () => {
 
     await expect(
       utils.getWhereUsed({ object_name: 'ZX', object_type: 'NOPE/XX' }),
-    ).rejects.toThrow(/Unsupported object type/);
+    ).rejects.toThrow(/No ADT address is known for object type/);
     await expect(
       utils.getWhereUsedScope({ object_name: 'ZX', object_type: '' }),
     ).rejects.toThrow(/object type/);

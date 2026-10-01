@@ -13,7 +13,6 @@ import {
   CT_WHERE_USED_SCOPE,
 } from '../../constants/contentTypes';
 import { buildObjectUri } from '../../utils/activationUtils';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IGetWhereUsedParams, IGetWhereUsedScopeParams } from './types';
 
@@ -164,12 +163,8 @@ export function whereUsedObjectUri(
     parentName = group;
   }
 
-  const uri = buildObjectUri(name, code, parentName);
-  const guessed = `/sap/bc/adt/${code.toLowerCase()}/${encodeSapObjectName(name).toLowerCase()}`;
-  if (uri === guessed) {
-    throw new Error(`Unsupported object type for where-used: ${objectType}`);
-  }
-  return uri;
+  // An unknown type is refused inside buildObjectUri, before any request.
+  return buildObjectUri(name, code, parentName);
 }
 
 /**

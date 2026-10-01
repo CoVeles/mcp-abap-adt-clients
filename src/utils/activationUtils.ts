@@ -39,7 +39,6 @@ import {
   TABLE_TYPE,
   TRANSFORMATION,
 } from '../endpoints/objects';
-import { encodeSapObjectName } from './internalUtils';
 import { getTimeout } from './timeouts';
 
 /**
@@ -56,17 +55,10 @@ export function buildObjectUri(
   type?: string,
   parentName?: string,
 ): string {
-  const lowerName = encodeSapObjectName(name).toLowerCase();
-
   if (!type) {
-    // Try to guess type from name prefix
-    if (name.startsWith('ZCL_') || name.startsWith('CL_')) {
-      return `${CLASS.uri(name)}`;
-    } else if (name.startsWith('Z') && name.includes('_PROGRAM')) {
-      return `${PROGRAM.uri(name)}`;
-    }
-    // Default: assume program
-    return `${PROGRAM.uri(name)}`;
+    // The name does not say what an object is: ZCL_ is a convention, not a
+    // type, and every other name used to be taken for a program.
+    throw new Error(`buildObjectUri needs the object type for ${name}`);
   }
 
   // Map type to URI path
@@ -223,16 +215,13 @@ export function buildObjectUri(
       );
 
     default:
-      // A guess dressed as a mapping: right when the ADT path happens to be the
-      // lowercased type code, silent when it is not. `DEVC/K` is the case that
-      // showed it — the address it built exists nowhere, and ADT's complaint
-      // arrived inside a 200 where nothing was reading it.
-      //
-      // Left in place rather than made to throw: the types above are mapped, and
-      // the ones that are not are reached by callers passing a type this library
-      // never claimed to know. Making that a throw is a separate decision about
-      // how strict `IObjectReference` should be.
-      return `/sap/bc/adt/${type.toLowerCase()}/${lowerName}`;
+      // Used to build `/sap/bc/adt/<type lowercased>/<name>` — right only when
+      // the ADT path happened to be the type code, and a 200 carrying ADT's
+      // complaint otherwise (`DEVC/K` showed it). A type this library has no
+      // record for is the caller's argument, so it is refused before a request.
+      throw new Error(
+        `No ADT address is known for object type '${type}' (${name}); pass one of the codes this library maps, e.g. CLAS/OC, PROG/P, PROG/I, FUGR/I.`,
+      );
   }
 }
 

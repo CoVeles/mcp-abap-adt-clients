@@ -86,3 +86,15 @@ describe('an enhancement name is encoded once', () => {
     );
   });
 });
+
+describe('no invented address', () => {
+  it('an unknown type throws', () => {
+    expect(() => buildObjectUri('ZX', 'ABCD/XY')).toThrow(/ABCD\/XY/);
+  });
+  it('ENHO/ENH, which names no subtype, throws', () => {
+    expect(() => buildObjectUri('ZENH', 'ENHO/ENH')).toThrow();
+  });
+  it('a missing type throws rather than guessing from the name', () => {
+    expect(() => buildObjectUri('ZCL_X')).toThrow(/type/i);
+  });
+});
