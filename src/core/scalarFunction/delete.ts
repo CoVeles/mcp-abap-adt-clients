@@ -8,12 +8,12 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { SCALAR_FUNCTION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteScalarFunctionParams } from './types';
 
 function objectUri(name: string): string {
-  return `/sap/bc/adt/ddic/dsfd/sources/${encodeSapObjectName(name.toLowerCase())}`;
+  return `${SCALAR_FUNCTION.uri(name)}`;
 }
 
 export async function checkDeletion(

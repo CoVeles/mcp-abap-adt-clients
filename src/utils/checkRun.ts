@@ -22,20 +22,19 @@ import {
   METADATA_EXTENSION,
   PACKAGE,
   PROGRAM,
+  SCALAR_FUNCTION,
+  SCALAR_FUNCTION_IMPLEMENTATION,
   SERVICE_DEFINITION,
   STRUCTURE,
   TABLE,
   TRANSFORMATION,
 } from '../endpoints/objects';
-import { encodeSapObjectName } from './internalUtils';
 import { getTimeout } from './timeouts';
 
 /**
  * Get ADT URI for object type
  */
 export function getObjectUri(objectType: string, objectName: string): string {
-  const encodedName = encodeSapObjectName(objectName.toLowerCase());
-
   switch (objectType.toLowerCase()) {
     case 'class':
       return `${CLASS.uri(objectName)}`;
@@ -82,10 +81,10 @@ export function getObjectUri(objectType: string, objectName: string): string {
       return `${SERVICE_DEFINITION.uri(objectName)}`;
     case 'scalar_function':
     case 'dsfd/scf':
-      return `/sap/bc/adt/ddic/dsfd/sources/${encodedName}`;
+      return `${SCALAR_FUNCTION.uri(objectName)}`;
     case 'scalar_function_implementation':
     case 'dsfi/sfi':
-      return `/sap/bc/adt/ddic/dsfi/${encodedName}`;
+      return `${SCALAR_FUNCTION_IMPLEMENTATION.uri(objectName)}`;
     case 'append_structure':
     case 'tabl/ds':
       return `${STRUCTURE.uri(objectName)}`;

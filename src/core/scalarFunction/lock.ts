@@ -3,7 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { SCALAR_FUNCTION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -15,8 +15,7 @@ export async function lockScalarFunction(
   connection: IAbapConnection,
   name: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(name.toLowerCase());
-  const url = `/sap/bc/adt/ddic/dsfd/sources/${encoded}?_action=LOCK&accessMode=MODIFY`;
+  const url = `${SCALAR_FUNCTION.uri(name)}?_action=LOCK&accessMode=MODIFY`;
   return connection.makeAdtRequest({
     method: 'POST',
     url,

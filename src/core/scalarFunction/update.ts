@@ -3,6 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
+import { SCALAR_FUNCTION, sourceUri } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateScalarFunctionParams } from './types';
@@ -17,8 +18,7 @@ export async function updateScalarFunction(
   args: IUpdateScalarFunctionParams,
   lockHandle?: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(args.scalar_function_name.toLowerCase());
-  const url = `/sap/bc/adt/ddic/dsfd/sources/${encoded}/source/main${writeQuery(lockHandle, args.transport_request)}`;
+  const url = `${sourceUri(SCALAR_FUNCTION.uri(args.scalar_function_name))}${writeQuery(lockHandle, args.transport_request)}`;
   return connection.makeAdtRequest({
     url,
     method: 'PUT',

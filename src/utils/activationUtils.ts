@@ -30,6 +30,8 @@ import {
   PACKAGE,
   PROGRAM,
   PROGRAM_INCLUDE,
+  SCALAR_FUNCTION,
+  SCALAR_FUNCTION_IMPLEMENTATION,
   SERVICE_BINDING,
   SERVICE_DEFINITION,
   STRUCTURE,
@@ -176,10 +178,10 @@ export function buildObjectUri(
       return `${ACCESS_CONTROL.uri(name)}`;
 
     case 'DSFD/SCF':
-      return `/sap/bc/adt/ddic/dsfd/sources/${lowerName}`;
+      return `${SCALAR_FUNCTION.uri(name)}`;
 
     case 'DSFI/SFI':
-      return `/sap/bc/adt/ddic/dsfi/${lowerName}`;
+      return `${SCALAR_FUNCTION_IMPLEMENTATION.uri(name)}`;
 
     case 'ENHO/ENH':
     case 'XSLT/VT':

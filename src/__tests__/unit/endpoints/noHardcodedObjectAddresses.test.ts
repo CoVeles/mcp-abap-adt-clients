@@ -46,6 +46,8 @@ const ENFORCED: readonly (keyof typeof RECORDS)[] = [
   'FEATURE_TOGGLE',
   'AUTHORIZATION_FIELD',
   'ENHANCEMENT',
+  'SCALAR_FUNCTION',
+  'SCALAR_FUNCTION_IMPLEMENTATION',
 ];
 
 const ROOT = path.resolve(__dirname, '../../../..');
