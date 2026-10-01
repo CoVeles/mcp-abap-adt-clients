@@ -511,13 +511,17 @@ consumer would have to branch on the system kind to call the same factory.
   It is not a licence for implementation inheritance anywhere else; the rest of
   this decision stands.
 
-**Open, not decided here.** The handlers keep that rule; the client does not
-yet. `AdtClientLegacy`'s factories for the object types an old system lacks
-entirely — `getDomain()`, `getTable()` and eleven more — throw `Error` before any
-request, so a caller of `AdtClient` that is handed the legacy client crashes
-where the modern one returns a handler. Whether that stays a throw (no request,
-no SAP answer — decision 15's "cause inside the library") or becomes a handler
-that answers a refusal is the owner's call.
+**The client follows the same rule as its handlers** (decided 2026-10-01). An
+object type the old system lacks entirely — `getDomain()`, `getTable()` and
+eleven more — is still handed out: the factory returns a handler of the modern
+contract whose every member answers a refusal (`origin: 'refusal'`,
+`UNSUPPORTED_OPERATION`) without a request. The legacy client says what it
+cannot do; it does not crash the caller, and it does not send a request only to
+let SAP say the endpoint is missing.
+
+Until then these factories threw `Error` before any request, so a caller of
+`AdtClient` handed the legacy client crashed where the modern one returned a
+handler — the one place the substitution above did not hold.
 
 ---
 
