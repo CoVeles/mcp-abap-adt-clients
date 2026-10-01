@@ -184,15 +184,19 @@ widens to every ADT path.
 
 - **`adt-nc` matrix — every read-only path**, E19 and the trial, per kind:
   - GET of the address, of `source/main` where the kind has one, of `versions`
-    where it has one, in lower and upper case; all three include kinds;
-  - **`validation`, sent as the kind's module sends it** — `POST` with that
-    module's own query parameters (`objname`, `packagename`, `description`, …),
-    twice: for a name that exists and for one that does not. Both answers must be
-    the endpoint's own verdict (a refusal naming the existing object, an OK for
-    the free name), not a `404` or `No URI-Mapping defined for URI`, which is
-    what a wrong path answers.
+    where it has one, in lower and upper case; all three include kinds.
 
   The measured statuses go into the PR description.
+- **`validation`, as each module sends it — read from the integration runs' wire
+  log** (`WIRE_LOG`), before and after the switch. The integration flow calls
+  `validate()` for every kind with that kind's own configuration, so the logged
+  request is exactly the module's, with nothing re-assembled by hand. Each
+  `validation` path must answer the endpoint's own verdict; a `404` or
+  `No URI-Mapping defined for URI` there is a wrong path and a defect. This is
+  read from the log rather than from the test result because `BaseTester` treats
+  `404`/`405`/`501` on validation as "no validation resource" and **skips the
+  step** — a wrong path passes the suite unseen. A kind whose `validate()` the
+  run does not reach is listed as unconfirmed.
 - **Paths that write** — an address under `?_action=LOCK`/`UNLOCK`, `transportUri`,
   `publishjobs`/`unpublishjobs`, the feature toggle's `toggle`/`states` — are not
   sent by hand: each is confirmed by the integration test that already exercises
@@ -221,7 +225,7 @@ widens to every ADT path.
   parser test.
 - The five tables take every address from the registry; defects 1–5 fixed.
 - Every path a registry record builds confirmed on E19 and the trial — read-only
-  paths and `validation` by the `adt-nc` matrix, writing paths by a named
-  integration test; anything else listed as unconfirmed, and legacy records
+  paths by the `adt-nc` matrix, `validation` from the runs' wire log, writing
+  paths by a named integration test; anything else listed as unconfirmed, and legacy records
   stated as unmeasured.
 - The integration run after the switch has no failure the baseline did not have.
