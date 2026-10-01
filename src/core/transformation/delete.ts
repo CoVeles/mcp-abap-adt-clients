@@ -8,7 +8,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { TRANSFORMATION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteTransformationParams } from './types';
 
@@ -21,8 +21,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { transformation_name } = params;
 
-  const encodedName = encodeSapObjectName(transformation_name);
-  const objectUri = `/sap/bc/adt/xslt/transformations/${encodedName}`;
+  const objectUri = `${TRANSFORMATION.uri(transformation_name)}`;
 
   const checkUrl = '/sap/bc/adt/deletion/check';
 
@@ -54,8 +53,7 @@ export async function deleteTransformation(
 ): Promise<IAdtWireResponse> {
   const { transformation_name, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(transformation_name);
-  const objectUri = `/sap/bc/adt/xslt/transformations/${encodedName}`;
+  const objectUri = `${TRANSFORMATION.uri(transformation_name)}`;
 
   const deletionUrl = '/sap/bc/adt/deletion/delete';
 

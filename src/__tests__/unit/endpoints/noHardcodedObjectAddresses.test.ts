@@ -41,6 +41,11 @@ const ENFORCED: readonly (keyof typeof RECORDS)[] = [
   'BEHAVIOR_DEFINITION',
   'SERVICE_DEFINITION',
   'SERVICE_BINDING',
+  'TRANSFORMATION',
+  'MESSAGE_CLASS',
+  'FEATURE_TOGGLE',
+  'AUTHORIZATION_FIELD',
+  'ENHANCEMENT',
 ];
 
 const ROOT = path.resolve(__dirname, '../../../..');

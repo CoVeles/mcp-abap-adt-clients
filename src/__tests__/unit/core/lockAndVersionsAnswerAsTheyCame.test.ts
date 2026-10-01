@@ -48,7 +48,7 @@ const LOCKS: Array<
   [
     'authorizationField',
     (c) => lockAuthorizationField(c, 'zauth'),
-    '/aps/iam/auth/ZAUTH?_action=LOCK',
+    '/aps/iam/auth/zauth?_action=LOCK',
   ],
   [
     'behaviorDefinition',

@@ -14,12 +14,14 @@ import { CT_ACTIVATION } from '../constants/contentTypes';
 import { getEnhancementUri } from '../core/enhancement/types';
 import {
   ACCESS_CONTROL,
+  AUTHORIZATION_FIELD,
   BEHAVIOR_DEFINITION,
   CLASS,
   DATA_ELEMENT,
   DDIC_VIEW,
   DDL_SOURCE,
   DOMAIN,
+  FEATURE_TOGGLE,
   FUNCTION_GROUP,
   FUNCTION_INCLUDE,
   FUNCTION_MODULE,
@@ -33,6 +35,7 @@ import {
   STRUCTURE,
   TABLE,
   TABLE_TYPE,
+  TRANSFORMATION,
 } from '../endpoints/objects';
 import { encodeSapObjectName } from './internalUtils';
 import { getTimeout } from './timeouts';
@@ -181,14 +184,14 @@ export function buildObjectUri(
     case 'ENHO/ENH':
     case 'XSLT/VT':
     case 'XSLT':
-      return `/sap/bc/adt/xslt/transformations/${lowerName}`;
+      return `${TRANSFORMATION.uri(name)}`;
 
     case 'AUTH':
-      return `/sap/bc/adt/aps/iam/auth/${lowerName}`;
+      return `${AUTHORIZATION_FIELD.uri(name)}`;
 
     case 'FTG2/FT':
     case 'FTG2':
-      return `/sap/bc/adt/sfw/featuretoggles/${lowerName}`;
+      return `${FEATURE_TOGGLE.uri(name)}`;
 
     // The subtype is a path segment — `/enhancements/enhoxh/<name>` — so it is
     // read off the type code, and built by the same function the enhancement's

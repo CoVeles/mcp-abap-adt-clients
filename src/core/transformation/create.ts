@@ -3,6 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_TRANSFORMATION } from '../../constants/contentTypes';
+import { TRANSFORMATION } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateTransformationParams } from './types';
@@ -15,7 +16,7 @@ export async function create(
   connection: IAbapConnection,
   args: ICreateTransformationParams,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/xslt/transformations${args.transport_request ? `?corrNr=${args.transport_request}` : ''}`;
+  const url = `${TRANSFORMATION.collection}${args.transport_request ? `?corrNr=${args.transport_request}` : ''}`;
 
   const username = args.responsible || '';
   const masterSystem = args.masterSystem || '';

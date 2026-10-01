@@ -26,6 +26,7 @@ import type {
 } from '@mcp-abap-adt/interfaces-adt';
 import type { IAbapConnection } from '@mcp-abap-adt/interfaces-adt-connection';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
+import { MESSAGE_CLASS } from '../../endpoints/objects';
 import { answering } from '../../utils/adtResponse';
 import { withCallTimeout } from '../../utils/callTimeout';
 import { lockHandleOf } from '../../utils/lockHandle';
@@ -49,7 +50,7 @@ import {
 import { unlockMessageClass } from './unlock';
 import { updateMessageClass } from './update';
 
-const VALIDATE_BASE = '/sap/bc/adt/messageclass/validation';
+const VALIDATE_BASE = MESSAGE_CLASS.validation;
 
 export class AdtMessageClass<
   R extends IMessageClassResults = typeof messageClassDocuments,

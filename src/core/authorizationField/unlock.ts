@@ -7,7 +7,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { AUTHORIZATION_FIELD } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -19,8 +19,7 @@ export async function unlockAuthorizationField(
   name: string,
   lockHandle: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(name.toUpperCase());
-  const url = `/sap/bc/adt/aps/iam/auth/${encoded}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`;
+  const url = `${AUTHORIZATION_FIELD.uri(name)}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`;
 
   return connection.makeAdtRequest({
     url,

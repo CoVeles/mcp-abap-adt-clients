@@ -109,9 +109,12 @@ import { type ITransportResults, transportDocuments } from '../core/transport';
 import { AdtRequestLegacy } from '../core/transport/AdtRequestLegacy';
 import {
   ACCESS_CONTROL,
+  AUTHORIZATION_FIELD,
   BEHAVIOR_DEFINITION,
   DATA_ELEMENT,
   DOMAIN,
+  ENHANCEMENT,
+  FEATURE_TOGGLE,
   METADATA_EXTENSION,
   SERVICE_BINDING,
   SERVICE_DEFINITION,
@@ -400,7 +403,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtEnhancement<R>>(
       AdtEnhancement,
       'Enhancement',
-      '/sap/bc/adt/enhancements',
+      ENHANCEMENT.root,
     );
   }
 
@@ -410,7 +413,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtAuthorizationField<R>>(
       AdtAuthorizationField,
       'AuthorizationField',
-      '/sap/bc/adt/aps/iam/auth',
+      AUTHORIZATION_FIELD.collection,
     );
   }
 
@@ -420,7 +423,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtFeatureToggle<R>>(
       AdtFeatureToggle,
       'FeatureToggle',
-      '/sap/bc/adt/sfw/featuretoggles',
+      FEATURE_TOGGLE.collection,
     );
   }
 

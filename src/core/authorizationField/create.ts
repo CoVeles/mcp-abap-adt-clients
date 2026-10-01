@@ -12,6 +12,7 @@ import {
   ACCEPT_AUTHORIZATION_FIELD,
   CT_AUTHORIZATION_FIELD,
 } from '../../constants/contentTypes';
+import { AUTHORIZATION_FIELD } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateAuthorizationFieldParams } from './types';
 import { buildAuthorizationFieldXml } from './xmlBuilder';
@@ -23,7 +24,7 @@ export async function create(
   connection: IAbapConnection,
   args: ICreateAuthorizationFieldParams,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/aps/iam/auth${args.transport_request ? `?corrNr=${encodeURIComponent(args.transport_request)}` : ''}`;
+  const url = `${AUTHORIZATION_FIELD.collection}${args.transport_request ? `?corrNr=${encodeURIComponent(args.transport_request)}` : ''}`;
 
   const xmlBody = buildAuthorizationFieldXml(args);
 

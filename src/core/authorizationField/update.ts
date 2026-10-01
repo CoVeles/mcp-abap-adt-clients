@@ -13,6 +13,7 @@ import {
   ACCEPT_AUTHORIZATION_FIELD,
   CT_AUTHORIZATION_FIELD,
 } from '../../constants/contentTypes';
+import { AUTHORIZATION_FIELD } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateAuthorizationFieldParams } from './types';
@@ -35,10 +36,7 @@ export async function updateAuthorizationField(
   lockHandle?: string,
   logger?: ILogger,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(
-    params.authorization_field_name.toUpperCase(),
-  );
-  const url = `/sap/bc/adt/aps/iam/auth/${encoded}${writeQuery(lockHandle, params.transport_request)}`;
+  const url = `${AUTHORIZATION_FIELD.uri(params.authorization_field_name.toUpperCase())}${writeQuery(lockHandle, params.transport_request)}`;
 
   const xmlBody = buildAuthorizationFieldXml(params);
 

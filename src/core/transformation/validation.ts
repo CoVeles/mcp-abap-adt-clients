@@ -3,6 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { TRANSFORMATION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -25,7 +26,7 @@ export async function validateTransformationName(
   packageName?: string,
   description?: string,
 ): Promise<IAdtWireResponse> {
-  const url = '/sap/bc/adt/xslt/validation';
+  const url = TRANSFORMATION.validation;
   const queryParams = new URLSearchParams({
     objname: transformationName,
   });

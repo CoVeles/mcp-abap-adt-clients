@@ -195,6 +195,13 @@ export const METADATA_EXTENSION = {
 
 export const TRANSFORMATION = {
   collection: '/sap/bc/adt/xslt/transformations',
+  /**
+   * What the module sends, and wrong: it answers 404 on an on-premise and a
+   * cloud system. Discovery documents
+   * `/sap/bc/adt/xslt/transformations/{transformationname}/validation`, which
+   * answers 400 asking for a `transformation` document in the body — a request
+   * shape the module does not send, so the fix is not an address change.
+   */
   validation: '/sap/bc/adt/xslt/validation',
   uri: (name: string) => `/sap/bc/adt/xslt/transformations/${seg(name)}`,
 } as const;

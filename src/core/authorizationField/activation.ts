@@ -6,15 +6,14 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { AUTHORIZATION_FIELD } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 function buildActivationXml(name: string): string {
   const upper = name.toUpperCase();
-  const encoded = encodeSapObjectName(upper);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">
-  <adtcore:objectReference adtcore:uri="/sap/bc/adt/aps/iam/auth/${encoded}" adtcore:name="${upper}"/>
+  <adtcore:objectReference adtcore:uri="${AUTHORIZATION_FIELD.uri(upper)}" adtcore:name="${upper}"/>
 </adtcore:objectReferences>`;
 }
 

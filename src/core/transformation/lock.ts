@@ -3,7 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { TRANSFORMATION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -15,10 +15,7 @@ export async function lockTransformation(
   connection: IAbapConnection,
   transformationName: string,
 ): Promise<IAdtWireResponse> {
-  const transformationNameEncoded = encodeSapObjectName(
-    transformationName.toLowerCase(),
-  );
-  const url = `/sap/bc/adt/xslt/transformations/${transformationNameEncoded}?_action=LOCK&accessMode=MODIFY`;
+  const url = `${TRANSFORMATION.uri(transformationName.toLowerCase())}?_action=LOCK&accessMode=MODIFY`;
 
   return connection.makeAdtRequest({
     method: 'POST',

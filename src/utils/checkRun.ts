@@ -25,6 +25,7 @@ import {
   SERVICE_DEFINITION,
   STRUCTURE,
   TABLE,
+  TRANSFORMATION,
 } from '../endpoints/objects';
 import { encodeSapObjectName } from './internalUtils';
 import { getTimeout } from './timeouts';
@@ -93,7 +94,7 @@ export function getObjectUri(objectType: string, objectName: string): string {
       return `${ACCESS_CONTROL.uri(objectName)}`;
     case 'transformation':
     case 'xslt/vt':
-      return `/sap/bc/adt/xslt/transformations/${encodedName}`;
+      return `${TRANSFORMATION.uri(objectName)}`;
     default:
       throw new Error(`Unsupported object type: ${objectType}`);
   }

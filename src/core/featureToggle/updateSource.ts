@@ -3,7 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_FEATURE_TOGGLE_SOURCE } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FEATURE_TOGGLE, sourceUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IFeatureToggleSource } from './types';
 
@@ -14,7 +14,6 @@ export async function uploadFeatureToggleSource(
   lockHandle?: string,
   transportRequest?: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(name.toLowerCase());
   // The handle is sent when there is one. Whether an unlocked write is allowed
   // is ADT's judgement about this toggle on this system, not a refusal to raise
   // here — the same rule every other write in this package follows.
@@ -23,7 +22,7 @@ export async function uploadFeatureToggleSource(
   if (transportRequest) params.corrNr = transportRequest;
   return connection.makeAdtRequest({
     method: 'PUT',
-    url: `/sap/bc/adt/sfw/featuretoggles/${encoded}/source/main`,
+    url: `${sourceUri(FEATURE_TOGGLE.uri(name))}`,
     timeout: getTimeout('default'),
     headers: {
       'Content-Type': CT_FEATURE_TOGGLE_SOURCE,

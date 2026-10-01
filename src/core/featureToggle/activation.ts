@@ -6,15 +6,14 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FEATURE_TOGGLE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 function buildActivationXml(name: string): string {
   const lower = name.toLowerCase();
-  const encoded = encodeSapObjectName(lower);
   return `<?xml version="1.0" encoding="UTF-8"?>
 <adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">
-  <adtcore:objectReference adtcore:uri="/sap/bc/adt/sfw/featuretoggles/${encoded}" adtcore:name="${name.toUpperCase()}"/>
+  <adtcore:objectReference adtcore:uri="${FEATURE_TOGGLE.uri(lower)}" adtcore:name="${name.toUpperCase()}"/>
 </adtcore:objectReferences>`;
 }
 

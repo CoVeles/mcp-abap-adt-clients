@@ -3,7 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_FEATURE_TOGGLE_STATES } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FEATURE_TOGGLE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -17,10 +17,9 @@ export async function getFeatureToggleState(
   connection: IAbapConnection,
   name: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(name.toLowerCase());
   return connection.makeAdtRequest({
     method: 'GET',
-    url: `/sap/bc/adt/sfw/featuretoggles/${encoded}/states`,
+    url: `${FEATURE_TOGGLE.uri(name)}/states`,
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_FEATURE_TOGGLE_STATES },
   });
