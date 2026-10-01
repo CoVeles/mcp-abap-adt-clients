@@ -147,6 +147,8 @@ export function getObjectMetadataUri(
       return `${PROGRAM.uri(objectName)}`;
     case 'interface':
     case 'intf/if':
+    // ADT's own code for an interface; 'intf/if' stays because callers pass it.
+    case 'intf/oi':
       return `${INTERFACE.uri(objectName)}`;
     case 'functionmodule':
     case 'fugr/ff': {
@@ -169,6 +171,7 @@ export function getObjectMetadataUri(
       return `${DOMAIN.uri(objectName)}`;
     case 'dataelement':
     case 'dtel':
+    case 'dtel/de':
       return `${DATA_ELEMENT.uri(objectName)}`;
     case 'functiongroup':
     case 'fugr':
@@ -190,6 +193,8 @@ export function getMetadataAcceptHeader(objectType: AdtObjectType): string {
       return ACCEPT_CLASS;
     case 'interface':
     case 'intf/if':
+    // ADT's own code for an interface; 'intf/if' stays because callers pass it.
+    case 'intf/oi':
       return ACCEPT_INTERFACE;
     case 'table':
     case 'tabl/dt':
@@ -202,6 +207,7 @@ export function getMetadataAcceptHeader(objectType: AdtObjectType): string {
       return ACCEPT_DOMAIN;
     case 'dataelement':
     case 'dtel':
+    case 'dtel/de':
       return ACCEPT_DATA_ELEMENT;
     case 'structure':
     case 'stru/dt':
@@ -243,6 +249,8 @@ export function getObjectSourceUri(
       return `${sourceUri(PROGRAM.uri(objectName))}${versionParam}`;
     case 'interface':
     case 'intf/if':
+    // ADT's own code for an interface; 'intf/if' stays because callers pass it.
+    case 'intf/oi':
       return `${sourceUri(INTERFACE.uri(objectName))}${versionParam}`;
     case 'functionmodule':
     case 'fugr/ff': {

@@ -93,10 +93,15 @@ export function buildObjectUri(
       return `${PROGRAM_INCLUDE.uri(name)}`;
 
     case 'FUGR/FF': {
-      if (parentName) {
-        return `${FUNCTION_MODULE.uri(parentName, name)}`;
+      // A module is addressed under its group. This used to put the module's
+      // own name in the group's place when none was passed — an address that
+      // exists nowhere.
+      if (!parentName) {
+        throw new Error(
+          `A function module (FUGR/FF) is addressed under its function group; pass the group as parentName for ${name}`,
+        );
       }
-      return `${FUNCTION_MODULE.uri(name, name)}`;
+      return FUNCTION_MODULE.uri(parentName, name);
     }
 
     case 'FUGR/I': {
@@ -183,7 +188,6 @@ export function buildObjectUri(
     case 'DSFI/SFI':
       return `${SCALAR_FUNCTION_IMPLEMENTATION.uri(name)}`;
 
-    case 'ENHO/ENH':
     case 'XSLT/VT':
     case 'XSLT':
       return `${TRANSFORMATION.uri(name)}`;
@@ -200,15 +204,15 @@ export function buildObjectUri(
     // own activation uses. This case built `/enhancements/<name>` until #173's
     // check found it, and the subtyped codes fell through to `default`.
     case 'ENHO/EXH':
-      return getEnhancementUri('enhoxh', lowerName);
+      return getEnhancementUri('enhoxh', name);
     case 'ENHO/EXHB':
-      return getEnhancementUri('enhoxhb', lowerName);
+      return getEnhancementUri('enhoxhb', name);
     case 'ENHO/EXHH':
-      return getEnhancementUri('enhoxhh', lowerName);
+      return getEnhancementUri('enhoxhh', name);
     case 'ENHS/EXS':
-      return getEnhancementUri('enhsxs', lowerName);
+      return getEnhancementUri('enhsxs', name);
     case 'ENHS/EXSB':
-      return getEnhancementUri('enhsxsb', lowerName);
+      return getEnhancementUri('enhsxsb', name);
 
     case 'ENHO':
     case 'ENHS':
