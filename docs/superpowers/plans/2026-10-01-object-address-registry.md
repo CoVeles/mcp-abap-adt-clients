@@ -209,6 +209,10 @@ describe('records', () => {
     expect(SERVICE_BINDING.unpublishJobs('odatav4')).toBe(
       '/sap/bc/adt/businessservices/odatav4/unpublishjobs',
     );
+    // Uppercase until Task 3 measures otherwise.
+    expect(SERVICE_BINDING.odataService('odatav2', 'zui_svc')).toBe(
+      '/sap/bc/adt/businessservices/odatav2/ZUI_SVC',
+    );
   });
   it('feature toggle tails', () => {
     expect(FEATURE_TOGGLE.check('ZFT')).toBe('/sap/bc/adt/sfw/featuretoggles/zft/check');
@@ -427,9 +431,13 @@ export const SERVICE_BINDING = {
     `/sap/bc/adt/businessservices/${type}/publishjobs`,
   unpublishJobs: (type: ODataServiceType) =>
     `/sap/bc/adt/businessservices/${type}/unpublishjobs`,
-  /** The published OData service a binding exposes. Case: see Task 3. */
+  /**
+   * The published OData service a binding exposes. Sent uppercase, as the
+   * module has always sent it, until Task 3 measures both cases agree — then
+   * Task 3 Step 4 may switch it to `seg`.
+   */
   odataService: (type: ODataServiceType, name: string) =>
-    `/sap/bc/adt/businessservices/${type}/${seg(name)}`,
+    `/sap/bc/adt/businessservices/${type}/${encodeURIComponent(name.toUpperCase())}`,
 } as const;
 
 export const ACCESS_CONTROL = {
@@ -636,6 +644,34 @@ function literalText(node: ts.Node): string | null {
   return null;
 }
 
+/**
+ * Every literal in a source text, nested ones included: a template's
+ * substitutions are expressions and may hold literals of their own —
+ * `${'/sap/bc/adt/programs/programs'}/${name}` must not slip through because
+ * its outer template reads as `${}/${}`.
+ */
+export function literalsIn(
+  fileName: string,
+  text: string,
+): { line: number; text: string }[] {
+  const source = ts.createSourceFile(fileName, text, ts.ScriptTarget.Latest, true);
+  const out: { line: number; text: string }[] = [];
+  const visit = (node: ts.Node): void => {
+    const literal = literalText(node);
+    if (literal !== null) {
+      const { line } = source.getLineAndCharacterOfPosition(node.getStart());
+      out.push({ line: line + 1, text: literal });
+      if (ts.isTemplateExpression(node)) {
+        for (const span of node.templateSpans) visit(span.expression);
+      }
+      return;
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return out;
+}
+
 function violations(paths: string[]): string[] {
   const files = execSync("git ls-files 'src/**/*.ts'", {
     cwd: ROOT,
@@ -646,25 +682,11 @@ function violations(paths: string[]): string[] {
     .filter((f) => !f.startsWith('src/__tests__/') && !f.startsWith('src/endpoints/'));
   const found: string[] = [];
   for (const file of files) {
-    const source = ts.createSourceFile(
-      file,
-      fs.readFileSync(path.join(ROOT, file), 'utf8'),
-      ts.ScriptTarget.Latest,
-      true,
-    );
-    const visit = (node: ts.Node): void => {
-      const text = literalText(node);
-      if (text !== null) {
-        const hit = paths.find((p) => containsPath(text, p));
-        if (hit) {
-          const { line } = source.getLineAndCharacterOfPosition(node.getStart());
-          found.push(`${file}:${line + 1}  ${hit}`);
-        }
-        return;
-      }
-      ts.forEachChild(node, visit);
-    };
-    visit(source);
+    const text = fs.readFileSync(path.join(ROOT, file), 'utf8');
+    for (const literal of literalsIn(file, text)) {
+      const hit = paths.find((p) => containsPath(literal.text, p));
+      if (hit) found.push(`${file}:${literal.line}  ${hit}`);
+    }
   }
   return found;
 }
@@ -679,6 +701,23 @@ describe('containsPath', () => {
   it('does not match a longer sibling segment', () => {
     expect(containsPath('/sap/bc/adt/programs/programrun/zrep', '/sap/bc/adt/programs/programs')).toBe(false);
     expect(containsPath('/sap/bc/adt/ddic/tablesettings', '/sap/bc/adt/ddic/tables')).toBe(false);
+  });
+});
+
+describe('literalsIn', () => {
+  it('reaches a literal inside a template substitution', () => {
+    const texts = literalsIn(
+      'x.ts',
+      "const u = `${'/sap/bc/adt/programs/programs'}/${name}`;",
+    ).map((l) => l.text);
+    expect(texts).toContain('/sap/bc/adt/programs/programs');
+  });
+  it('reaches a literal nested two templates deep', () => {
+    const texts = literalsIn(
+      'x.ts',
+      'const u = `a${`b${"/sap/bc/adt/ddic/tables"}`}`;',
+    ).map((l) => l.text);
+    expect(texts).toContain('/sap/bc/adt/ddic/tables');
   });
 });
 
@@ -894,20 +933,36 @@ async function main(): Promise<void> {
           const agrees = a.status === b.status && a.body === b.body;
           if (a.status !== 200 || !agrees) failed = true;
           lines.push(`| ${target.label} | ${kind} | GET ${lower} | ${a.status} | ${agrees ? 'yes' : `NO — as given: ${b.status}`} |`);
+          // Every resource in both cases, not only the address: the switch
+          // changes the case of all of them.
           const res = RESOURCES[kind] ?? {};
-          if (res.source) {
-            const url = res.source(lower);
-            const src = await get(connection, url, 'text/plain');
-            if (src.status !== 200) failed = true;
-            lines.push(`| ${target.label} | ${kind} | GET ${url} | ${src.status} | |`);
-          }
-          if (res.versions) {
-            const url = res.versions(lower);
-            const ver = await get(connection, url, 'application/atom+xml;type=feed');
-            if (ver.status !== 200) failed = true;
-            lines.push(`| ${target.label} | ${kind} | GET ${url} | ${ver.status} | |`);
+          const pairs: [string, string | undefined, string][] = [
+            ['source', res.source && res.source(lower), 'text/plain'],
+            ['versions', res.versions && res.versions(lower), 'application/atom+xml;type=feed'],
+          ];
+          for (const [what, url, accept] of pairs) {
+            if (!url) continue;
+            const l = await get(connection, url, accept);
+            const u = await get(connection, asGiven(url, args, kind), accept);
+            const same = l.status === u.status && l.body === u.body;
+            if (l.status !== 200 || !same) failed = true;
+            lines.push(`| ${target.label} | ${kind} ${what} | GET ${url} | ${l.status} | ${same ? 'yes' : `NO — as given: ${u.status}`} |`);
           }
         }
+      }
+      // The OData service a binding exposes is sent UPPERCASE today
+      // (AdtService.ts:966, :1010). Measured in both cases here; until this says
+      // they agree, odataService keeps the uppercase (Step 4).
+      for (const [type, name] of (objects[spec] ?? {}).SERVICE_BINDING_ODATA ?? []) {
+        const t = type as 'odatav2' | 'odatav4';
+        const up = `${RECORDS.SERVICE_BINDING.root}/${t}/${encodeURIComponent(name.toUpperCase())}`;
+        const lo = `${RECORDS.SERVICE_BINDING.root}/${t}/${encodeURIComponent(name.toLowerCase())}`;
+        const accept = `application/vnd.sap.adt.businessservices.${t}.v1+xml, application/vnd.sap.adt.businessservices.${t}.v2+xml`;
+        const a = await get(connection, up, accept);
+        const b = await get(connection, lo, accept);
+        const same = a.status === b.status && a.body === b.body;
+        if (a.status !== 200 || !same) failed = true;
+        lines.push(`| ${target.label} | SERVICE_BINDING odata | GET ${up} | ${a.status} | ${same ? 'yes' : `NO — lowercase: ${b.status}`} |`);
       }
       for (const kind of Object.keys(RECORDS)) {
         if (!(objects[spec] ?? {})[kind]) {
@@ -935,7 +990,7 @@ Expected: `0` if every measured row is 200 and agrees, `1` otherwise. Read `addr
 
 - [ ] **Step 4: Act on the result before any module moves**
 
-For a kind where (1) and (2) differ: give its record its own name encoding (`encodeURIComponent(name)`, case kept), with a comment quoting the measured statuses. Add a test line in `objects.test.ts` pinning it. For `SERVICE_BINDING.odataService` (sent uppercase today): same rule. Re-run Step 3 until it exits `0`.
+For a kind where (1) and (2) differ: give its record its own name encoding (`encodeURIComponent(name)`, case kept), with a comment quoting the measured statuses. Add a test line in `objects.test.ts` pinning it. `SERVICE_BINDING.odataService` starts uppercase, as today. Switch it to `seg` **only if** the `SERVICE_BINDING odata` rows agree on both systems, and update its test line in the same commit. Add a published binding's service per system to the objects file as `"SERVICE_BINDING_ODATA": [["odatav2", "<SERVICE NAME>"]]` (find one with `adt-nc` under `/sap/bc/adt/businessservices/bindings/<binding>`; the service name is in its `<srvb:services>`). Re-run Step 3 until it exits `0`.
 
 - [ ] **Step 5: Commit**
 
