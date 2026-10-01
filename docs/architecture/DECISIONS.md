@@ -381,6 +381,11 @@ because nothing could return it: an interface no factory can hand out is decisio
 the types, and that is tracked in #109 rather than smuggled into a release about
 something else.
 
+**Superseded by the exception in decision 11.** The legacy client keeps
+inheriting and keeps declaring `IAdtRequest`; an operation the old system has no
+endpoint for is answered as a refusal through that contract, which is a normal
+answer a caller of `IAdtRequest` handles on a modern system too.
+
 ---
 
 ## 11. Moving to contracts means giving up inheritance, not renaming it
@@ -420,10 +425,10 @@ direction: `IAdtRequest extends IAdtRequestReadOnly` would be reasonable if two
 handlers wanted that set, and noise if the second handler is hypothetical — see
 decision 11 in the contract package, which is about exactly that.
 
-**What it commits us to.** `AdtClientLegacy` stops extending `AdtClient` — 24
-overrides, 313 lines — and `createAdtClient()` stops returning a concrete
-`AdtClient`, which is the same defect one level up. Only then can a legacy
-factory declare the two methods it honours. Tracked in #109.
+**What it commits us to.** ~~`AdtClientLegacy` stops extending `AdtClient`~~ —
+withdrawn, see *The exception: legacy endpoints* below. What remains is
+`createAdtClient()` returning a concrete `AdtClient`, and `getUtils()` returning
+`AdtUtils`. Tracked in #109.
 
 **The inventory, counted rather than guessed** — and the first count was wrong,
 which is why it is here rather than in prose. 27 `extends` between classes under
@@ -431,7 +436,7 @@ which is why it is here rather than in prose. 27 `extends` between classes under
 
 | kind | count | verdict |
 |---|---|---|
-| `*Legacy extends *` — a handler that refuses what its base offers | 11 | what this decision is about |
+| `*Legacy extends *` — the same object on an old system's endpoints | 11 | **the exception** — see below |
 | the `Unsupported*Error` hierarchy | 9 | not contracts; an error hierarchy is what `Error` is for |
 | `AdtLocal* extends AdtClassMemberBase` | 4 | four members of the same kind sharing a base — the one case where "is this the same kind of thing" is genuinely yes |
 | `AdtRuntimeClientExperimental extends AdtRuntimeClient {}` | 1 | an empty body: a rename wearing a class |
@@ -471,6 +476,48 @@ numbers a parser produced.
 **What would change it.** A pair of implementations that genuinely are the same
 kind of thing, differing only in a value. There is none here: every pair found so
 far differs in what it refuses.
+
+---
+
+### The exception: legacy endpoints
+
+Decided 2026-10-01, by the owner: there is no rule without an exception, and
+`*Legacy` is it.
+
+A legacy implementation is not a different kind of object. It is the same object
+on a system where some endpoints were different — `/sap/bc/cts/` instead of
+`/sap/bc/adt/cts/`, an older content type, a request that did not exist yet. So
+it extends the modern implementation and overrides **only** what the old system
+answers differently: the workaround, not a rewrite. Re-implementing every legacy
+class beside its modern one by delegation would duplicate the shared code to fix
+a difference that lives in a handful of endpoints.
+
+**Why it does not break substitution.** Since decision 15 an operation the old
+system has no endpoint for does not throw; it answers a refusal through the same
+contract (`origin: 'refusal'`, as `AdtRequestLegacy` does for `create`,
+`update`, `delete`). A caller holding `IAdtRequest` already handles a refusal —
+a modern system refuses for authorization, for a lock, for a missing transport.
+So the legacy handler can stand where the modern one is expected, and keeps the
+same declared contract. Narrowing the contract per system is not wanted: the
+consumer would have to branch on the system kind to call the same factory.
+
+**The limits of the exception.**
+
+- An override changes the endpoint or the payload; it does not change what the
+  member means.
+- What the old system cannot do is answered as a refusal through the contract,
+  never thrown and never answered as success.
+- It covers `*Legacy` and their clients (`AdtClientLegacy`, `AdtExecutorLegacy`).
+  It is not a licence for implementation inheritance anywhere else; the rest of
+  this decision stands.
+
+**Open, not decided here.** The handlers keep that rule; the client does not
+yet. `AdtClientLegacy`'s factories for the object types an old system lacks
+entirely — `getDomain()`, `getTable()` and eleven more — throw `Error` before any
+request, so a caller of `AdtClient` that is handed the legacy client crashes
+where the modern one returns a handler. Whether that stays a throw (no request,
+no SAP answer — decision 15's "cause inside the library") or becomes a handler
+that answers a refusal is the owner's call.
 
 ---
 
