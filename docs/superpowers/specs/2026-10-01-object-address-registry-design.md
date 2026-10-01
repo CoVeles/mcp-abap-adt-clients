@@ -107,7 +107,13 @@ export const CLASS_INCLUDE = {
   scalar function, scalar function implementation, transport request.
 
 **Step 1's boundary:** a kind's collection, its object address, the
-sub-resources of that address, and its `validation`. Service endpoints —
+sub-resources of that address, and its `validation` — wherever the address
+appears: in a request's URL **and inside a request body**. Sixteen payloads embed
+an object address (`<adtcore:objectReference adtcore:uri="/sap/bc/adt/…"/>` in
+activation, check run, function-module create, binding deletion check); they are
+the same addresses and take them from the registry. So do the five error
+messages that name an endpoint, by interpolating the record's path. A check
+for literals that merely *start* with a path would miss all twenty-one. Service endpoints —
 `activation`, `checkruns`, `deletion`, `atc`, `programrun`, `classrun`,
 `discovery`, runtime — are step 2.
 
@@ -148,8 +154,8 @@ Names in request bodies and in query parameters (`?checkVariant=`,
 
 **Enforcement**: a unit test reads `src/` with the TypeScript parser (decision 3)
 — **excluding `src/__tests__/`**, as the inventory above did — and fails on any
-string or template literal outside `src/endpoints/` that starts
-with **any path a registry record declares** — every string-valued field of every
+string or template literal outside `src/endpoints/` that **contains** any path
+a registry record declares — not only one that starts with it — every string-valued field of every
 record: `collection`, `validation`, the legacy collections. Collection roots alone
 are not enough: `validation` often sits under a different prefix
 (`/sap/bc/adt/programs/validation` against `/sap/bc/adt/programs/programs`, also
