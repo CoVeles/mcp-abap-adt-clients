@@ -10,7 +10,7 @@ import {
   ACCEPT_FUNCTION_INCLUDE,
   CT_FUNCTION_INCLUDE,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_INCLUDE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateFunctionIncludeParams } from './types';
 import { buildFunctionIncludeXml } from './xmlBuilder';
@@ -23,10 +23,7 @@ export async function create(
   connection: IAbapConnection,
   args: ICreateFunctionIncludeParams,
 ): Promise<IAdtWireResponse> {
-  const groupLower = encodeSapObjectName(
-    args.function_group_name,
-  ).toLowerCase();
-  const url = `/sap/bc/adt/functions/groups/${groupLower}/includes${args.transport_request ? `?corrNr=${encodeURIComponent(args.transport_request)}` : ''}`;
+  const url = `${FUNCTION_INCLUDE.collection(args.function_group_name)}${args.transport_request ? `?corrNr=${encodeURIComponent(args.transport_request)}` : ''}`;
 
   const xmlBody = buildFunctionIncludeXml(args);
 

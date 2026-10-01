@@ -36,7 +36,14 @@ import {
   ACCEPT_TABLE_TYPE,
   CT_VIEW,
 } from '../../constants/contentTypes';
-import { CLASS, INTERFACE, PROGRAM, sourceUri } from '../../endpoints/objects';
+import {
+  CLASS,
+  FUNCTION_GROUP,
+  FUNCTION_MODULE,
+  INTERFACE,
+  PROGRAM,
+  sourceUri,
+} from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
 import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
@@ -139,8 +146,7 @@ export function getObjectMetadataUri(
       return `${INTERFACE.uri(objectName)}`;
     case 'functionmodule':
     case 'fugr/ff': {
-      const encodedGroup = encodeSapObjectName(functionGroup as string);
-      return `/sap/bc/adt/functions/groups/${encodedGroup}/fmodules/${encodedName}`;
+      return `${FUNCTION_MODULE.uri(functionGroup as string, objectName)}`;
     }
     case 'view':
     case 'ddls/df':
@@ -162,7 +168,7 @@ export function getObjectMetadataUri(
       return `/sap/bc/adt/ddic/dataelements/${encodedName}`;
     case 'functiongroup':
     case 'fugr':
-      return `/sap/bc/adt/functions/groups/${encodedName}`;
+      return `${FUNCTION_GROUP.uri(objectName)}`;
     case 'package':
     case 'devc/k':
       return `/sap/bc/adt/packages/${encodedName}`;
@@ -237,8 +243,7 @@ export function getObjectSourceUri(
       return `${sourceUri(INTERFACE.uri(objectName))}${versionParam}`;
     case 'functionmodule':
     case 'fugr/ff': {
-      const encodedGroup = encodeSapObjectName(functionGroup as string);
-      return `/sap/bc/adt/functions/groups/${encodedGroup}/fmodules/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(FUNCTION_MODULE.uri(functionGroup as string, objectName))}${versionParam}`;
     }
     case 'view':
     case 'ddls/df':

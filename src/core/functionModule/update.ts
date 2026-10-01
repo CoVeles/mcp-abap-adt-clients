@@ -8,7 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_MODULE, sourceUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateFunctionModuleParams } from './types';
 
@@ -26,14 +26,7 @@ export async function update(
   params: IUpdateFunctionModuleParams,
   contentTypes?: IAdtContentTypes,
 ): Promise<IAdtWireResponse> {
-  const encodedGroupName = encodeSapObjectName(
-    params.functionGroupName,
-  ).toLowerCase();
-  const encodedModuleName = encodeSapObjectName(
-    params.functionModuleName,
-  ).toLowerCase();
-
-  let url = `/sap/bc/adt/functions/groups/${encodedGroupName}/fmodules/${encodedModuleName}/source/main?lockHandle=${encodeURIComponent(params.lockHandle)}`;
+  let url = `${sourceUri(FUNCTION_MODULE.uri(params.functionGroupName, params.functionModuleName))}?lockHandle=${encodeURIComponent(params.lockHandle)}`;
   if (params.transportRequest) {
     url += `&corrNr=${params.transportRequest}`;
   }

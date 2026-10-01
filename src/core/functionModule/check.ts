@@ -11,8 +11,8 @@ import {
   ACCEPT_CHECK_MESSAGES,
   CT_CHECK_OBJECTS,
 } from '../../constants/contentTypes';
+import { FUNCTION_MODULE } from '../../endpoints/objects';
 import type { CheckRunVersion } from '../../utils/checkRun';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -25,9 +25,7 @@ function buildCheckRunXml(
   sourceCode?: string,
   sourceContentType?: string,
 ): string {
-  const encodedGroup = encodeSapObjectName(functionGroupName).toLowerCase();
-  const encodedModule = encodeSapObjectName(functionModuleName).toLowerCase();
-  const objectUri = `/sap/bc/adt/functions/groups/${encodedGroup}/fmodules/${encodedModule}`;
+  const objectUri = `${FUNCTION_MODULE.uri(functionGroupName, functionModuleName)}`;
 
   if (sourceCode) {
     // TODO: analyze whether chkrun:contentType can be extracted to a constant

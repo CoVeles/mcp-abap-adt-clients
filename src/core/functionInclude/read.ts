@@ -8,7 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_FUNCTION_INCLUDE } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_INCLUDE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 // Declared once, in the contract. The copy here carried only
@@ -26,14 +26,12 @@ export async function readFunctionInclude(
   version: 'active' | 'inactive' = 'active',
   _options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const groupLower = encodeSapObjectName(groupName).toLowerCase();
-  const encodedInclude = encodeSapObjectName(includeName.toUpperCase());
   const params = new URLSearchParams();
   params.append('version', version);
   if (_options?.withLongPolling) {
     params.append('withLongPolling', 'true');
   }
-  const url = `/sap/bc/adt/functions/groups/${groupLower}/includes/${encodedInclude}?${params.toString()}`;
+  const url = `${FUNCTION_INCLUDE.uri(groupName, includeName)}?${params.toString()}`;
 
   return connection.makeAdtRequest({
     url,

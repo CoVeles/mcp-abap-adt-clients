@@ -6,7 +6,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_MODULE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -18,10 +18,7 @@ export async function unlockFunctionModule(
   functionModuleName: string,
   lockHandle: string,
 ): Promise<IAdtWireResponse> {
-  const encodedGroupName = encodeSapObjectName(functionGroupName).toLowerCase();
-  const encodedModuleName =
-    encodeSapObjectName(functionModuleName).toLowerCase();
-  const url = `/sap/bc/adt/functions/groups/${encodedGroupName}/fmodules/${encodedModuleName}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`;
+  const url = `${FUNCTION_MODULE.uri(functionGroupName, functionModuleName)}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`;
 
   const headers = {
     Accept: 'application/xml',

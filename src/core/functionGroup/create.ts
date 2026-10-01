@@ -10,6 +10,7 @@ import type {
 import type { HttpError } from '@mcp-abap-adt/interfaces-network';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
 import { CT_FUNCTION_GROUP } from '../../constants/contentTypes';
+import { FUNCTION_GROUP } from '../../endpoints/objects';
 import { limitDescription, safeStringify } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateFunctionGroupParams } from './types';
@@ -26,7 +27,7 @@ export async function create(
   logger?: ILogger,
   contentTypes?: IAdtContentTypes,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/functions/groups${params.transportRequest ? `?corrNr=${params.transportRequest}` : ''}`;
+  const url = `${FUNCTION_GROUP.collection}${params.transportRequest ? `?corrNr=${params.transportRequest}` : ''}`;
 
   const finalMasterSystem = params.masterSystem || undefined;
 

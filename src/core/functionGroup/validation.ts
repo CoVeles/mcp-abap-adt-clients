@@ -9,6 +9,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { FUNCTION_GROUP } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
@@ -35,7 +36,7 @@ export async function validateFunctionGroupName(
   packageName?: string,
   description?: string,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/functions/validation`;
+  const url = FUNCTION_GROUP.validation;
   const queryParams = new URLSearchParams({
     objtype: 'FUGR/F',
     objname: functionGroupName,

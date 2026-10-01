@@ -14,7 +14,7 @@ import {
   ACCEPT_CHECK_MESSAGES,
   CT_CHECK_OBJECTS,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_INCLUDE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -28,9 +28,7 @@ export async function checkFunctionInclude(
   xmlContent?: string,
   sourceContentType?: string,
 ): Promise<IAdtWireResponse> {
-  const groupLower = encodeSapObjectName(groupName).toLowerCase();
-  const encodedInclude = encodeSapObjectName(includeName.toUpperCase());
-  const objectUri = `/sap/bc/adt/functions/groups/${groupLower}/includes/${encodedInclude}`;
+  const objectUri = `${FUNCTION_INCLUDE.uri(groupName, includeName)}`;
 
   let xmlBody: string;
   if (xmlContent) {

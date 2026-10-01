@@ -10,7 +10,13 @@ import {
   ACCEPT_CHECK_MESSAGES,
   CT_CHECK_OBJECTS,
 } from '../constants/contentTypes';
-import { CLASS, INTERFACE, PROGRAM } from '../endpoints/objects';
+import {
+  CLASS,
+  FUNCTION_GROUP,
+  FUNCTION_MODULE,
+  INTERFACE,
+  PROGRAM,
+} from '../endpoints/objects';
 import { encodeSapObjectName } from './internalUtils';
 import { getTimeout } from './timeouts';
 
@@ -29,7 +35,7 @@ export function getObjectUri(objectType: string, objectName: string): string {
       return `${INTERFACE.uri(objectName)}`;
     case 'function_group':
     case 'fugr':
-      return `/sap/bc/adt/functions/groups/${encodedName}`;
+      return `${FUNCTION_GROUP.uri(objectName)}`;
     case 'function_module':
     case 'fugr/ff': {
       // Function module needs function group in format: "FUGR_NAME/FM_NAME"
@@ -39,9 +45,7 @@ export function getObjectUri(objectType: string, objectName: string): string {
         );
       }
       const [fugrName, fmName] = objectName.split('/');
-      const encodedFugr = encodeSapObjectName(fugrName.toLowerCase());
-      const encodedFm = encodeSapObjectName(fmName.toLowerCase());
-      return `/sap/bc/adt/functions/groups/${encodedFugr}/fmodules/${encodedFm}`;
+      return `${FUNCTION_MODULE.uri(fugrName, fmName)}`;
     }
     case 'table':
     case 'tabl/dt':

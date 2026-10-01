@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
+import { FUNCTION_GROUP } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -27,7 +28,7 @@ export async function lockFunctionGroup(
   _sessionId: string = '',
 ): Promise<IAdtWireResponse> {
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/functions/groups/${functionGroupName.toLowerCase()}?_action=LOCK&accessMode=MODIFY`,
+    url: `${FUNCTION_GROUP.uri(functionGroupName)}?_action=LOCK&accessMode=MODIFY`,
     method: 'POST',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_LOCK },
@@ -49,7 +50,7 @@ export async function unlockFunctionGroup(
   lockHandle: string,
   _sessionId: string = '',
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/functions/groups/${functionGroupName.toLowerCase()}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`;
+  const url = `${FUNCTION_GROUP.uri(functionGroupName)}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`;
 
   return connection.makeAdtRequest({
     url,

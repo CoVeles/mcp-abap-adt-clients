@@ -14,6 +14,9 @@ import { CT_ACTIVATION } from '../constants/contentTypes';
 import { getEnhancementUri } from '../core/enhancement/types';
 import {
   CLASS,
+  FUNCTION_GROUP,
+  FUNCTION_INCLUDE,
+  FUNCTION_MODULE,
   INTERFACE,
   PROGRAM,
   PROGRAM_INCLUDE,
@@ -73,10 +76,9 @@ export function buildObjectUri(
 
     case 'FUGR/FF': {
       if (parentName) {
-        const lowerParent = encodeSapObjectName(parentName).toLowerCase();
-        return `/sap/bc/adt/functions/groups/${lowerParent}/fmodules/${lowerName}`;
+        return `${FUNCTION_MODULE.uri(parentName, name)}`;
       }
-      return `/sap/bc/adt/functions/groups/${lowerName}/fmodules/${lowerName}`;
+      return `${FUNCTION_MODULE.uri(name, name)}`;
     }
 
     case 'FUGR/I': {
@@ -90,14 +92,13 @@ export function buildObjectUri(
           `A function include (FUGR/I) is addressed under its function group; pass the group as parentName for ${name}`,
         );
       }
-      const lowerParent = encodeSapObjectName(parentName).toLowerCase();
-      return `/sap/bc/adt/functions/groups/${lowerParent}/includes/${encodeSapObjectName(name.toUpperCase())}`;
+      return `${FUNCTION_INCLUDE.uri(parentName, name)}`;
     }
 
     case 'FUGR':
     case 'FUGR/F':
     case 'FUNC':
-      return `/sap/bc/adt/functions/groups/${lowerName}`;
+      return `${FUNCTION_GROUP.uri(name)}`;
 
     case 'TABL/DT':
     case 'TABL':

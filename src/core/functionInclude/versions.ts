@@ -2,7 +2,11 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import {
+  FUNCTION_INCLUDE,
+  sourceUri,
+  versionsUri,
+} from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IFunctionIncludeConfig } from './types';
 
@@ -20,14 +24,8 @@ export async function getFunctionIncludeVersions(
   connection: IAbapConnection,
   config: Partial<IFunctionIncludeConfig>,
 ): Promise<IAdtWireResponse> {
-  const groupLower = encodeSapObjectName(
-    config.functionGroupName as string,
-  ).toLowerCase();
-  const encodedInclude = encodeSapObjectName(
-    (config.includeName as string).toUpperCase(),
-  );
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/functions/groups/${groupLower}/includes/${encodedInclude}/versions`,
+    url: `${versionsUri(sourceUri(FUNCTION_INCLUDE.uri(config.functionGroupName as string, (config.includeName as string).toUpperCase())))}`,
     method: 'GET',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_VERSION_FEED },

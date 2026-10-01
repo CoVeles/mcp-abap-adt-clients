@@ -11,7 +11,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_FUNCTION_GROUP } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_GROUP } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateFunctionGroupParams } from './types';
 
@@ -34,9 +34,8 @@ export async function updateFunctionGroup(
   document: string,
   contentTypes?: IAdtContentTypes,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(params.function_group_name as string);
   const lockHandle = params.lock_handle as string;
-  const url = `/sap/bc/adt/functions/groups/${encodedName}${lockHandle ? `?lockHandle=${encodeURIComponent(lockHandle)}` : ''}${params.transport_request ? `${lockHandle ? '&' : '?'}corrNr=${params.transport_request}` : ''}`;
+  const url = `${FUNCTION_GROUP.uri(params.function_group_name as string)}${lockHandle ? `?lockHandle=${encodeURIComponent(lockHandle)}` : ''}${params.transport_request ? `${lockHandle ? '&' : '?'}corrNr=${params.transport_request}` : ''}`;
 
   const ct = contentTypes?.functionGroupUpdate();
 

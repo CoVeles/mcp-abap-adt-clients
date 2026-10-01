@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_TRANSPORT } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_MODULE, transportUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import { objectMetadataWire, objectSourceWire } from '../shared/objectWire';
 import type { IReadOptions } from '../shared/types';
@@ -80,10 +80,8 @@ export async function getFunctionModuleTransport(
   functionGroup: string,
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const encodedGroup = encodeSapObjectName(functionGroup);
-  const encodedName = encodeSapObjectName(functionName);
   const query = options?.withLongPolling ? '?withLongPolling=true' : '';
-  const url = `/sap/bc/adt/functions/groups/${encodedGroup}/fmodules/${encodedName}/transport${query}`;
+  const url = `${transportUri(FUNCTION_MODULE.uri(functionGroup, functionName))}${query}`;
 
   return connection.makeAdtRequest({
     url,

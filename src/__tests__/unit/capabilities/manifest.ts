@@ -982,8 +982,10 @@ export const HANDLERS = {
       activate: '/sap/bc/adt/activation',
       lock: '/sap/bc/adt/functions/groups/zguard_fg/includes/LZGUARD_FGF01',
       unlock: '/sap/bc/adt/functions/groups/zguard_fg/includes/LZGUARD_FGF01',
+      // ADT's own rel=versions link is source/main/versions; `<include>/versions`
+      // answered 404 "No suitable resource found" on both systems (2026-10-01).
       getVersions:
-        '/sap/bc/adt/functions/groups/zguard_fg/includes/LZGUARD_FGF01/versions',
+        '/sap/bc/adt/functions/groups/zguard_fg/includes/LZGUARD_FGF01/source/main/versions',
     },
     capabilities: [
       'creatable',

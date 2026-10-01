@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_INCLUDE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 export interface IDeleteFunctionIncludeParams {
@@ -22,9 +22,7 @@ export interface IDeleteFunctionIncludeParams {
 }
 
 function objectUri(groupName: string, includeName: string): string {
-  const groupLower = encodeSapObjectName(groupName).toLowerCase();
-  const encodedInclude = encodeSapObjectName(includeName.toUpperCase());
-  return `/sap/bc/adt/functions/groups/${groupLower}/includes/${encodedInclude}`;
+  return `${FUNCTION_INCLUDE.uri(groupName, includeName)}`;
 }
 
 /**

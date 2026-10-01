@@ -23,6 +23,9 @@ const ENFORCED: readonly (keyof typeof RECORDS)[] = [
   'CLASS',
   'CLASS_INCLUDE',
   'INTERFACE',
+  'FUNCTION_GROUP',
+  'FUNCTION_MODULE',
+  'FUNCTION_INCLUDE',
 ];
 
 const ROOT = path.resolve(__dirname, '../../../..');
