@@ -2,7 +2,7 @@
  * AdtClientLegacy - ADT Client for older SAP systems (BASIS < 7.50)
  *
  * Extends AdtClient and overrides methods that differ on legacy systems:
- * - Unsupported object types throw clear errors
+ * - Object types absent on legacy answer a refusal from every member, without a request
  * - Supported types use legacy-compatible deletion (direct DELETE vs /deletion/delete)
  * - Content-Type defaults to v1 (AdtContentTypesBase)
  * - Transport requests use /sap/bc/cts/ instead of /sap/bc/adt/cts/
@@ -16,10 +16,46 @@
 import type { IAdtClientOptions } from '@mcp-abap-adt/interfaces-adt';
 import type { IAbapConnection } from '@mcp-abap-adt/interfaces-adt-connection';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
+import {
+  AdtAccessControl,
+  type accessControlDocuments,
+  type IAccessControlResults,
+} from '../core/accessControl';
+import {
+  AdtAuthorizationField,
+  type authorizationFieldDocuments,
+  type IAuthorizationFieldResults,
+} from '../core/authorizationField';
+import {
+  AdtBehaviorDefinition,
+  type behaviorDefinitionDocuments,
+  type IBehaviorDefinitionResults,
+} from '../core/behaviorDefinition';
+import { AdtBehaviorImplementation } from '../core/behaviorImplementation';
 import { classDocuments, type IClassResults } from '../core/class';
 import { AdtClassLegacy } from '../core/class/AdtClassLegacy';
+import {
+  AdtDataElement,
+  type dataElementDocuments,
+  type IDataElementResults,
+} from '../core/dataElement';
 import { ddlDocuments, type IDdlResults } from '../core/ddl';
 import { AdtDdlLegacy } from '../core/ddl/AdtDdlLegacy';
+import {
+  AdtDomain,
+  type domainDocuments,
+  type IDomainResults,
+} from '../core/domain';
+import {
+  AdtEnhancement,
+  type enhancementDocuments,
+  type IEnhancementResults,
+} from '../core/enhancement';
+import {
+  AdtFeatureToggle,
+  type featureToggleDocuments,
+  type IFeatureToggleResults,
+} from '../core/featureToggle';
 import {
   functionGroupDocuments,
   type IFunctionGroupResults,
@@ -32,29 +68,47 @@ import {
 import { AdtFunctionModuleLegacy } from '../core/functionModule/AdtFunctionModuleLegacy';
 import { type IInterfaceResults, interfaceDocuments } from '../core/interface';
 import { AdtInterfaceLegacy } from '../core/interface/AdtInterfaceLegacy';
+import {
+  AdtMetadataExtension,
+  type IMetadataExtensionResults,
+  type metadataExtensionDocuments,
+} from '../core/metadataExtension';
 import { type IPackageResults, packageDocuments } from '../core/package';
 import { AdtPackageLegacy } from '../core/package/AdtPackageLegacy';
 import { type IProgramResults, programDocuments } from '../core/program';
 import { AdtProgramLegacy } from '../core/program/AdtProgramLegacy';
+import {
+  AdtServiceBinding,
+  type IServiceResults,
+  type serviceDocuments,
+} from '../core/service';
+import {
+  AdtServiceDefinition,
+  type IServiceDefinitionResults,
+  type serviceDefinitionDocuments,
+} from '../core/serviceDefinition';
 import { AdtUtilsLegacy } from '../core/shared/AdtUtilsLegacy';
 import { AdtContentTypesBase } from '../core/shared/contentTypes';
 import { type IUtilResults, utilDocuments } from '../core/shared/utilResultSet';
+import {
+  AdtStructure,
+  type IStructureResults,
+  type structureDocuments,
+} from '../core/structure';
+import {
+  AdtTable,
+  type ITableResults,
+  type tableDocuments,
+} from '../core/table';
+import {
+  AdtDdicTableType,
+  type ITableTypeResults,
+  type tableTypeDocuments,
+} from '../core/tabletype';
 import { type ITransportResults, transportDocuments } from '../core/transport';
 import { AdtRequestLegacy } from '../core/transport/AdtRequestLegacy';
 import { AdtClient } from './AdtClient';
-
-/**
- * Error message for unsupported object types on legacy systems.
- * The endpoint is not present in the /sap/bc/adt/discovery catalog.
- */
-function unsupportedError(objectType: string, endpoint: string): string {
-  return (
-    `${objectType} is not supported on this SAP system. ` +
-    `The required endpoint ${endpoint} was not found in the system's ` +
-    `ADT discovery catalog (/sap/bc/adt/discovery). ` +
-    `This typically means the system's BASIS version is too old.`
-  );
-}
+import { absentOnLegacy } from './absentOnLegacy';
 
 export class AdtClientLegacy extends AdtClient {
   constructor(
@@ -221,91 +275,153 @@ export class AdtClientLegacy extends AdtClient {
     return new AdtUtilsLegacy<R>(this.connection, this.logger, results);
   }
 
-  // --- Unsupported types: endpoints absent from legacy /sap/bc/adt/discovery ---
+  // --- Types absent from legacy /sap/bc/adt/discovery ---
+  //
+  // Handed out all the same: every member answers a refusal and sends no
+  // request (see absentOnLegacy).
 
-  override getDomain(): never {
-    throw new Error(unsupportedError('Domain', '/sap/bc/adt/ddic/domains'));
-  }
-
-  override getDataElement(): never {
-    throw new Error(
-      unsupportedError('DataElement', '/sap/bc/adt/ddic/dataelements'),
+  override getDomain<R extends IDomainResults = typeof domainDocuments>(
+    _results?: R,
+  ): AdtDomain<R> {
+    return absentOnLegacy<AdtDomain<R>>(
+      AdtDomain,
+      'Domain',
+      '/sap/bc/adt/ddic/domains',
     );
   }
 
-  override getStructure(): never {
-    throw new Error(
-      unsupportedError('Structure', '/sap/bc/adt/ddic/structures'),
+  override getDataElement<
+    R extends IDataElementResults = typeof dataElementDocuments,
+  >(_results?: R): AdtDataElement<R> {
+    return absentOnLegacy<AdtDataElement<R>>(
+      AdtDataElement,
+      'DataElement',
+      '/sap/bc/adt/ddic/dataelements',
     );
   }
 
-  override getTable(): never {
-    throw new Error(unsupportedError('Table', '/sap/bc/adt/ddic/tables'));
-  }
-
-  override getTableType(): never {
-    throw new Error(
-      unsupportedError('TableType', '/sap/bc/adt/ddic/tabletypes'),
+  override getStructure<
+    R extends IStructureResults = typeof structureDocuments,
+  >(_results?: R): AdtStructure<R> {
+    return absentOnLegacy<AdtStructure<R>>(
+      AdtStructure,
+      'Structure',
+      '/sap/bc/adt/ddic/structures',
     );
   }
 
-  override getAccessControl(): never {
-    throw new Error(
-      unsupportedError('AccessControl', '/sap/bc/adt/acm/dcl/sources'),
+  override getTable<R extends ITableResults = typeof tableDocuments>(
+    _results?: R,
+  ): AdtTable<R> {
+    return absentOnLegacy<AdtTable<R>>(
+      AdtTable,
+      'Table',
+      '/sap/bc/adt/ddic/tables',
     );
   }
 
-  override getServiceDefinition(): never {
-    throw new Error(
-      unsupportedError('ServiceDefinition', '/sap/bc/adt/ddic/srvd/sources'),
+  override getTableType<
+    R extends ITableTypeResults = typeof tableTypeDocuments,
+  >(_results?: R): AdtDdicTableType<R> {
+    return absentOnLegacy<AdtDdicTableType<R>>(
+      AdtDdicTableType,
+      'TableType',
+      '/sap/bc/adt/ddic/tabletypes',
     );
   }
 
-  override getServiceBinding(): never {
-    throw new Error(
-      unsupportedError(
-        'ServiceBinding',
-        '/sap/bc/adt/businessservices/bindings',
-      ),
+  override getAccessControl<
+    R extends IAccessControlResults = typeof accessControlDocuments,
+  >(_results?: R): AdtAccessControl<R> {
+    return absentOnLegacy<AdtAccessControl<R>>(
+      AdtAccessControl,
+      'AccessControl',
+      '/sap/bc/adt/acm/dcl/sources',
     );
   }
 
-  override getService(): never {
-    throw new Error(
-      unsupportedError(
-        'ServiceBinding',
-        '/sap/bc/adt/businessservices/bindings',
-      ),
+  override getServiceDefinition<
+    R extends IServiceDefinitionResults = typeof serviceDefinitionDocuments,
+  >(_results?: R): AdtServiceDefinition<R> {
+    return absentOnLegacy<AdtServiceDefinition<R>>(
+      AdtServiceDefinition,
+      'ServiceDefinition',
+      '/sap/bc/adt/ddic/srvd/sources',
     );
   }
 
-  override getBehaviorDefinition(): never {
-    throw new Error(
-      unsupportedError(
-        'BehaviorDefinition',
-        '/sap/bc/adt/bo/behaviordefinitions',
-      ),
+  override getServiceBinding<
+    R extends IServiceResults = typeof serviceDocuments,
+  >(_results?: R): AdtServiceBinding<R> {
+    return absentOnLegacy<AdtServiceBinding<R>>(
+      AdtServiceBinding,
+      'ServiceBinding',
+      '/sap/bc/adt/businessservices/bindings',
     );
   }
 
-  override getBehaviorImplementation(): never {
-    throw new Error(
-      unsupportedError(
-        'BehaviorImplementation',
-        '/sap/bc/adt/bo/behaviordefinitions',
-      ),
+  override getBehaviorDefinition<
+    R extends IBehaviorDefinitionResults = typeof behaviorDefinitionDocuments,
+  >(_results?: R): AdtBehaviorDefinition<R> {
+    return absentOnLegacy<AdtBehaviorDefinition<R>>(
+      AdtBehaviorDefinition,
+      'BehaviorDefinition',
+      '/sap/bc/adt/bo/behaviordefinitions',
     );
   }
 
-  override getMetadataExtension(): never {
-    throw new Error(
-      unsupportedError('MetadataExtension', '/sap/bc/adt/ddic/ddlx/sources'),
+  override getBehaviorImplementation<
+    R extends IClassResults = typeof classDocuments,
+  >(_results?: R): AdtBehaviorImplementation<R> {
+    return absentOnLegacy<AdtBehaviorImplementation<R>>(
+      AdtBehaviorImplementation,
+      'BehaviorImplementation',
+      '/sap/bc/adt/bo/behaviordefinitions',
     );
   }
 
-  override getEnhancement(): never {
-    throw new Error(
-      unsupportedError('Enhancement', '/sap/bc/adt/enhancements'),
+  override getMetadataExtension<
+    R extends IMetadataExtensionResults = typeof metadataExtensionDocuments,
+  >(_results?: R): AdtMetadataExtension<R> {
+    return absentOnLegacy<AdtMetadataExtension<R>>(
+      AdtMetadataExtension,
+      'MetadataExtension',
+      '/sap/bc/adt/ddic/ddlx/sources',
     );
+  }
+
+  override getEnhancement<
+    R extends IEnhancementResults = typeof enhancementDocuments,
+  >(_results?: R): AdtEnhancement<R> {
+    return absentOnLegacy<AdtEnhancement<R>>(
+      AdtEnhancement,
+      'Enhancement',
+      '/sap/bc/adt/enhancements',
+    );
+  }
+
+  override getAuthorizationField<
+    R extends IAuthorizationFieldResults = typeof authorizationFieldDocuments,
+  >(_results?: R): AdtAuthorizationField<R> {
+    return absentOnLegacy<AdtAuthorizationField<R>>(
+      AdtAuthorizationField,
+      'AuthorizationField',
+      '/sap/bc/adt/aps/iam/auth',
+    );
+  }
+
+  override getFeatureToggle<
+    R extends IFeatureToggleResults = typeof featureToggleDocuments,
+  >(_results?: R): AdtFeatureToggle<R> {
+    return absentOnLegacy<AdtFeatureToggle<R>>(
+      AdtFeatureToggle,
+      'FeatureToggle',
+      '/sap/bc/adt/sfw/featuretoggles',
+    );
+  }
+
+  /** @deprecated Use getServiceBinding(). */
+  override getService(): AdtServiceBinding {
+    return this.getServiceBinding();
   }
 }

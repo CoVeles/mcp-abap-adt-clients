@@ -69,7 +69,15 @@ These types have dedicated `*Legacy` handler classes with legacy-compatible dele
 
 ### Not supported (endpoints absent from discovery)
 
-These types throw an error with the exact missing endpoint when the getter is called.
+The getter still hands out a handler, so code written against `AdtClient` keeps
+running on a legacy system. Every member of that handler answers a refusal
+without sending a request: `ok: false`, `origin: 'refusal'`,
+`code: UNSUPPORTED_OPERATION`, and a message naming the missing endpoint. Until
+this release the getter threw before any request.
+
+abapGit is the exception in this table: it is a separate client, not a getter,
+and nothing in it is blocked — its requests reach a legacy system and are
+answered there.
 
 | Object Type | Getter | Missing Endpoint |
 |-------------|--------|------------------|
