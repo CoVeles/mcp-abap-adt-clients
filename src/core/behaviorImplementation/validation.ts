@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION_CLASS_NAME } from '../../constants/contentTypes';
+import { CLASS } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
@@ -49,7 +50,7 @@ export async function validateBehaviorImplementationName(
     params.append('behaviorDefinition', behaviorDefinition);
   }
 
-  const url = `/sap/bc/adt/oo/validation/objectname?${params.toString()}`;
+  const url = `${CLASS.validation}?${params.toString()}`;
   const headers = {
     Accept: ACCEPT_VALIDATION_CLASS_NAME,
   };

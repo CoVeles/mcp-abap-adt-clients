@@ -10,8 +10,8 @@ import type {
   IAdtResponse,
   IResultStrategy,
 } from '@mcp-abap-adt/interfaces-adt';
+import { INTERFACE } from '../../endpoints/objects';
 import { answering } from '../../utils/adtResponse';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { deleteObjectDirect } from '../shared/deleteLegacy';
 import { AdtInterface } from './AdtInterface';
 import type {
@@ -29,7 +29,7 @@ export class AdtInterfaceLegacy<
   ): Promise<IAdtResponse<ReturnType<R['deletion']>, E>> {
     const name = config.interfaceName as string;
 
-    const objectUrl = `/sap/bc/adt/oo/interfaces/${encodeSapObjectName(name).toLowerCase()}`;
+    const objectUrl = `${INTERFACE.uri(name)}`;
     return answering(
       () =>
         deleteObjectDirect(

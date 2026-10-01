@@ -18,7 +18,7 @@ describe('getInterfaceVersions', () => {
       return { data: FEED, status: 200, headers: {} } as IAdtWireResponse;
     });
     const answer = await getInterfaceVersions(c, { interfaceName: 'ZIF' });
-    expect(seen.url).toBe('/sap/bc/adt/oo/interfaces/ZIF/source/main/versions');
+    expect(seen.url).toBe('/sap/bc/adt/oo/interfaces/zif/source/main/versions');
     expect(seen.headers.Accept).toContain('application/atom+xml;type=feed');
     // The feed as it arrived — `objectVersions` in adt-strategies reads it.
     expect(answer.data).toBe(FEED);

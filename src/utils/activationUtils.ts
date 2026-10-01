@@ -12,7 +12,12 @@ import type {
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_ACTIVATION } from '../constants/contentTypes';
 import { getEnhancementUri } from '../core/enhancement/types';
-import { PROGRAM, PROGRAM_INCLUDE } from '../endpoints/objects';
+import {
+  CLASS,
+  INTERFACE,
+  PROGRAM,
+  PROGRAM_INCLUDE,
+} from '../endpoints/objects';
 import { encodeSapObjectName } from './internalUtils';
 import { getTimeout } from './timeouts';
 
@@ -35,7 +40,7 @@ export function buildObjectUri(
   if (!type) {
     // Try to guess type from name prefix
     if (name.startsWith('ZCL_') || name.startsWith('CL_')) {
-      return `/sap/bc/adt/oo/classes/${lowerName}`;
+      return `${CLASS.uri(name)}`;
     } else if (name.startsWith('Z') && name.includes('_PROGRAM')) {
       return `${PROGRAM.uri(name)}`;
     }
@@ -57,7 +62,7 @@ export function buildObjectUri(
 
     case 'CLAS/OC':
     case 'CLAS':
-      return `/sap/bc/adt/oo/classes/${lowerName}`;
+      return `${CLASS.uri(name)}`;
 
     case 'PROG/P':
     case 'PROG':
@@ -121,7 +126,7 @@ export function buildObjectUri(
 
     case 'INTF/OI':
     case 'INTF':
-      return `/sap/bc/adt/oo/interfaces/${lowerName}`;
+      return `${INTERFACE.uri(name)}`;
 
     case 'TTYP/DF':
     case 'TTYP/TT':

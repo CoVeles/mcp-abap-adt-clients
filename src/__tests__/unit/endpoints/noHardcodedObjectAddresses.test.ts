@@ -20,6 +20,9 @@ import { RECORDS } from '../../../endpoints/objects';
 const ENFORCED: readonly (keyof typeof RECORDS)[] = [
   'PROGRAM',
   'PROGRAM_INCLUDE',
+  'CLASS',
+  'CLASS_INCLUDE',
+  'INTERFACE',
 ];
 
 const ROOT = path.resolve(__dirname, '../../../..');

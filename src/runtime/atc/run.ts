@@ -26,6 +26,7 @@ import {
   CT_ATC_RUN,
   CT_ATC_WORKLIST_CREATE,
 } from '../../constants/contentTypes';
+import { CLASS, INTERFACE } from '../../endpoints/objects';
 import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
@@ -46,8 +47,8 @@ const ATC = '/sap/bc/adt/atc';
  * either kind.
  */
 const URI_TEMPLATES: Partial<Record<AtcObjectType, string>> = {
-  class: '/sap/bc/adt/oo/classes/',
-  interface: '/sap/bc/adt/oo/interfaces/',
+  class: `${CLASS.collection}/`,
+  interface: `${INTERFACE.collection}/`,
   function_group: '/sap/bc/adt/functions/groups/',
   package: '/sap/bc/adt/packages/',
   ddl_source: '/sap/bc/adt/ddic/ddl/sources/',

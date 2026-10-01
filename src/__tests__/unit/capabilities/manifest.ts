@@ -137,7 +137,7 @@ export const HANDLERS = {
     },
     requests: {
       create: '/sap/bc/adt/oo/classes',
-      read: '/sap/bc/adt/oo/classes/ZCL_GUARD/source/main',
+      read: '/sap/bc/adt/oo/classes/zcl_guard/source/main',
       readMetadata: '/sap/bc/adt/oo/classes/ZCL_GUARD',
       update: '/sap/bc/adt/oo/classes/zcl_guard/source/main',
       // One request each, since 18.0.0: `delete` deletes, and the approval
@@ -150,7 +150,7 @@ export const HANDLERS = {
       activate: '/sap/bc/adt/activation',
       lock: '/sap/bc/adt/oo/classes/zcl_guard',
       unlock: '/sap/bc/adt/oo/classes/zcl_guard',
-      getVersions: '/sap/bc/adt/oo/classes/ZCL_GUARD/includes/main/versions',
+      getVersions: '/sap/bc/adt/oo/classes/zcl_guard/includes/main/versions',
       readTransport: '/sap/bc/adt/oo/classes/ZCL_GUARD/transport',
     },
     capabilities: FULL,
@@ -166,9 +166,9 @@ export const HANDLERS = {
     },
     requests: {
       create: '/sap/bc/adt/oo/interfaces',
-      read: '/sap/bc/adt/oo/interfaces/ZIF_GUARD/source/main',
+      read: '/sap/bc/adt/oo/interfaces/zif_guard/source/main',
       readMetadata: '/sap/bc/adt/oo/interfaces/ZIF_GUARD',
-      update: '/sap/bc/adt/oo/interfaces/ZIF_GUARD/source/main',
+      update: '/sap/bc/adt/oo/interfaces/zif_guard/source/main',
       // One request each, since 18.0.0: `delete` deletes, and the approval
       // ADT wants first is `checkDeletion` — a member the consumer calls, and
       // whose refusal it reads, rather than a half of this one it cannot see.
@@ -179,7 +179,7 @@ export const HANDLERS = {
       activate: '/sap/bc/adt/activation',
       lock: '/sap/bc/adt/oo/interfaces/zif_guard',
       unlock: '/sap/bc/adt/oo/interfaces/ZIF_GUARD',
-      getVersions: '/sap/bc/adt/oo/interfaces/ZIF_GUARD/source/main/versions',
+      getVersions: '/sap/bc/adt/oo/interfaces/zif_guard/source/main/versions',
       readTransport: '/sap/bc/adt/oo/interfaces/ZIF_GUARD/transport',
     },
     capabilities: FULL,
@@ -498,7 +498,7 @@ export const HANDLERS = {
     },
     requests: {
       create: '/sap/bc/adt/oo/classes',
-      read: '/sap/bc/adt/oo/classes/ZBP_GUARD/source/main',
+      read: '/sap/bc/adt/oo/classes/zbp_guard/source/main',
       readMetadata: '/sap/bc/adt/oo/classes/ZBP_GUARD',
       update: '/sap/bc/adt/oo/classes/zbp_guard/includes/implementations',
       // One request each, since 18.0.0: `delete` deletes, and the approval
@@ -512,7 +512,7 @@ export const HANDLERS = {
       lock: '/sap/bc/adt/oo/classes/zbp_guard',
       unlock: '/sap/bc/adt/oo/classes/zbp_guard',
       getVersions:
-        '/sap/bc/adt/oo/classes/ZBP_GUARD/includes/implementations/versions',
+        '/sap/bc/adt/oo/classes/zbp_guard/includes/implementations/versions',
       readTransport: '/sap/bc/adt/oo/classes/ZBP_GUARD/transport',
     },
     capabilities: FULL,
@@ -1144,7 +1144,7 @@ export const HANDLERS = {
       source: 'CLASS ltcl DEFINITION FOR TESTING.',
     },
     requests: {
-      read: '/sap/bc/adt/oo/classes/ZCL_GUARD/includes/testclasses',
+      read: '/sap/bc/adt/oo/classes/zcl_guard/includes/testclasses',
       readMetadata: '/sap/bc/adt/oo/classes/ZCL_GUARD',
       update: '/sap/bc/adt/oo/classes/zcl_guard/includes/testclasses',
       validate: '/sap/bc/adt/checkruns',
@@ -1153,7 +1153,7 @@ export const HANDLERS = {
       lock: '/sap/bc/adt/oo/classes/zcl_guard',
       unlock: '/sap/bc/adt/oo/classes/zcl_guard',
       getVersions:
-        '/sap/bc/adt/oo/classes/ZCL_GUARD/includes/testclasses/versions',
+        '/sap/bc/adt/oo/classes/zcl_guard/includes/testclasses/versions',
       readTransport: '/sap/bc/adt/oo/classes/ZCL_GUARD/transport',
     },
     capabilities: [
@@ -1175,7 +1175,7 @@ export const HANDLERS = {
     include: 'implementations',
     config: { className: 'ZCL_GUARD', source: 'TYPES ty_x TYPE i.' },
     requests: {
-      read: '/sap/bc/adt/oo/classes/ZCL_GUARD/includes/implementations',
+      read: '/sap/bc/adt/oo/classes/zcl_guard/includes/implementations',
       readMetadata: '/sap/bc/adt/oo/classes/ZCL_GUARD',
       update: '/sap/bc/adt/oo/classes/zcl_guard/includes/implementations',
       validate: '/sap/bc/adt/checkruns',
@@ -1184,7 +1184,7 @@ export const HANDLERS = {
       lock: '/sap/bc/adt/oo/classes/zcl_guard',
       unlock: '/sap/bc/adt/oo/classes/zcl_guard',
       getVersions:
-        '/sap/bc/adt/oo/classes/ZCL_GUARD/includes/implementations/versions',
+        '/sap/bc/adt/oo/classes/zcl_guard/includes/implementations/versions',
       readTransport: '/sap/bc/adt/oo/classes/ZCL_GUARD/transport',
     },
     capabilities: [
@@ -1209,7 +1209,7 @@ export const HANDLERS = {
       source: 'CLASS lcl DEFINITION.',
     },
     requests: {
-      read: '/sap/bc/adt/oo/classes/ZCL_GUARD/includes/definitions',
+      read: '/sap/bc/adt/oo/classes/zcl_guard/includes/definitions',
       readMetadata: '/sap/bc/adt/oo/classes/ZCL_GUARD',
       update: '/sap/bc/adt/oo/classes/zcl_guard/includes/definitions',
       validate: '/sap/bc/adt/checkruns',
@@ -1218,7 +1218,7 @@ export const HANDLERS = {
       lock: '/sap/bc/adt/oo/classes/zcl_guard',
       unlock: '/sap/bc/adt/oo/classes/zcl_guard',
       getVersions:
-        '/sap/bc/adt/oo/classes/ZCL_GUARD/includes/definitions/versions',
+        '/sap/bc/adt/oo/classes/zcl_guard/includes/definitions/versions',
       readTransport: '/sap/bc/adt/oo/classes/ZCL_GUARD/transport',
     },
     capabilities: [
@@ -1240,7 +1240,7 @@ export const HANDLERS = {
     include: 'macros',
     config: { className: 'ZCL_GUARD', source: 'DEFINE mac.' },
     requests: {
-      read: '/sap/bc/adt/oo/classes/ZCL_GUARD/includes/macros',
+      read: '/sap/bc/adt/oo/classes/zcl_guard/includes/macros',
       readMetadata: '/sap/bc/adt/oo/classes/ZCL_GUARD',
       update: '/sap/bc/adt/oo/classes/zcl_guard/includes/macros',
       validate: '/sap/bc/adt/checkruns',
@@ -1248,7 +1248,7 @@ export const HANDLERS = {
       activate: '/sap/bc/adt/activation',
       lock: '/sap/bc/adt/oo/classes/zcl_guard',
       unlock: '/sap/bc/adt/oo/classes/zcl_guard',
-      getVersions: '/sap/bc/adt/oo/classes/ZCL_GUARD/includes/macros/versions',
+      getVersions: '/sap/bc/adt/oo/classes/zcl_guard/includes/macros/versions',
       readTransport: '/sap/bc/adt/oo/classes/ZCL_GUARD/transport',
     },
     capabilities: [

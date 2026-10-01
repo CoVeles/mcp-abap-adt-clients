@@ -18,8 +18,8 @@ import type {
   IAdtResponse,
   IResultStrategy,
 } from '@mcp-abap-adt/interfaces-adt';
+import { CLASS } from '../../endpoints/objects';
 import { answering } from '../../utils/adtResponse';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { deleteObjectDirect } from '../shared/deleteLegacy';
 import { AdtClass } from './AdtClass';
 import type { classDocuments, IClassConfig, IClassResults } from './types';
@@ -54,7 +54,7 @@ export class AdtClassLegacy<
   ): Promise<IAdtResponse<ReturnType<R['deletion']>, E>> {
     const name = config.className as string;
 
-    const objectUrl = `/sap/bc/adt/oo/classes/${encodeSapObjectName(name).toLowerCase()}`;
+    const objectUrl = `${CLASS.uri(name)}`;
     return answering(
       () =>
         deleteObjectDirect(

@@ -36,7 +36,7 @@ import {
   ACCEPT_TABLE_TYPE,
   CT_VIEW,
 } from '../../constants/contentTypes';
-import { PROGRAM, sourceUri } from '../../endpoints/objects';
+import { CLASS, INTERFACE, PROGRAM, sourceUri } from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
 import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
@@ -130,13 +130,13 @@ export function getObjectMetadataUri(
   switch (objectType.toLowerCase()) {
     case 'class':
     case 'clas/oc':
-      return `/sap/bc/adt/oo/classes/${encodedName}`;
+      return `${CLASS.uri(objectName)}`;
     case 'program':
     case 'prog/p':
       return `${PROGRAM.uri(objectName)}`;
     case 'interface':
     case 'intf/if':
-      return `/sap/bc/adt/oo/interfaces/${encodedName}`;
+      return `${INTERFACE.uri(objectName)}`;
     case 'functionmodule':
     case 'fugr/ff': {
       const encodedGroup = encodeSapObjectName(functionGroup as string);
@@ -228,13 +228,13 @@ export function getObjectSourceUri(
   switch (objectType.toLowerCase()) {
     case 'class':
     case 'clas/oc':
-      return `/sap/bc/adt/oo/classes/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(CLASS.uri(objectName))}${versionParam}`;
     case 'program':
     case 'prog/p':
       return `${sourceUri(PROGRAM.uri(objectName))}${versionParam}`;
     case 'interface':
     case 'intf/if':
-      return `/sap/bc/adt/oo/interfaces/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(INTERFACE.uri(objectName))}${versionParam}`;
     case 'functionmodule':
     case 'fugr/ff': {
       const encodedGroup = encodeSapObjectName(functionGroup as string);

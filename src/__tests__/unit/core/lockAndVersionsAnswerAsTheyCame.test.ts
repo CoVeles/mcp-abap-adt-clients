@@ -118,7 +118,7 @@ const VERSIONS: Array<
   [
     'behaviorImplementation',
     (c) => getBehaviorImplementationVersions(c, { className: 'ZBP_X' }),
-    '/sap/bc/adt/oo/classes/ZBP_X/includes/implementations/versions',
+    '/sap/bc/adt/oo/classes/zbp_x/includes/implementations/versions',
   ],
 ];
 

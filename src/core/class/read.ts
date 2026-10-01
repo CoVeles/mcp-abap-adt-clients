@@ -8,6 +8,7 @@ import type {
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
 import { ACCEPT_SOURCE, ACCEPT_TRANSPORT } from '../../constants/contentTypes';
+import { CLASS, CLASS_INCLUDE, transportUri } from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
 import {
   encodeSapObjectName,
@@ -78,8 +79,7 @@ export async function getClassTransport(
   className: string,
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(className);
-  let url = `/sap/bc/adt/oo/classes/${encodedName}/transport`;
+  let url = `${transportUri(CLASS.uri(className))}`;
   if (options?.withLongPolling) {
     url += '?withLongPolling=true';
   }
@@ -107,10 +107,9 @@ export async function getClassDefinitionsInclude(
   logger?: ILogger,
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(className);
   const versionParam = version === 'inactive' ? 'workingArea' : 'active';
   const url = longPollingQuery(
-    `/sap/bc/adt/oo/classes/${encodedName}/includes/definitions?version=${versionParam}`,
+    `${CLASS_INCLUDE.uri(className, 'definitions')}?version=${versionParam}`,
     options?.withLongPolling,
   );
 
@@ -141,10 +140,9 @@ export async function getClassMacrosInclude(
   logger?: ILogger,
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(className);
   const versionParam = version === 'inactive' ? 'workingArea' : 'active';
   const url = longPollingQuery(
-    `/sap/bc/adt/oo/classes/${encodedName}/includes/macros?version=${versionParam}`,
+    `${CLASS_INCLUDE.uri(className, 'macros')}?version=${versionParam}`,
     options?.withLongPolling,
   );
 
@@ -175,10 +173,9 @@ export async function getClassTestClassesInclude(
   logger?: ILogger,
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(className);
   const versionParam = version === 'inactive' ? 'workingArea' : 'active';
   const url = longPollingQuery(
-    `/sap/bc/adt/oo/classes/${encodedName}/includes/testclasses?version=${versionParam}`,
+    `${CLASS_INCLUDE.uri(className, 'testclasses')}?version=${versionParam}`,
     options?.withLongPolling,
   );
 
@@ -209,10 +206,9 @@ export async function getClassImplementationsInclude(
   logger?: ILogger,
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(className);
   const versionParam = version === 'inactive' ? 'workingArea' : 'active';
   const url = longPollingQuery(
-    `/sap/bc/adt/oo/classes/${encodedName}/includes/implementations?version=${versionParam}`,
+    `${CLASS_INCLUDE.uri(className, 'implementations')}?version=${versionParam}`,
     options?.withLongPolling,
   );
 

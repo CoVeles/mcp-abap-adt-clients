@@ -6,7 +6,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { INTERFACE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -26,7 +26,7 @@ export async function unlockInterface(
   // one spelling and released at another cannot be paired by URL — which is
   // how an unreleased lock hides from anyone reading a wire log.
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/oo/interfaces/${encodeSapObjectName(interfaceName).toLowerCase()}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`,
+    url: `${INTERFACE.uri(interfaceName)}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`,
     method: 'POST',
     timeout: getTimeout(),
     data: '',

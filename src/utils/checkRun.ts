@@ -10,7 +10,7 @@ import {
   ACCEPT_CHECK_MESSAGES,
   CT_CHECK_OBJECTS,
 } from '../constants/contentTypes';
-import { PROGRAM } from '../endpoints/objects';
+import { CLASS, INTERFACE, PROGRAM } from '../endpoints/objects';
 import { encodeSapObjectName } from './internalUtils';
 import { getTimeout } from './timeouts';
 
@@ -22,11 +22,11 @@ export function getObjectUri(objectType: string, objectName: string): string {
 
   switch (objectType.toLowerCase()) {
     case 'class':
-      return `/sap/bc/adt/oo/classes/${encodedName}`;
+      return `${CLASS.uri(objectName)}`;
     case 'program':
       return `${PROGRAM.uri(objectName)}`;
     case 'interface':
-      return `/sap/bc/adt/oo/interfaces/${encodedName}`;
+      return `${INTERFACE.uri(objectName)}`;
     case 'function_group':
     case 'fugr':
       return `/sap/bc/adt/functions/groups/${encodedName}`;

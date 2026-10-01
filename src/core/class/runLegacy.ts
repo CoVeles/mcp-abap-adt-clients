@@ -10,7 +10,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { CLASS } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 const CT_XML = 'application/xml';
@@ -54,8 +54,7 @@ export async function startClassUnitTestRunLegacy(
 ): Promise<IAdtWireResponse> {
   const objectRefs = classNames
     .map((name) => {
-      const className = encodeSapObjectName(name).toLowerCase();
-      return `        <adtcore:objectReference adtcore:uri="/sap/bc/adt/oo/classes/${className}"/>`;
+      return `        <adtcore:objectReference adtcore:uri="${CLASS.uri(name)}"/>`;
     })
     .join('\n');
 
