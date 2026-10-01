@@ -922,6 +922,9 @@ async function main(): Promise<void> {
     await connection.connect();
     try {
       for (const [kind, argLists] of Object.entries(objects[spec] ?? {})) {
+        // Keys that are not records (SERVICE_BINDING_ODATA) have their own loop
+        // below; RECORDS[kind] would be undefined here.
+        if (!(kind in RECORDS)) continue;
         const record = RECORDS[kind as keyof typeof RECORDS] as {
           uri: (...a: string[]) => string;
         };
