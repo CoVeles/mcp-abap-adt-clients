@@ -7,9 +7,7 @@
  * CONTAINS a path a registry record declares: a literal that merely started
  * with one would miss the sixteen payloads embedding an address
  * (`adtcore:uri="/sap/bc/adt/…"`) and the error messages naming one.
- *
- * `ENFORCED` grows kind by kind while the modules move over; the last task of
- * the migration replaces it with every record.
+
  */
 import { execSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -17,38 +15,7 @@ import * as path from 'node:path';
 import * as ts from 'typescript';
 import { RECORDS } from '../../../endpoints/objects';
 
-const ENFORCED: readonly (keyof typeof RECORDS)[] = [
-  'PROGRAM',
-  'PROGRAM_INCLUDE',
-  'CLASS',
-  'CLASS_INCLUDE',
-  'INTERFACE',
-  'FUNCTION_GROUP',
-  'FUNCTION_MODULE',
-  'FUNCTION_INCLUDE',
-  'PACKAGE',
-  'TRANSPORT_REQUEST',
-  'TRANSPORT_REQUEST_LEGACY',
-  'DDL_SOURCE',
-  'DDIC_VIEW',
-  'METADATA_EXTENSION',
-  'ACCESS_CONTROL',
-  'TABLE',
-  'STRUCTURE',
-  'TABLE_TYPE',
-  'DOMAIN',
-  'DATA_ELEMENT',
-  'BEHAVIOR_DEFINITION',
-  'SERVICE_DEFINITION',
-  'SERVICE_BINDING',
-  'TRANSFORMATION',
-  'MESSAGE_CLASS',
-  'FEATURE_TOGGLE',
-  'AUTHORIZATION_FIELD',
-  'ENHANCEMENT',
-  'SCALAR_FUNCTION',
-  'SCALAR_FUNCTION_IMPLEMENTATION',
-];
+const ENFORCED = Object.keys(RECORDS) as (keyof typeof RECORDS)[];
 
 const ROOT = path.resolve(__dirname, '../../../..');
 
