@@ -8,7 +8,8 @@
  * record per kind, with exactly the arguments its address needs, is what keeps
  * a program include, a function include and a class include from being taken
  * for one another — ATC finds a function include under its group and not under
- * `/programs/includes/`, measured on E19 and the trial (2026-10-01).
+ * `/programs/includes/`, measured on an on-premise and a cloud system
+ * (2026-10-01).
  *
  * Paths are written out in full on purpose: the enforcement test reads every
  * string field of every record and forbids it anywhere else in `src/`.

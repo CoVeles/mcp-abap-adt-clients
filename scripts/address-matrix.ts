@@ -40,7 +40,7 @@ const RESOURCES: Record<
     versions: (u) => versionsUri(sourceUri(u)),
   },
   // ADT's own `rel=versions` link, not what the module built until this branch
-  // (`<include>/versions`, "No suitable resource found" on E19 and the trial).
+  // (`<include>/versions`, "No suitable resource found" on an on-premise and a cloud system).
   FUNCTION_INCLUDE: {
     source: sourceUri,
     versions: (u) => versionsUri(sourceUri(u)),
