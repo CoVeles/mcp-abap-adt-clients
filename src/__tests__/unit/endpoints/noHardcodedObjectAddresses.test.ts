@@ -31,17 +31,17 @@ function declaredPaths(names: readonly (keyof typeof RECORDS)[]): string[] {
 }
 
 /**
- * Whether `text` contains `p` as a whole path: what follows must end the path
- * or start the next segment, so `/programs/programs` does not match
- * `/programs/programrun`.
+ * Whether `text` contains `p` as a whole path: it does unless the segment
+ * carries on, so `/programs/programs` does not match `/programs/programrun`.
  */
 function containsPath(text: string, p: string): boolean {
   let from = 0;
   for (;;) {
     const at = text.indexOf(p, from);
     if (at < 0) return false;
-    const next = text.charAt(at + p.length);
-    if (next === '' || '/?#"\'$`\\ <'.includes(next)) return true;
+    // A match unless the path segment carries on — whatever else follows
+    // (punctuation, a quote, a tag, a newline) ends it.
+    if (!/[A-Za-z0-9_-]/.test(text.charAt(at + p.length))) return true;
     from = at + 1;
   }
 }
@@ -93,16 +93,20 @@ function literalsIn(
   return out;
 }
 
-function violations(paths: string[]): string[] {
-  const files = execSync("git ls-files 'src/**/*.ts'", {
-    cwd: ROOT,
-    encoding: 'utf8',
-  })
+/** The source files the check reads: every tracked `.ts` under `src/`. */
+function sourceFiles(): string[] {
+  // `git ls-files src`, filtered here: a `src/**/*.ts` pathspec needs a
+  // directory under src/ and silently skipped src/index.ts and its siblings.
+  return execSync('git ls-files src', { cwd: ROOT, encoding: 'utf8' })
     .trim()
     .split('\n')
-    .filter(
-      (f) => !f.startsWith('src/__tests__/') && !f.startsWith('src/endpoints/'),
-    );
+    .filter((f) => f.endsWith('.ts'));
+}
+
+function violations(paths: string[]): string[] {
+  const files = sourceFiles().filter(
+    (f) => !f.startsWith('src/__tests__/') && !f.startsWith('src/endpoints/'),
+  );
   const found: string[] = [];
   for (const file of files) {
     const text = fs.readFileSync(path.join(ROOT, file), 'utf8');
@@ -140,6 +144,15 @@ describe('containsPath', () => {
         '/sap/bc/adt/programs/programs',
       ),
     ).toBe(true);
+  });
+  it('matches whatever punctuation follows, not only a listed few', () => {
+    const domains = '/sap/bc/adt/ddic/domains';
+    expect(containsPath(`endpoint (${domains}).`, domains)).toBe(true);
+    expect(containsPath(`${domains}, then`, domains)).toBe(true);
+    expect(containsPath(`${domains};`, domains)).toBe(true);
+    expect(containsPath(`${domains}&x`, domains)).toBe(true);
+    expect(containsPath(`<a>${domains}</a>`, domains)).toBe(true);
+    expect(containsPath(`${domains}\n`, domains)).toBe(true);
   });
   it('does not match a longer sibling segment', () => {
     expect(
@@ -194,6 +207,10 @@ describe('every builder lands under a declared path', () => {
 });
 
 describe('object addresses come from src/endpoints/ only', () => {
+  it('reads the files directly under src/ too', () => {
+    expect(sourceFiles()).toContain('src/index.ts');
+  });
+
   it('no enforced path is written anywhere else in src/', () => {
     expect(violations(declaredPaths(ENFORCED))).toEqual([]);
   });

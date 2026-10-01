@@ -6,7 +6,6 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import {
   type EnhancementType,
@@ -33,8 +32,7 @@ export async function checkEnhancement(
     source_code,
   } = params;
 
-  const encodedName = encodeSapObjectName(enhancement_name).toLowerCase();
-  const objectUri = getEnhancementUri(enhancement_type, encodedName);
+  const objectUri = getEnhancementUri(enhancement_type, enhancement_name);
   const versionParam = version === 'inactive' ? 'workingArea' : 'active';
 
   // Build check run request

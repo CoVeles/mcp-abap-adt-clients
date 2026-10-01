@@ -7,7 +7,6 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import { type EnhancementType, getEnhancementUri } from './types';
 
@@ -25,9 +24,8 @@ export async function lockEnhancement(
   enhancementType: EnhancementType,
   enhancementName: string,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(enhancementName).toLowerCase();
   return connection.makeAdtRequest({
-    url: `${getEnhancementUri(enhancementType, encodedName)}?_action=LOCK&accessMode=MODIFY`,
+    url: `${getEnhancementUri(enhancementType, enhancementName)}?_action=LOCK&accessMode=MODIFY`,
     method: 'POST',
     timeout: getTimeout('default'),
     data: null,

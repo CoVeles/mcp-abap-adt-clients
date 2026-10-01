@@ -12,7 +12,6 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import { getEnhancementUri, type IDeleteEnhancementParams } from './types';
 
@@ -29,8 +28,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { enhancement_name, enhancement_type } = params;
 
-  const encodedName = encodeSapObjectName(enhancement_name);
-  const objectUri = getEnhancementUri(enhancement_type, encodedName);
+  const objectUri = getEnhancementUri(enhancement_type, enhancement_name);
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -66,8 +64,7 @@ export async function deleteEnhancement(
 ): Promise<IAdtWireResponse> {
   const { enhancement_name, enhancement_type, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(enhancement_name);
-  const objectUri = getEnhancementUri(enhancement_type, encodedName);
+  const objectUri = getEnhancementUri(enhancement_type, enhancement_name);
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 
