@@ -44,6 +44,11 @@ DEBUG_TESTS=true npm test -- integration/class 2>&1 | tee test-run.log   # With 
 DEBUG_ADT_TESTS=true npm test -- integration/view 2>&1 | tee test-run.log # With ADT operation logs
 VERIFY_LOCK_RELEASED=false npm test 2>&1 | tee test-run.log   # Skip the second-session proof that each UNLOCK released its lock (on by default; one extra logon per check)
 
+# Ask SAP directly: one request to several systems, every answer printed whole
+# (status, headers, body). Targets are session files under ~/.config/mcp-abap-adt/sessions/;
+# the system kind is stated (:onprem|:cloud|:legacy or SAP_SYSTEM_TYPE), never inferred.
+npx ts-node scripts/adt-nc.ts --to e19-tunnel --to trial:cloud GET /sap/bc/adt/programs/programs/rsparam -H 'Accept: application/vnd.sap.adt.programs.programs.v2+xml'
+
 # Type-check tests without running
 npm run test:check              # All test tsconfigs
 npm run test:check:integration  # Integration tests only (runs as pretest)
