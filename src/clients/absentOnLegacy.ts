@@ -35,6 +35,9 @@ function membersOf(implementation: abstract new (...args: never[]) => unknown) {
  * handler of the type, each answering a refusal. Every member of the handlers
  * this is used for is asynchronous and answers an `IAdtResponse`, so the
  * refusal takes the same shape the modern member would answer with.
+ *
+ * `objectType` must be that handler's `objectType` value: it is also the one
+ * data member the handlers declare, and the test compares the two.
  */
 export function absentOnLegacy<T>(
   implementation: abstract new (...args: never[]) => unknown,
@@ -50,9 +53,13 @@ export function absentOnLegacy<T>(
       'ADT discovery catalog (/sap/bc/adt/discovery). ' +
       "This typically means the system's BASIS version is too old.",
   };
-  const handler: Record<string, () => Promise<IAdtResponse<never>>> = {};
+  const handler: Record<string, unknown> = {};
   for (const name of membersOf(implementation)) {
-    handler[name] = async () => failed<never>(refusal);
+    handler[name] = async (): Promise<IAdtResponse<never>> =>
+      failed<never>(refusal);
   }
+  // The one data member the handlers declare. `objectType` is the modern
+  // handler's own value, so a caller reading it gets what it would get there.
+  handler.objectType = objectType;
   return handler as T;
 }

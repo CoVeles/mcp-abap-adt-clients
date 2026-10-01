@@ -81,6 +81,15 @@ describe('AdtClientLegacy: object types absent on legacy', () => {
     expect(() => handlerOf(legacy, getter)).not.toThrow();
   });
 
+  it.each(absent)("%s carries the modern handler's objectType", (getter) => {
+    const legacyType = (handlerOf(legacy, getter) as { objectType?: unknown })
+      .objectType;
+    expect(typeof legacyType).toBe('string');
+    expect(legacyType).toBe(
+      (handlerOf(modern, getter) as { objectType?: unknown }).objectType,
+    );
+  });
+
   it.each(absent)('%s offers every member the modern handler has', (getter) => {
     expect(membersOf(handlerOf(legacy, getter))).toEqual(
       membersOf(handlerOf(modern, getter)),
