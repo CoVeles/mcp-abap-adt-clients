@@ -109,9 +109,12 @@ import { type ITransportResults, transportDocuments } from '../core/transport';
 import { AdtRequestLegacy } from '../core/transport/AdtRequestLegacy';
 import {
   ACCESS_CONTROL,
+  BEHAVIOR_DEFINITION,
   DATA_ELEMENT,
   DOMAIN,
   METADATA_EXTENSION,
+  SERVICE_BINDING,
+  SERVICE_DEFINITION,
   STRUCTURE,
   TABLE,
   TABLE_TYPE,
@@ -347,7 +350,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtServiceDefinition<R>>(
       AdtServiceDefinition,
       'ServiceDefinition',
-      '/sap/bc/adt/ddic/srvd/sources',
+      SERVICE_DEFINITION.collection,
     );
   }
 
@@ -357,7 +360,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtServiceBinding<R>>(
       AdtServiceBinding,
       'ServiceBinding',
-      '/sap/bc/adt/businessservices/bindings',
+      SERVICE_BINDING.collection,
     );
   }
 
@@ -367,7 +370,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtBehaviorDefinition<R>>(
       AdtBehaviorDefinition,
       'BehaviorDefinition',
-      '/sap/bc/adt/bo/behaviordefinitions',
+      BEHAVIOR_DEFINITION.collection,
     );
   }
 
@@ -377,7 +380,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtBehaviorImplementation<R>>(
       AdtBehaviorImplementation,
       'BehaviorImplementation',
-      '/sap/bc/adt/bo/behaviordefinitions',
+      BEHAVIOR_DEFINITION.collection,
     );
   }
 

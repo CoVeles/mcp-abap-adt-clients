@@ -94,9 +94,14 @@ describe('records', () => {
     expect(SERVICE_BINDING.unpublishJobs('odatav4')).toBe(
       '/sap/bc/adt/businessservices/odatav4/unpublishjobs',
     );
-    // Uppercase until Task 3 measures otherwise.
+    // As given: one caller uppercases a binding name, the other passes an
+    // object name through, and neither case was measured, so the builder
+    // changes neither.
     expect(SERVICE_BINDING.odataService('odatav2', 'zui_svc')).toBe(
-      '/sap/bc/adt/businessservices/odatav2/ZUI_SVC',
+      '/sap/bc/adt/businessservices/odatav2/zui_svc',
+    );
+    expect(SERVICE_BINDING.odataService('odatav4', 'ZUI_SVC')).toBe(
+      '/sap/bc/adt/businessservices/odatav4/ZUI_SVC',
     );
   });
   it('feature toggle tails', () => {

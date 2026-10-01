@@ -12,8 +12,12 @@ import {
   ACCEPT_TRANSPORT,
   CT_BEHAVIOR_DEFINITION,
 } from '../../constants/contentTypes';
+import {
+  BEHAVIOR_DEFINITION,
+  sourceUri,
+  transportUri,
+} from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IReadOptions } from '../shared/types';
 
@@ -43,7 +47,7 @@ export async function read(
   logger?: ILogger,
 ): Promise<IAdtWireResponse> {
   const query = options?.withLongPolling ? `&withLongPolling=true` : '';
-  const url = `/sap/bc/adt/bo/behaviordefinitions/${encodeSapObjectName(name).toLowerCase()}?version=${version}${query}`;
+  const url = `${BEHAVIOR_DEFINITION.uri(name)}?version=${version}${query}`;
 
   const headers = {
     Accept: options?.accept ?? CT_BEHAVIOR_DEFINITION,
@@ -86,7 +90,7 @@ export async function readSource(
   logger?: ILogger,
 ): Promise<IAdtWireResponse> {
   const query = options?.withLongPolling ? `&withLongPolling=true` : '';
-  const url = `/sap/bc/adt/bo/behaviordefinitions/${encodeSapObjectName(name).toLowerCase()}/source/main?version=${version}${query}`;
+  const url = `${sourceUri(BEHAVIOR_DEFINITION.uri(name))}?version=${version}${query}`;
 
   const headers = {
     Accept: options?.accept ?? ACCEPT_SOURCE,
@@ -116,7 +120,7 @@ export async function getBehaviorDefinitionTransport(
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
   const query = options?.withLongPolling ? '?withLongPolling=true' : '';
-  const url = `/sap/bc/adt/bo/behaviordefinitions/${encodeSapObjectName(name).toLowerCase()}/transport${query}`;
+  const url = `${transportUri(BEHAVIOR_DEFINITION.uri(name))}${query}`;
 
   const headers = {
     Accept: options?.accept ?? ACCEPT_TRANSPORT,

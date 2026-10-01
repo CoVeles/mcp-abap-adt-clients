@@ -27,6 +27,7 @@ import {
   CT_ATC_WORKLIST_CREATE,
 } from '../../constants/contentTypes';
 import {
+  BEHAVIOR_DEFINITION,
   CLASS,
   DDL_SOURCE,
   FUNCTION_GROUP,
@@ -60,7 +61,7 @@ const URI_TEMPLATES: Partial<Record<AtcObjectType, string>> = {
   package: `${PACKAGE.collection}/`,
   ddl_source: `${DDL_SOURCE.collection}/`,
   table: `${TABLE.collection}/`,
-  behavior_definition: '/sap/bc/adt/bo/behaviordefinitions/',
+  behavior_definition: `${BEHAVIOR_DEFINITION.collection}/`,
 };
 
 /**

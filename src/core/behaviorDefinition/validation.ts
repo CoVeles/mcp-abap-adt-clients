@@ -3,6 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { BEHAVIOR_DEFINITION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IBehaviorDefinitionValidationParams } from './types';
 
@@ -49,7 +50,7 @@ export async function validate(
     implementationType: params.implementationType,
   });
 
-  const url = `/sap/bc/adt/bo/behaviordefinitions/validation?${queryParams.toString()}`;
+  const url = `${BEHAVIOR_DEFINITION.validation}?${queryParams.toString()}`;
 
   const response = await connection.makeAdtRequest({
     url,

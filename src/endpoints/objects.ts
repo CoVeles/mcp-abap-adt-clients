@@ -173,12 +173,12 @@ export const SERVICE_BINDING = {
   unpublishJobs: (type: ODataServiceType) =>
     `/sap/bc/adt/businessservices/${type}/unpublishjobs`,
   /**
-   * The published OData service a binding exposes. Sent uppercase, as the
-   * module has always sent it, until Task 3 measures both cases agree — then
-   * Task 3 Step 4 may switch it to `seg`.
+   * The published OData service a binding exposes. The name goes in as given:
+   * one caller uppercases a binding name, the other passes an object name
+   * through, and neither case was measured.
    */
   odataService: (type: ODataServiceType, name: string) =>
-    `/sap/bc/adt/businessservices/${type}/${encodeURIComponent(name.toUpperCase())}`,
+    `/sap/bc/adt/businessservices/${type}/${encodeURIComponent(name)}`,
 } as const;
 
 export const ACCESS_CONTROL = {

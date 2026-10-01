@@ -2,7 +2,11 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import {
+  BEHAVIOR_DEFINITION,
+  sourceUri,
+  versionsUri,
+} from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IBehaviorDefinitionConfig } from './types';
 
@@ -21,9 +25,8 @@ export async function getBehaviorDefinitionVersions(
   connection: IAbapConnection,
   config: Partial<IBehaviorDefinitionConfig>,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(config.name as string).toLowerCase();
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/bo/behaviordefinitions/${encodedName}/source/main/versions`,
+    url: `${versionsUri(sourceUri(BEHAVIOR_DEFINITION.uri(config.name as string)))}`,
     method: 'GET',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_VERSION_FEED },

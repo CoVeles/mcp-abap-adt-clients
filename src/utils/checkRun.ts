@@ -22,6 +22,7 @@ import {
   METADATA_EXTENSION,
   PACKAGE,
   PROGRAM,
+  SERVICE_DEFINITION,
   STRUCTURE,
   TABLE,
 } from '../endpoints/objects';
@@ -77,7 +78,7 @@ export function getObjectUri(objectType: string, objectName: string): string {
       return `${PACKAGE.uri(objectName)}`;
     case 'service_definition':
     case 'srvd/srv':
-      return `/sap/bc/adt/ddic/srvd/sources/${encodedName}`;
+      return `${SERVICE_DEFINITION.uri(objectName)}`;
     case 'scalar_function':
     case 'dsfd/scf':
       return `/sap/bc/adt/ddic/dsfd/sources/${encodedName}`;

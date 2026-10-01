@@ -8,6 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_SERVICE_DEFINITION } from '../../constants/contentTypes';
+import { SERVICE_DEFINITION } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateServiceDefinitionParams } from './types';
@@ -20,7 +21,7 @@ export async function create(
   connection: IAbapConnection,
   args: ICreateServiceDefinitionParams,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/ddic/srvd/sources${args.transport_request ? `?corrNr=${args.transport_request}` : ''}`;
+  const url = `${SERVICE_DEFINITION.collection}${args.transport_request ? `?corrNr=${args.transport_request}` : ''}`;
 
   const username = args.responsible || '';
   const masterSystem = args.masterSystem || '';

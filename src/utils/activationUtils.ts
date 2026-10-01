@@ -14,6 +14,7 @@ import { CT_ACTIVATION } from '../constants/contentTypes';
 import { getEnhancementUri } from '../core/enhancement/types';
 import {
   ACCESS_CONTROL,
+  BEHAVIOR_DEFINITION,
   CLASS,
   DATA_ELEMENT,
   DDIC_VIEW,
@@ -27,6 +28,8 @@ import {
   PACKAGE,
   PROGRAM,
   PROGRAM_INCLUDE,
+  SERVICE_BINDING,
+  SERVICE_DEFINITION,
   STRUCTURE,
   TABLE,
   TABLE_TYPE,
@@ -146,11 +149,11 @@ export function buildObjectUri(
 
     case 'SRVD/SRV':
     case 'SRVD':
-      return `/sap/bc/adt/ddic/srvd/sources/${lowerName}`;
+      return `${SERVICE_DEFINITION.uri(name)}`;
 
     case 'SRVB/SVB':
     case 'SRVB':
-      return `/sap/bc/adt/businessservices/bindings/${lowerName}`;
+      return SERVICE_BINDING.uri(name);
 
     case 'DDLX/EX':
     case 'DDLX':
@@ -163,7 +166,7 @@ export function buildObjectUri(
       // until #173: SAP resolved that to nothing and answered
       // `activationExecuted="false"` with no message, so a group activation
       // reported success and left the behavior definition inactive.
-      return `/sap/bc/adt/bo/behaviordefinitions/${lowerName}`;
+      return `${BEHAVIOR_DEFINITION.uri(name)}`;
 
     case 'DCLS/DL':
     case 'DCLS':
