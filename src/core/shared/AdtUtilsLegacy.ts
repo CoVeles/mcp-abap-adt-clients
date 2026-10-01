@@ -49,8 +49,8 @@ export class AdtUtilsLegacy<
    * Legacy systems use synchronous /sap/bc/adt/activation. A success answers
    * `200` with an empty body, not a checklist: BASIS 7.40 activated six objects
    * that way, and only `/activation/inactiveobjects` afterwards said so
-   * (measured on premise, 2026-10-01; ERRATA "On BASIS 7.40 a group activation
-   * answers an empty 200").
+   * (measured on premise, 2026-10-01; docs/architecture/LEGACY.md, "Measured
+   * on BASIS 7.40").
    *
    * Read through the same `activation` slot as the modern run. The default keeps
    * the document, which here is the result itself; `utilActivationRunId` would

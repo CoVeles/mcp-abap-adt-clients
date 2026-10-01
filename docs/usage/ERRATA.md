@@ -183,7 +183,7 @@ activated, published and unpublished.
   lock without a handle (`''`), you publish, and you send no UNLOCK. Every other
   refusal stays one. If the `403` should stop you, pass `analyseException`
   instead. See
-  [below](#a-403-on-the-lock-before-a-publication-is-not-a-refusal).
+  [below](#a-service-binding-is-locked-to-publish-it).
 - **"Service Binding … does not exist" on a publish** — inside a `200` — means
   the binding is not active yet; a binding just created has only an inactive
   version. `activate()` it, then publish. See
@@ -232,50 +232,43 @@ Sessions and locks
 2. [The session-type header is per request](#the-session-type-header-is-per-request)
 3. [A class include is written under the class lock](#a-class-include-is-written-under-the-class-lock)
 4. [A service binding is locked to publish it](#a-service-binding-is-locked-to-publish-it)
-5. [A 403 on the LOCK before a publication is not a refusal](#a-403-on-the-lock-before-a-publication-is-not-a-refusal)
-6. [A binding publishes only once it is active](#a-binding-publishes-only-once-it-is-active)
-7. [An unpublish straight after a publish is refused](#an-unpublish-straight-after-a-publish-is-refused)
-8. [A V2 publication job resolves the service by name and version](#a-v2-publication-job-resolves-the-service-by-name-and-version)
+5. [A binding publishes only once it is active](#a-binding-publishes-only-once-it-is-active)
+6. [An unpublish straight after a publish is refused](#an-unpublish-straight-after-a-publish-is-refused)
+7. [A V2 publication job resolves the service by name and version](#a-v2-publication-job-resolves-the-service-by-name-and-version)
 
 Reading answers
 
-9. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
-10. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
-11. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
-12. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
-13. [A validation answers a taken name inside a 200](#a-validation-answers-a-taken-name-inside-a-200)
-14. [A deletion check that says no is not a failure](#a-deletion-check-that-says-no-is-not-a-failure)
-15. ["No URI-Mapping defined for URI" inside a 200](#no-uri-mapping-defined-for-uri-inside-a-200)
-16. [A package walk lists a binding's generated objects](#a-package-walk-lists-a-bindings-generated-objects)
-17. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
+8. [A refusal can arrive with a 2xx, and an error status names the fix](#a-refusal-can-arrive-with-a-2xx-and-an-error-status-names-the-fix)
+9. [A read answers 200 with an empty body instead of 404](#a-read-answers-200-with-an-empty-body-instead-of-404)
+10. [A successful delete can carry an untyped message](#a-successful-delete-can-carry-an-untyped-message)
+11. [A function module's source answers 500 for a module that does not exist](#a-function-modules-source-answers-500-for-a-module-that-does-not-exist)
+12. [A validation answers a taken name inside a 200](#a-validation-answers-a-taken-name-inside-a-200)
+13. [A deletion check that says no is not a failure](#a-deletion-check-that-says-no-is-not-a-failure)
+14. ["No URI-Mapping defined for URI" inside a 200](#no-uri-mapping-defined-for-uri-inside-a-200)
+15. [A package walk lists a binding's generated objects](#a-package-walk-lists-a-bindings-generated-objects)
+16. [S_ABPLNGVS refuses a create into a package that does not exist](#s_abplngvs-refuses-a-create-into-a-package-that-does-not-exist)
 
 Creating and checking objects
 
-18. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
-19. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
-20. [An object created without a package cannot be deleted](#an-object-created-without-a-package-cannot-be-deleted)
-21. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
+17. [What a bare create leaves depends on the type](#what-a-bare-create-leaves-depends-on-the-type)
+18. [An empty responsible person is refused as "Check of condition failed"](#an-empty-responsible-person-is-refused-as-check-of-condition-failed)
+19. [An object created without a package cannot be deleted](#an-object-created-without-a-package-cannot-be-deleted)
+20. [A check run compiles source for objects that do not exist](#a-check-run-compiles-source-for-objects-that-do-not-exist)
 
 Activation
 
-22. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
-23. [Activation settles inside the POST](#activation-settles-inside-the-post)
+21. [activationExecuted false is not a failure](#activationexecuted-false-is-not-a-failure)
+22. [Activation settles inside the POST](#activation-settles-inside-the-post)
 
 Transports
 
-24. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
-25. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
-26. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
+23. [The transport list is a saved-configuration search](#the-transport-list-is-a-saved-configuration-search)
+24. [The transport tree has no fixed nesting](#the-transport-tree-has-no-fixed-nesting)
+25. [A hand-made task is Unclassified and refuses objects](#a-hand-made-task-is-unclassified-and-refuses-objects)
 
 ATC
 
-27. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
-
-Legacy (BASIS 7.40)
-
-28. [On BASIS 7.40 a lock over HTTP holds nothing](#on-basis-740-a-lock-over-http-holds-nothing)
-29. [On BASIS 7.40 the inactive-objects list is another document](#on-basis-740-the-inactive-objects-list-is-another-document)
-30. [On BASIS 7.40 a group activation answers an empty 200](#on-basis-740-a-group-activation-answers-an-empty-200)
+26. [ATC takes its check variant from customizing](#atc-takes-its-check-variant-from-customizing)
 
 ---
 
@@ -512,14 +505,16 @@ publish job finishes. An open Eclipse editor on the binding holds the lock for
 the same user from a different session.
 
 **Rule.** The lock spans an editing session. From elsewhere, a held lock looks
-like a 403; it is usually someone's open Eclipse, not a leaked lock. A `403` on
-your own LOCK before a publish or unpublish is its own case — see
-[A 403 on the LOCK before a publication is not a refusal](#a-403-on-the-lock-before-a-publication-is-not-a-refusal).
+like a 403; it is usually someone's open Eclipse, not a leaked lock. Eclipse
+itself meets a `403` on its own LOCK when its editor already holds the binding,
+and posts the job anyway: the job does not need the caller's lock.
 
 **Workaround.** For a library there is no editor, so the edit is the operation:
 `lock()`, `update()` with the desired publication state, `unlock()` in a
-`finally` — and for the `403` on that `lock()`, see
-[A 403 on the LOCK before a publication is not a refusal](#a-403-on-the-lock-before-a-publication-is-not-a-refusal). The publish job took about 133 seconds on the systems measured,
+`finally`. Pass `analysePublicationLock` to the `lock()`: a `403` then answers
+a lock without a handle (`''`), the publication goes ahead, and there is
+nothing to unlock. A caller who wants the `403` to stop them passes
+`analyseException` instead. The publish job took about 133 seconds on the systems measured,
 above the 120 s default — pass a larger `timeout`. Read the job's own answer
 (`analysePublication` from `@mcp-abap-adt/adt-strategies` reads its
 `SEVERITY`); nothing needs polling. For a binding locked elsewhere, close the
@@ -537,40 +532,6 @@ sent its own `LOCK` → `403` on the enqueue session and then `POST
 alive with `GET /sap/bc/adt/core/http/sessions`.
 
 **Where it bites.** `getServiceBinding()`: `lock`, `update`, `delete`.
-
----
-
-## A 403 on the LOCK before a publication is not a refusal
-
-**Symptom.** `_action=LOCK` on a service binding, sent before a publish or an
-unpublish, answers `403 ExceptionResourceNoAccess`, *"User … is currently
-editing <SERVICE_BINDING>"*.
-
-**Cause.** An editing session holds the binding — usually an open Eclipse
-editor, which keeps its lock after a publication until the editor closes (see
-[A service binding is locked to publish it](#a-service-binding-is-locked-to-publish-it)).
-The publication job does not run under the caller's lock and does not need it.
-
-**Rule.** This `403` is neither an error nor a success: it says someone holds
-the binding, not that the publication is refused. Eclipse ADT meets it on its
-own LOCK and posts the job anyway. Every other refusal on the LOCK stays a
-refusal.
-
-**Workaround.** The choice is the caller's, made at the call site. Pass
-`analysePublicationLock` from `@mcp-abap-adt/adt-strategies` to `lock()`: the
-`403` then answers a lock without a handle (`''`), you post the publication
-job, and you send no UNLOCK — there is nothing of yours to release. A caller
-who wants the `403` to stop them passes `analyseException` instead; choosing
-differently from Eclipse belongs in a comment at the call site.
-
-**Evidence.** Eclipse ADT 3.60.3 against the BTP trial, 2026-09-05: a second
-`LOCK` before the unpublish → `403` while the first was held. Eclipse, cloud
-system, 2026-09-27: after a publish its editor kept the lock; the unpublish that
-followed sent its own `LOCK` → `403` on the enqueue session and then `POST
-…/unpublishjobs` → `200`, 132 s.
-
-**Where it bites.** `getServiceBinding()`: `lock` before a publish or an
-unpublish.
 
 ---
 
@@ -1378,97 +1339,3 @@ the `406` says *"Accepted content types: application/atc.worklist.v1+xml"*.
 
 **Where it bites.** `AdtRuntimeClient.getAtc()`: `resolveCheckVariant`,
 `getFindings`.
-
----
-
-## On BASIS 7.40 a lock over HTTP holds nothing
-
-**Symptom.** Over HTTP, `LOCK` answers `200` with a `LOCK_HANDLE`, and the very
-next write under that handle answers `423`:
-
-```
-POST {object}?_action=LOCK&accessMode=MODIFY   -> 200, <LOCK_HANDLE>...</LOCK_HANDLE>
-PUT  {object}/source/main?lockHandle=...       -> 423 "Resource ... is not locked (invalid lock handle: ...)"
-```
-
-**Cause.** The lock does not outlive the `LOCK` request. The answer sets no
-`sap-contextid` cookie — with the `x-sap-adt-sessiontype: stateful` header or
-without it — so there is no stateful context for a later request to reach.
-
-**Rule.** On BASIS 7.40 nothing can be written under a lock over HTTP — no
-update of source or metadata. No session shape the client chooses changes it: no header; the header on `LOCK`/`UNLOCK` only, writes outside the
-context; the header and the full cookie jar on every request — all three end in
-the same `423`.
-
-**Workaround.** Update over RFC (`SADT_REST_RFC_ENDPOINT`, see
-[RFC_CONNECTION.md](RFC_CONNECTION.md)): there `LOCK` → `PUT` → `PUT` →
-`UNLOCK` answers `200` four times on the same system.
-
-**Evidence.** On premise, BASIS 7.40, 2026-10-01: the three shapes above on one
-existing program, raw requests, cookie names recorded per exchange — no
-`sap-contextid` set at any point, `423` on every `PUT`. Over RFC on the same
-system: create → lock → two writes → unlock → activate → delete, all accepted.
-
-**Where it bites.** Every `update` and source write of an `AdtClientLegacy`
-object over an HTTP connection.
-
----
-
-## On BASIS 7.40 the inactive-objects list is another document
-
-**Symptom.** `/sap/bc/adt/activation/inactiveobjects` answers `200`, and a
-reading written for `ioc:inactiveObjects` finds nothing in it.
-
-**Cause.** BASIS 7.40 answers the older document, whatever `Accept` asked for: a
-flat `adtcore:objectReferences`, one `adtcore:objectReference` per object with
-`adtcore:uri`, `adtcore:type`, `adtcore:name` — a function module carrying its
-group as `adtcore:parentUri`, a class or program its `adtcore:packageName`.
-
-```xml
-<adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">
-  <adtcore:objectReference adtcore:uri="/sap/bc/adt/functions/groups/<group>"
-      adtcore:type="FUGR/F" adtcore:name="<GROUP>"/>
-  <adtcore:objectReference adtcore:uri="/sap/bc/adt/functions/groups/<group>/fmodules/<module>"
-      adtcore:type="FUGR/FF" adtcore:name="<MODULE>"
-      adtcore:parentUri="/sap/bc/adt/functions/groups/<group>"/>
-</adtcore:objectReferences>
-```
-
-**Rule.** Read both documents. A reading that finds neither root has not been
-told "nothing is inactive" — it has been told something it does not know.
-
-**Workaround.** `getInactiveObjects()` keeps the document (`inactive:
-rawDocument`); the reading is yours. Refuse an unrecognised root rather than
-answer an empty list — an activation confirmed off that empty list is confirmed
-over objects that are still inactive.
-
-**Evidence.** On premise, BASIS 7.40, 2026-10-01: eight objects just created and
-not activated came back in the document above; a reading of
-`ioc:inactiveObjects` answered `count: 0` over them.
-
-**Where it bites.** `getUtils().getInactiveObjects()` on a legacy system, and
-everything that confirms an activation off it.
-
----
-
-## On BASIS 7.40 a group activation answers an empty 200
-
-**Symptom.** `activateObjectsGroup()` on `AdtClientLegacy` answers `200` with
-zero bytes: no checklist, no messages, no run id.
-
-**Cause.** The legacy endpoint is the synchronous `POST
-/sap/bc/adt/activation?method=activate`; there is no `/activation/runs`, and a
-success is reported by the absence of a document.
-
-**Rule.** An empty `200` is not a refusal and not a confirmation. As on a modern
-system ([Activation settles inside the POST](#activation-settles-inside-the-post)),
-acceptance is not "active now".
-
-**Workaround.** Read `getInactiveObjects()` afterwards (see the entry above for
-its document on this release): the objects no longer listed activated.
-
-**Evidence.** On premise, BASIS 7.40, 2026-10-01: a group of six — two classes,
-two function groups, two function modules — answered `200`, empty; the
-inactive-objects list read straight after named none of them.
-
-**Where it bites.** `AdtUtilsLegacy.activateObjectsGroup`.

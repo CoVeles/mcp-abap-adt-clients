@@ -10,7 +10,7 @@ System detection is automatic: `createAdtClient()` asks `/sap/bc/adt/core/discov
 
 Legacy systems do not support the `x-sap-adt-sessiontype: stateful` HTTP header (introduced in BASIS 7.50). Without stateful sessions, lock handles are lost between HTTP requests — making updates, which are written under a lock, impossible. Create and delete need no lock.
 
-Measured on premise, BASIS 7.40, 2026-10-01, three session shapes over HTTP: no header at all; the header on `LOCK`/`UNLOCK` only; the header and the context cookie on every request. In each, `LOCK` answers `200` with a `LOCK_HANDLE` but sets no `sap-contextid`, and the next `PUT` under that handle answers `423` "Resource … is not locked (invalid lock handle: …)". No session shape a client chooses changes it: **over HTTP a legacy system cannot update an object, and updates go over RFC.** See [ERRATA](../usage/ERRATA.md#on-basis-740-a-lock-over-http-holds-nothing).
+Measured on premise, BASIS 7.40, 2026-10-01, three session shapes over HTTP: no header at all; the header on `LOCK`/`UNLOCK` only; the header and the context cookie on every request. In each, `LOCK` answers `200` with a `LOCK_HANDLE` but sets no `sap-contextid`, and the next `PUT` under that handle answers `423` "Resource … is not locked (invalid lock handle: …)". No session shape a client chooses changes it: **over HTTP a legacy system cannot update an object, and updates go over RFC.** See [Measured on BASIS 7.40](#measured-on-basis-740).
 
 **RFC transport** solves this by using SAP's `SADT_REST_RFC_ENDPOINT` function module (the same mechanism Eclipse ADT uses via JCo). RFC connections are inherently stateful — one ABAP session per connection — so lock handles persist across calls.
 
@@ -125,7 +125,7 @@ answered there.
 | Inactive objects | `getInactiveObjects()` | `/sap/bc/adt/activation/inactiveobjects` |
 | Discovery | `getDiscovery()` | `/sap/bc/adt/discovery` |
 | Single activation | (used internally) | `POST /sap/bc/adt/activation?method=activate` |
-| Group activation | `activateObjectsGroup()` (`AdtUtilsLegacy`) | `POST /sap/bc/adt/activation?method=activate` — synchronous, no `/activation/runs`; a success answers `200` with an empty body ([ERRATA](../usage/ERRATA.md#on-basis-740-a-group-activation-answers-an-empty-200)) |
+| Group activation | `activateObjectsGroup()` (`AdtUtilsLegacy`) | `POST /sap/bc/adt/activation?method=activate` — synchronous, no `/activation/runs`; a success answers `200` with an empty body ([Measured on BASIS 7.40](#measured-on-basis-740)) |
 | Check runs | (used internally) | `/sap/bc/adt/checkruns` |
 
 ### Not available on legacy
@@ -167,6 +167,30 @@ These validation endpoints **are not** present:
 | `/sap/bc/adt/ddic/tables/validation` | Table validation |
 | `/sap/bc/adt/ddic/structures/validation` | Structure validation |
 | `/sap/bc/adt/ddic/tabletypes/validation` | TableType validation |
+
+## Measured on BASIS 7.40
+
+On premise, BASIS 7.40, 2026-10-01, over RFC and over HTTP.
+
+- **No update over HTTP.** In three session shapes — no `x-sap-adt-sessiontype`
+  header; the header on `LOCK`/`UNLOCK` only; the header and the full cookie jar
+  on every request — `LOCK` answered `200` with a `LOCK_HANDLE` and set no
+  `sap-contextid`, and the next `PUT` under that handle answered `423`
+  "Resource … is not locked (invalid lock handle: …)". Over RFC on the same
+  system create → lock → two writes → unlock → activate → delete were all
+  accepted.
+- **`/sap/bc/adt/activation/inactiveobjects` answers the older document**, a flat
+  `adtcore:objectReferences` with one `adtcore:objectReference` per object
+  (`adtcore:uri`, `adtcore:type`, `adtcore:name`; a function module carries its
+  group as `adtcore:parentUri`), not `ioc:inactiveObjects`. `getInactiveObjects()`
+  keeps the document (`inactive: rawDocument`); a reading of the newer shape
+  alone answers an empty list over objects that are inactive.
+- **A group activation answers `200` with an empty body on success** — no
+  checklist, no messages, no run id. Six objects activated that way; the
+  inactive-objects list read afterwards named none of them.
+- **`/sap/bc/adt/core/discovery`** answers `404` "No application class found
+  for URI" over RFC and `200 text/html`, empty, over HTTP — see
+  [Overview](#overview).
 
 ## Content Type Versioning
 
