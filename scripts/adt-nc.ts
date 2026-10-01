@@ -314,8 +314,9 @@ async function exchange(
   const ms = Date.now() - started;
   if (tlsBefore === undefined) delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
   else process.env.NODE_TLS_REJECT_UNAUTHORIZED = tlsBefore;
-  // Logoff is dispatched, not awaited for its goodbye — the next target does
-  // not wait on this one's session ending.
+  // The logoff is dispatched and its answer not awaited: the next target does
+  // not wait on this one's session ending — when the server frees it is the
+  // server's affair.
   void Promise.resolve(connection.disconnect?.()).catch(() => undefined);
   return {
     text: render(target, request, answer, ms),
@@ -338,8 +339,11 @@ async function main(): Promise<void> {
   if (targets.length > 1) process.stdout.write(`--- ${summary.join(' | ')}\n`);
 }
 
+// No process.exit() on success: the logoffs are dispatched without waiting for
+// their answer, and exiting at once could cut one before it leaves the process.
+// Node ends on its own once they are sent.
 main().then(
-  () => process.exit(0),
+  () => undefined,
   (error: unknown) =>
     fail(error instanceof Error ? error.message : String(error)),
 );
