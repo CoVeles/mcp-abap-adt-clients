@@ -6,7 +6,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { TRANSPORT_REQUEST } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -16,8 +16,7 @@ export async function getTransport(
   connection: IAbapConnection,
   transportNumber: string,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(transportNumber);
-  const url = `/sap/bc/adt/cts/transportrequests/${encodedName}`;
+  const url = `${TRANSPORT_REQUEST.uri(transportNumber)}`;
 
   return connection.makeAdtRequest({
     url,

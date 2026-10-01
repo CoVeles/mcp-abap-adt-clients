@@ -18,6 +18,7 @@ import {
   FUNCTION_INCLUDE,
   FUNCTION_MODULE,
   INTERFACE,
+  PACKAGE,
   PROGRAM,
   PROGRAM_INCLUDE,
 } from '../endpoints/objects';
@@ -61,7 +62,7 @@ export function buildObjectUri(
     // package CRUD worked while the group operations did not.
     case 'DEVC/K':
     case 'DEVC':
-      return `/sap/bc/adt/packages/${lowerName}`;
+      return `${PACKAGE.uri(name)}`;
 
     case 'CLAS/OC':
     case 'CLAS':

@@ -242,7 +242,13 @@ export const SCALAR_FUNCTION_IMPLEMENTATION = {
 
 export const TRANSPORT_REQUEST = {
   collection: '/sap/bc/adt/cts/transportrequests',
-  uri: (number: string) => `/sap/bc/adt/cts/transportrequests/${seg(number)}`,
+  /**
+   * Not `seg`: a request number is case-sensitive in the address — as given it
+   * answers 200, lowercased 404, on an on-premise and a cloud system alike
+   * (2026-10-01).
+   */
+  uri: (number: string) =>
+    `/sap/bc/adt/cts/transportrequests/${encodeURIComponent(number)}`,
 } as const;
 
 /**

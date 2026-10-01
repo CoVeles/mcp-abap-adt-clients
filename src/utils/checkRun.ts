@@ -15,6 +15,7 @@ import {
   FUNCTION_GROUP,
   FUNCTION_MODULE,
   INTERFACE,
+  PACKAGE,
   PROGRAM,
 } from '../endpoints/objects';
 import { encodeSapObjectName } from './internalUtils';
@@ -66,7 +67,7 @@ export function getObjectUri(objectType: string, objectName: string): string {
       return `/sap/bc/adt/ddic/dataelements/${encodedName}`;
     case 'package':
     case 'devc/k':
-      return `/sap/bc/adt/packages/${encodedName}`;
+      return `${PACKAGE.uri(objectName)}`;
     case 'service_definition':
     case 'srvd/srv':
       return `/sap/bc/adt/ddic/srvd/sources/${encodedName}`;

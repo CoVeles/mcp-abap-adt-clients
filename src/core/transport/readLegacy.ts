@@ -12,6 +12,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
+import { TRANSPORT_REQUEST_LEGACY } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -29,7 +30,7 @@ export async function getTransportLegacy(
   connection: IAbapConnection,
 ): Promise<IAdtWireResponse> {
   return connection.makeAdtRequest({
-    url: '/sap/bc/cts/transportrequests',
+    url: TRANSPORT_REQUEST_LEGACY.collection,
     method: 'GET',
     timeout: getTimeout('default'),
     headers: {},
@@ -45,7 +46,7 @@ export async function listTransportsLegacy(
   connection: IAbapConnection,
 ): Promise<IAdtWireResponse> {
   return connection.makeAdtRequest({
-    url: '/sap/bc/cts/transportrequests',
+    url: TRANSPORT_REQUEST_LEGACY.collection,
     method: 'GET',
     timeout: getTimeout('default'),
     headers: {},

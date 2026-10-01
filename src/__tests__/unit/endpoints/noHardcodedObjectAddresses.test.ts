@@ -26,6 +26,9 @@ const ENFORCED: readonly (keyof typeof RECORDS)[] = [
   'FUNCTION_GROUP',
   'FUNCTION_MODULE',
   'FUNCTION_INCLUDE',
+  'PACKAGE',
+  'TRANSPORT_REQUEST',
+  'TRANSPORT_REQUEST_LEGACY',
 ];
 
 const ROOT = path.resolve(__dirname, '../../../..');

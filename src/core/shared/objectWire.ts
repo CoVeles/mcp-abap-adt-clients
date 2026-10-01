@@ -41,6 +41,7 @@ import {
   FUNCTION_GROUP,
   FUNCTION_MODULE,
   INTERFACE,
+  PACKAGE,
   PROGRAM,
   sourceUri,
 } from '../../endpoints/objects';
@@ -171,7 +172,7 @@ export function getObjectMetadataUri(
       return `${FUNCTION_GROUP.uri(objectName)}`;
     case 'package':
     case 'devc/k':
-      return `/sap/bc/adt/packages/${encodedName}`;
+      return `${PACKAGE.uri(objectName)}`;
     default:
       throw new Error(`Unsupported object type for metadata: ${objectType}`);
   }
