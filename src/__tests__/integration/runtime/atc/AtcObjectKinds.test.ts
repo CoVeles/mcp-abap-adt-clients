@@ -32,6 +32,8 @@ import type {
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import * as dotenv from 'dotenv';
 import { AdtAtc, atcDocuments } from '../../../../runtime/atc/AdtAtc';
+import { buildAtcObjectUri } from '../../../../runtime/atc/run';
+import { findingsOutside } from '../../../helpers/atcFindings';
 import { expectResult } from '../../../helpers/contract';
 import {
   createTestConnection,
@@ -111,13 +113,6 @@ function listedObjects(worklist: string): string[] {
   });
 }
 
-/** Where each finding of a worklist points. */
-function findingLocations(worklist: string): string[] {
-  return [...worklist.matchAll(/atcfinding:location="([^"]*)"/g)].map(
-    (m) => m[1],
-  );
-}
-
 describe('ATC over programs and every kind of include', () => {
   let connection: IAbapConnection & ISessionLifecycleAware;
   let hasConfig = false;
@@ -194,10 +189,7 @@ describe('ATC over programs and every kind of include', () => {
             `${c.ownerType} ${c.ownerName}`,
           );
           if (c.findingsOutside) {
-            const sent = `/${encodeURIComponent(c.ref.objectName.toLowerCase())}/`;
-            const outside = findingLocations(worklist).filter(
-              (l) => !l.toLowerCase().includes(sent),
-            );
+            const outside = findingsOutside(worklist, buildAtcObjectUri(c.ref));
             expect(outside.length).toBeGreaterThan(0);
           }
         }
