@@ -15,6 +15,26 @@ and fires its release workflow.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-02
+
+### Changed
+
+- **`@mcp-abap-adt/interfaces-adt` is `^12.0.0`**, the same range
+  `@mcp-abap-adt/adt-clients` declares. With `^11.0.0` here and `^12.0.0` there
+  npm installed two copies of the contract, and TypeScript treats two copies as
+  two different types. Nothing in this package's code changed. It does not use
+  the ATC types that 12.0.0 extends, and it builds and passes against 12.0.0.
+- **The package builds from its own install.** It inherited `typeRoots` from the
+  repository root, which resolved to the root's `node_modules`. It now resolves
+  to its own.
+
+### Migration
+
+- A consumer on `interfaces-adt` 11 moves to 12 together with this package. For
+  every kind except ATC's, 12.0.0 changes nothing a consumer passes. ATC's
+  `IAtcObjectRef` became a union, and a reference with one of the seven earlier
+  kinds is unchanged.
+
 ## [0.6.0] - 2026-09-27
 
 ### Added
