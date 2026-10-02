@@ -150,8 +150,8 @@ export class AdtPackage<R extends IPackageResults = typeof packageDocuments>
    * validates, creates, then posts `/sap/bc/adt/checkruns` on the created
    * package before it is ever locked.
    *
-   * A package can be saved only once per ABAP session: PAK/058 — see
-   * docs/usage/ERRATA.md. Over RFC the create counts as that save.
+   * A package can be saved only once per ABAP session: PAK/058.
+   * Over RFC the create counts as that save.
    */
   async create<E extends IAdtError = IAdtError>(
     config: Omit<IPackageConfig, 'source'> & { source?: never },
@@ -237,8 +237,8 @@ export class AdtPackage<R extends IPackageResults = typeof packageDocuments>
   /**
    * Update the package's metadata.
    *
-   * A package can be saved only once per ABAP session: PAK/058 — see
-   * docs/usage/ERRATA.md. Opening a new session is the caller's.
+   * A package can be saved only once per ABAP session: PAK/058.
+   * Opening a new session is the caller's.
    *
    * **The whole content, every time.** This is a replace, never a merge. Read
    * what the object holds, change what you mean to change, and pass the result:
@@ -322,8 +322,8 @@ export class AdtPackage<R extends IPackageResults = typeof packageDocuments>
   /**
    * Delete the package.
    *
-   * A package can be saved only once per ABAP session: PAK/058 — see
-   * docs/usage/ERRATA.md. A delete from a session that saved the package
+   * A package can be saved only once per ABAP session: PAK/058.
+   * A delete from a session that saved the package
    * is refused; from a new session it succeeds.
    *
    * The answer is a 200 either way, and `isDeleted="false"` is in its body: a

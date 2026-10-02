@@ -288,8 +288,7 @@ throwing on `isDeleted="false"` — pass `analyseDeletion` there too.
 to a package. The deletion check resolves an object through its package — its
 answer carries `adtcore:packageName` when it found one and says "Object does not
 exist" when it did not — so an unbound object is reported absent while its name
-stays taken, and there is nothing for the delete to act on. See
-[ERRATA.md](ERRATA.md#an-object-created-without-a-package-cannot-be-deleted).
+stays taken, and there is nothing for the delete to act on.
 
 ### A behavior implementation needs a second write, and it is the class's
 
@@ -394,8 +393,7 @@ system gives.
 
 Two things worth knowing while you write it: `activationExecuted="false"` with
 no message means "nothing to do", and a locked object refuses with HTTP 403,
-which never reaches a body-reading strategy at all — see
-[ERRATA.md](ERRATA.md#activationexecuted-false-is-not-a-failure).
+which never reaches a body-reading strategy at all.
 `analyseActivation` in `@mcp-abap-adt/adt-strategies` reads both.
 
 ## How to check a created object, and when
@@ -530,11 +528,8 @@ and which one you get is a property of the type: a domain is complete, an
 interface has a generated skeleton, a DDL source answers `200` with an empty
 body, a class has a skeleton that **no read can see until its first source
 write**, and a service definition is created with an empty source (a create
-that sends no responsible person is refused — a different thing, see
-[ERRATA.md](ERRATA.md#an-empty-responsible-person-is-refused-as-check-of-condition-failed)).
-`getVersions()` answers `ok` in every one of those states. The measured table,
-the class's read sequence and what to do are in
-[ERRATA.md](ERRATA.md#what-a-bare-create-leaves-depends-on-the-type).
+that sends no responsible person is refused — a different thing).
+`getVersions()` answers `ok` in every one of those states.
 
 ## The name is taken from the POST onward, and `validate()` may not say so
 
@@ -572,8 +567,7 @@ Deleting an object and reading it again answers a different sentence per type �
 *"Error while importing object … from the database"* for a domain, *"Resource
 INTERFACE … does not exist."*, *"Data definition … of version  does not
 exist"*. All mean the same thing, and none is worth matching on: branch on the
-failure your own `analyse` decided. See
-[ERRATA.md](ERRATA.md#what-a-bare-create-leaves-depends-on-the-type).
+failure your own `analyse` decided.
 
 Reproduce with `npx ts-node scripts/probe-inactive-metadata.ts` and
 `npx ts-node scripts/probe-unfinished-create.ts`.

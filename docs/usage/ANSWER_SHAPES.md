@@ -126,7 +126,5 @@ caller who asks for those shapes rather than the document.
 - [`MIGRATION-23.md`](MIGRATION-23.md) — the readings and verdicts that moved
   to `@mcp-abap-adt/adt-strategies` in 23.0.0
 - [`MIGRATION-19.md`](MIGRATION-19.md) — what moved to the consumer in 19.0.0
-- [`ERRATA.md`](ERRATA.md) — the SAP-side behaviour behind several of
-  these answers, by object, and what a consumer does about it — including the
-  `S_ABPLNGVS` language-version refusal
+- [`ERRATA.md`](ERRATA.md) — what SAP ADT answers that a caller would misread
 - [`../../examples`](../../examples) — the sequences, written out

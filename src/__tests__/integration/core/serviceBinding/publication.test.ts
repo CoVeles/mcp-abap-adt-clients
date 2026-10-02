@@ -220,7 +220,7 @@ describe('Service binding publication (deliberate runs)', () => {
       `${desired}: one request, up to ${Math.round(c.timeoutMs / 1000)}s`,
       testsLogger,
     );
-    // The sequence ERRATA.md recommends: the binding's lock read by
+    // The sequence ERRATA.md describes: the binding's lock read by
     // `analysePublicationLock` — a 403 (an editor holds it) is no failure and
     // leaves no handle — then the job, then an unlock only of a handle we got.
     const bindings = client.getServiceBinding();

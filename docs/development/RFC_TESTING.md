@@ -163,9 +163,7 @@ The function group read endpoint via RFC does not accept specific content types 
 A package can be saved — created, updated or deleted — only once per ABAP
 session; the next save from that session is refused with `PAK/058`. Over RFC
 that bites from the create onward, because every call shares one session; over
-HTTP every stateful lock → update → unlock counts. The cause, the measured
-answers of both transports and the consumer-side workaround are in
-[ERRATA.md](../usage/ERRATA.md#a-package-can-be-saved-only-once-per-abap-session).
+HTTP every stateful lock → update → unlock counts.
 
 The package lifecycle test works around it. `afterCreate` replaces the test's
 session before the update, and the cleanup replaces it again before the delete
