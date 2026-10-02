@@ -14,7 +14,7 @@ Primary public entry points:
 - `AdtAbapGitClient` - standalone client (not a factory on `AdtClient`) wrapping the SAP-official ADT-integrated abapGit (`/sap/bc/adt/abapgit/*`); available on cloud and modern on-prem (ABAP Platform 2022+).
 
 Design constraint:
-- External integrations are interface-driven, and the contracts come from the packages that declare them: the capability atoms, configs, `IAdtResponse`, `IAnalyse` and `IResultStrategy` from `@mcp-abap-adt/interfaces-adt` (`^11`); `IAbapConnection`, `IAdtWireResponse`, `IAbapRequestOptions`, `ITimeoutConfig` and the connection capability atoms from `@mcp-abap-adt/interfaces-adt-connection` (`^1`, since 23.0.0); `ILogger`/`LogLevel`/`XmlNode` from `-utils`; `IWebSocketTransport` and `HttpError` from `-network`. `IAuthProvider` (`-auth`) and `ISapConfig` (`-auth-sap`) are dev-only, for the test helpers.
+- External integrations are interface-driven, and the contracts come from the packages that declare them: the capability atoms, configs, `IAdtResponse`, `IAnalyse` and `IResultStrategy` from `@mcp-abap-adt/interfaces-adt` (`^12`); `IAbapConnection`, `IAdtWireResponse`, `IAbapRequestOptions`, `ITimeoutConfig` and the connection capability atoms from `@mcp-abap-adt/interfaces-adt-connection` (`^1`, since 23.0.0); `ILogger`/`LogLevel`/`XmlNode` from `-utils`; `IWebSocketTransport` and `HttpError` from `-network`. `IAuthProvider` (`-auth`) and `ISapConfig` (`-auth-sap`) are dev-only, for the test helpers.
 - **The library interprets nothing.** Every member makes one ADT request. What the answer becomes is the result strategy the implementation was built with; whether it is a failure is the `analyse` the caller passes with the call. The shipped result sets answer documents as they arrived; the readings and verdicts are in `@mcp-abap-adt/adt-strategies` (`packages/adt-strategies`). Decision 15 in [DECISIONS.md](DECISIONS.md).
 
 ## Layered Structure
@@ -252,7 +252,7 @@ Common behaviors in implementations:
 
 ## Type System and Exports
 
-**Types are defined once, in the contract packages** — `@mcp-abap-adt/interfaces-adt` `^11.0.0`, `@mcp-abap-adt/interfaces-adt-connection` `^1.0.0` and their siblings. As of 7.5.0 this package declares no type it shares with them, and since 22.0.0 it imports from each by name instead of through the facade, which is now deleted. Since 23.0.0 the connection names (`IAbapConnection`, `IAdtWireResponse`, `IAbapRequestOptions`, `ITimeoutConfig`, the connection capability atoms, `ADT_SESSION_ERROR`) come from `-adt-connection`: `interfaces-adt` 11 no longer exports them. Each `src/core/<object>/types.ts` is a re-export surface:
+**Types are defined once, in the contract packages** — `@mcp-abap-adt/interfaces-adt` `^12.0.0`, `@mcp-abap-adt/interfaces-adt-connection` `^1.0.0` and their siblings. As of 7.5.0 this package declares no type it shares with them, and since 22.0.0 it imports from each by name instead of through the facade, which is now deleted. Since 23.0.0 the connection names (`IAbapConnection`, `IAdtWireResponse`, `IAbapRequestOptions`, `ITimeoutConfig`, the connection capability atoms, `ADT_SESSION_ERROR`) come from `-adt-connection`: `interfaces-adt` 11 no longer exports them. Each `src/core/<object>/types.ts` is a re-export surface:
 
 ```ts
 export type { IClassConfig, ICreateClassParams } from '@mcp-abap-adt/interfaces-adt';
