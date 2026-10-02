@@ -43,5 +43,12 @@
     "@mcp-abap-adt/interfaces-adt": "^11.0.0",
     "@mcp-abap-adt/interfaces-adt-connection": "^1.0.0",
     "fast-xml-parser": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.3.3",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
+    "typescript": "^5.9.2"
   }
 }

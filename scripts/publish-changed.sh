@@ -24,7 +24,7 @@
 # If the browser flow is unavailable, pass the code instead:
 #
 #   npm run release:publish -- --otp 123456    # a code from your authenticator
-#   npm publish --workspace @mcp-abap-adt/adt-strategies --access public
+#   npm publish ./packages/adt-strategies --access public
 #
 # The second runs npm directly, where the browser flow works. An automation
 # token (npmjs.com → Access Tokens → Granular, "Automation") skips the prompt
@@ -56,8 +56,9 @@ done
 OTP_ARGS=""
 [ -n "$OTP" ] && OTP_ARGS="--otp $OTP"
 
-# Every package — the root one, which still lives here, plus each workspace —
-# in dependency order. The order is derived, not listed: a package that depends
+# Every package — the root one, which still lives here, plus each one under
+# packages/ — in dependency order. They are not workspaces: no package links
+# another locally, and each installs its dependencies from the registry. The order is derived, not listed: a package that depends
 # on another in this repository is published after it, because publishing a
 # dependent on top of an unpublished dependency produces a release set that
 # cannot be installed, and nothing about the alphabet prevents that.
@@ -66,11 +67,9 @@ OTP_ARGS=""
 # has no `mapfile`, and this script is meant to run wherever a release is cut.
 ORDER=$(node -e "
 const fs = require('node:fs');
-const root = require('./package.json');
 const dirs = ['.'];
-for (const pattern of root.workspaces ?? []) {
-  const base = pattern.replace(/\/\*\$/, '');
-  if (!fs.existsSync(base)) continue;
+const base = 'packages';
+if (fs.existsSync(base)) {
   for (const entry of fs.readdirSync(base, { withFileTypes: true })) {
     if (entry.isDirectory() && fs.existsSync(\`\${base}/\${entry.name}/package.json\`)) {
       dirs.push(\`\${base}/\${entry.name}\`);
@@ -150,7 +149,7 @@ while IFS='|' read -r name dir <&3; do
     npm publish --access public $OTP_ARGS || status=$?
   else
     # shellcheck disable=SC2086
-    npm publish --workspace "$name" --access public $OTP_ARGS || status=$?
+    npm publish "./$dir" --access public $OTP_ARGS || status=$?
   fi
   if [ "$status" -ne 0 ]; then
     echo "!!! $name@$version failed to publish — stopping here." >&2

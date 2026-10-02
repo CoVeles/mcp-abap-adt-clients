@@ -56,9 +56,6 @@
     "LICENSE",
     "COPYING"
   ],
-  "workspaces": [
-    "packages/*"
-  ],
   "keywords": [
     "abap",
     "sap",
@@ -110,11 +107,11 @@
     "prepare": "husky",
     "check:config": "node scripts/check-config-drift.js",
     "corpus:capture": "npx ts-node scripts/capture-adt-corpus.ts",
-    "build:packages": "npm run build --workspaces --if-present",
-    "test:packages": "npm test --workspaces --if-present",
+    "build:packages": "npm --prefix packages/adt-strategies run build",
+    "test:packages": "npm --prefix packages/adt-strategies test",
     "release:publish": "bash scripts/publish-changed.sh",
     "publish:clients": "npm publish --access public",
-    "publish:strategies": "npm publish --workspace @mcp-abap-adt/adt-strategies --access public"
+    "publish:strategies": "npm publish ./packages/adt-strategies --access public"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -130,6 +127,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",
+    "@mcp-abap-adt/adt-strategies": "^0.6.0",
     "@mcp-abap-adt/auth-providers": "^5.0.1",
     "@mcp-abap-adt/connection": "^10.0.2",
     "@mcp-abap-adt/interfaces-auth": "^3.0.0",
