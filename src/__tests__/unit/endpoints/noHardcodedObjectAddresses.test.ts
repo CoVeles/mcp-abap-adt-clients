@@ -9,8 +9,8 @@
  * (`adtcore:uri="/sap/bc/adt/…"`) and the error messages naming one.
 
  */
-import { execSync } from 'node:child_process';
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import * as ts from 'typescript';
 import { RECORDS } from '../../../endpoints/objects';
@@ -93,14 +93,24 @@ function literalsIn(
   return out;
 }
 
-/** The source files the check reads: every tracked `.ts` under `src/`. */
-function sourceFiles(): string[] {
-  // `git ls-files src`, filtered here: a `src/**/*.ts` pathspec needs a
-  // directory under src/ and silently skipped src/index.ts and its siblings.
-  return execSync('git ls-files src', { cwd: ROOT, encoding: 'utf8' })
-    .trim()
-    .split('\n')
-    .filter((f) => f.endsWith('.ts'));
+/**
+ * The source files the check reads: every `.ts` under `<root>/src`, walked on
+ * disk. Not `git ls-files`: a module created and not yet staged would pass the
+ * check until someone ran `git add`.
+ */
+function sourceFiles(root: string = ROOT): string[] {
+  const out: string[] = [];
+  const walk = (rel: string): void => {
+    for (const entry of fs.readdirSync(path.join(root, rel), {
+      withFileTypes: true,
+    })) {
+      const next = `${rel}/${entry.name}`;
+      if (entry.isDirectory()) walk(next);
+      else if (entry.name.endsWith('.ts')) out.push(next);
+    }
+  };
+  walk('src');
+  return out;
 }
 
 function violations(paths: string[]): string[] {
@@ -207,6 +217,22 @@ describe('every builder lands under a declared path', () => {
 });
 
 describe('object addresses come from src/endpoints/ only', () => {
+  it('reads a file git does not track yet', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'addr-gate-'));
+    fs.mkdirSync(path.join(dir, 'src', 'core'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'src', 'fresh.ts'), '');
+    fs.writeFileSync(path.join(dir, 'src', 'core', 'module.ts'), '');
+    fs.writeFileSync(path.join(dir, 'src', 'core', 'notes.md'), '');
+    try {
+      expect(sourceFiles(dir).sort()).toEqual([
+        'src/core/module.ts',
+        'src/fresh.ts',
+      ]);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it('reads the files directly under src/ too', () => {
     expect(sourceFiles()).toContain('src/index.ts');
   });
