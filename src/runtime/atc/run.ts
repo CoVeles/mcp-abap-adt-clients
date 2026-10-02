@@ -12,7 +12,10 @@
  * See `docs/evidence/2026-08-16-atc-trial-probe.md` for the captures.
  */
 
-import type { AtcObjectType } from '@mcp-abap-adt/interfaces-adt';
+import type {
+  AtcNamedObjectType,
+  IAtcObjectRef,
+} from '@mcp-abap-adt/interfaces-adt';
 import type {
   IAbapConnection,
   IAdtWireResponse,
@@ -29,10 +32,14 @@ import {
 import {
   BEHAVIOR_DEFINITION,
   CLASS,
+  CLASS_INCLUDE,
   DDL_SOURCE,
   FUNCTION_GROUP,
+  FUNCTION_INCLUDE,
   INTERFACE,
   PACKAGE,
+  PROGRAM,
+  PROGRAM_INCLUDE,
   TABLE,
 } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
@@ -40,20 +47,18 @@ import { getTimeout } from '../../utils/timeouts';
 const ATC = '/sap/bc/adt/atc';
 
 /**
- * Where each checkable kind lives.
+ * Where each checkable kind lives — the registry's address for it.
  *
- * Every template was confirmed by a run submitted at it whose finished
- * worklist then listed the object under that type — see
- * `docs/evidence/2026-08-17-atc-objecttype-confirmed.md`. A run being accepted
- * proved nothing: a URI that cannot exist is answered 201 too.
- *
- * `program` and `include` are absent from `AtcObjectType` and so from here.
- * The outside PR this work started from sent includes to
- * `/programs/programs/`, which this library builds as `/programs/includes/`
- * everywhere else; neither could be settled on a system that refuses to hold
- * either kind.
+ * Every kind was confirmed by a run submitted at its address whose finished
+ * worklist then listed the object. A run being accepted proved nothing: a URI
+ * that cannot exist is answered 201 too. Measured on an on-premise and a cloud
+ * system (2026-10-01): ATC checks an include as the object that owns it (a
+ * program include lists its main program, a function include its group, a
+ * class include its class), and a function include is found under its group
+ * and not under `/programs/includes/`. ATC listed objects for lowercase
+ * references on both.
  */
-const URI_BUILDERS: Partial<Record<AtcObjectType, (name: string) => string>> = {
+const NAMED: Record<AtcNamedObjectType, (name: string) => string> = {
   class: CLASS.uri,
   interface: INTERFACE.uri,
   function_group: FUNCTION_GROUP.uri,
@@ -61,38 +66,36 @@ const URI_BUILDERS: Partial<Record<AtcObjectType, (name: string) => string>> = {
   ddl_source: DDL_SOURCE.uri,
   table: TABLE.uri,
   behavior_definition: BEHAVIOR_DEFINITION.uri,
+  program: PROGRAM.uri,
+  program_include: PROGRAM_INCLUDE.uri,
 };
 
 /**
- * The ADT URI ATC checks an object at.
+ * The ADT URI ATC checks an object at. An include kind is addressed by what
+ * owns it, which its reference carries.
  *
- * `Partial`, deliberately. `AtcObjectType` grows when an on-prem system finally
- * confirms a type — `program` and `include` are the two waiting — and an
- * exhaustive `Record` here turns that additive change into a compile error in
- * this package, forcing two repositories to be released in lockstep for
- * something that breaks nothing. The contract's own comment asks callers not to
- * build one, and this was one.
- *
- * The cost of `Partial` is that a missing entry becomes a runtime question
- * rather than a compile-time one, so it is answered loudly: a `undefined`
- * template would otherwise build the string `"undefined/ZCL_FOO"` and ATC would
- * be asked to check a URI that means nothing.
+ * A kind with no address here is refused loudly rather than built as
+ * `"undefined/…"`: `AtcObjectType` grows, and a reference to a kind this
+ * version does not know must not become a URI that means nothing.
  */
-export function buildAtcObjectUri(
-  objectType: AtcObjectType,
-  objectName: string,
-): string {
-  const build = URI_BUILDERS[objectType];
-  if (!build) {
-    throw new Error(
-      `No ADT URI is known for ATC object type '${objectType}'. It is declared ` +
-        'in AtcObjectType but has no template here — add one, with the URI ' +
-        'measured against a system that checks that type.',
-    );
+export function buildAtcObjectUri(ref: IAtcObjectRef): string {
+  switch (ref.objectType) {
+    case 'function_include':
+      return FUNCTION_INCLUDE.uri(ref.functionGroup, ref.objectName);
+    case 'class_include':
+      return CLASS_INCLUDE.uri(ref.objectName, ref.includeKind);
+    default: {
+      const build = NAMED[ref.objectType] as
+        | ((name: string) => string)
+        | undefined;
+      if (!build) {
+        throw new Error(
+          `No ADT URI is known for ATC object type '${String(ref.objectType)}'.`,
+        );
+      }
+      return build(ref.objectName);
+    }
   }
-  // Lowercase, as every other address: ATC listed the class for a lowercase
-  // reference on an on-premise and a cloud system alike (2026-10-01).
-  return build(objectName);
 }
 
 /**

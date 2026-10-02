@@ -141,9 +141,7 @@ export class AdtAtc<R extends IAtcResults = typeof atcDocuments>
     this.assertTarget(target);
     this.assertMaximumVerdicts(maximumVerdicts);
 
-    const uris = target.objects.map((o) =>
-      buildAtcObjectUri(o.objectType, o.objectName),
-    );
+    const uris = target.objects.map((o) => buildAtcObjectUri(o));
 
     return answering(
       () =>
