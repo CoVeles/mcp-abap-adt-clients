@@ -12,6 +12,7 @@
 import * as fs from 'node:fs';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
 import { RECORDS, sourceUri, versionsUri } from '../src/endpoints/objects';
+import { addressFor } from './lib/addressMatrix';
 import { answerOf, connectionFor, resolveTarget } from './lib/adtTarget';
 
 type Args = string[];
@@ -154,11 +155,25 @@ async function main(): Promise<void> {
         // Keys that are not records (SERVICE_BINDING_ODATA) have their own loop
         // below; RECORDS[kind] would be undefined here.
         if (!(kind in RECORDS)) continue;
-        const record = RECORDS[kind as keyof typeof RECORDS] as {
-          uri: (...a: string[]) => string;
-        };
+        const record = RECORDS[kind as keyof typeof RECORDS];
         for (const args of argLists) {
-          const lower = record.uri(...args);
+          const address = addressFor(record, args);
+          if (!address) {
+            failed = true;
+            lines.push(
+              `| ${target.label} | ${kind} | — | no address this record builds | |`,
+            );
+            continue;
+          }
+          if (!address.byName) {
+            const c = await get(connection, address.url, '*/*');
+            if (c.status !== 200) failed = true;
+            lines.push(
+              `| ${target.label} | ${kind} | GET ${address.url} | ${c.status} | no name in the address |`,
+            );
+            continue;
+          }
+          const lower = address.url;
           const upper = asGiven(lower, args, kind);
           const a = await get(connection, lower, '*/*');
           const b = await get(connection, upper, '*/*');
