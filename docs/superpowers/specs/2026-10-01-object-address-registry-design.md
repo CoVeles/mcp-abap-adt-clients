@@ -28,7 +28,10 @@ What the duplication has already produced:
 4. `buildObjectUri`'s `default` invents `/sap/bc/adt/<type lowercased>/<name>`
    for a type it does not know.
 5. `buildObjectUri` uses a function module's own name as its group when no
-   group is passed.
+   group is passed. Measured consequence, on premise, BASIS 7.40, 2026-10-01: a
+   group activation carrying `/functions/groups/<module>/fmodules/<module>`
+   answered `500 invalidFunctionGroup` "An exception was raised" for the whole
+   batch; with `parentName` set the same batch answered `200`.
 6. Each table knows a different set of kinds. `PROG/I` and `FUGR/I` exist only
    in `buildObjectUri`; no table knows a class include; check run, `objectWire`
    and ATC know no include at all.

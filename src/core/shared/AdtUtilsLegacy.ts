@@ -46,7 +46,11 @@ export class AdtUtilsLegacy<
    * Legacy group activation — synchronous POST to /sap/bc/adt/activation
    *
    * Modern systems use async /sap/bc/adt/activation/runs with polling.
-   * Legacy systems use synchronous /sap/bc/adt/activation — response contains result directly.
+   * Legacy systems use synchronous /sap/bc/adt/activation. A success answers
+   * `200` with an empty body, not a checklist: BASIS 7.40 activated six objects
+   * that way, and only `/activation/inactiveobjects` afterwards said so
+   * (measured on premise, 2026-10-01; docs/architecture/LEGACY.md, "Measured
+   * on BASIS 7.40").
    *
    * Read through the same `activation` slot as the modern run. The default keeps
    * the document, which here is the result itself; `utilActivationRunId` would
