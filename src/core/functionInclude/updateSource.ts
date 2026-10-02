@@ -13,6 +13,7 @@ import {
   ACCEPT_SOURCE,
   ACCEPT_SOURCE_UTF8,
 } from '../../constants/contentTypes';
+import { FUNCTION_INCLUDE, sourceUri } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
@@ -31,9 +32,7 @@ export async function uploadFunctionIncludeSource(
   unicode: boolean,
   transportRequest?: string,
 ): Promise<IAdtWireResponse> {
-  const groupLower = encodeSapObjectName(groupName).toLowerCase();
-  const encodedInclude = encodeSapObjectName(includeName.toUpperCase());
-  const url = `/sap/bc/adt/functions/groups/${groupLower}/includes/${encodedInclude}/source/main${writeQuery(lockHandle, transportRequest)}`;
+  const url = `${sourceUri(FUNCTION_INCLUDE.uri(groupName, includeName))}${writeQuery(lockHandle, transportRequest)}`;
 
   const contentType = unicode ? ACCEPT_SOURCE_UTF8 : ACCEPT_SOURCE;
 

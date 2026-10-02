@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { BEHAVIOR_DEFINITION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -38,7 +38,7 @@ export async function lock(
 </asx:abap>`;
 
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/bo/behaviordefinitions/${encodeSapObjectName(name).toLowerCase()}?_action=LOCK&accessMode=${accessMode}`,
+    url: `${BEHAVIOR_DEFINITION.uri(name)}?_action=LOCK&accessMode=${accessMode}`,
     method: 'POST',
     timeout: getTimeout('default'),
     data: xmlBody,

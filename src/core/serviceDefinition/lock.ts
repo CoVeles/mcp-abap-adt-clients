@@ -8,7 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { SERVICE_DEFINITION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -20,10 +20,7 @@ export async function lockServiceDefinition(
   connection: IAbapConnection,
   serviceDefinitionName: string,
 ): Promise<IAdtWireResponse> {
-  const serviceDefinitionNameEncoded = encodeSapObjectName(
-    serviceDefinitionName.toLowerCase(),
-  );
-  const url = `/sap/bc/adt/ddic/srvd/sources/${serviceDefinitionNameEncoded}?_action=LOCK&accessMode=MODIFY`;
+  const url = `${SERVICE_DEFINITION.uri(serviceDefinitionName.toLowerCase())}?_action=LOCK&accessMode=MODIFY`;
 
   return connection.makeAdtRequest({
     method: 'POST',

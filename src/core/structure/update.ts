@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_SOURCE } from '../../constants/contentTypes';
+import { STRUCTURE, sourceUri } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateStructureParams } from './types';
@@ -21,10 +22,7 @@ export async function upload(
   params: IUpdateStructureParams,
   lockHandle?: string,
 ): Promise<IAdtWireResponse> {
-  const structureNameEncoded = encodeSapObjectName(
-    params.structureName as string,
-  );
-  const url = `/sap/bc/adt/ddic/structures/${structureNameEncoded}/source/main${writeQuery(lockHandle, params.transportRequest)}`;
+  const url = `${sourceUri(STRUCTURE.uri(params.structureName as string))}${writeQuery(lockHandle, params.transportRequest)}`;
 
   const headers = {
     Accept: 'application/xml, application/json, text/plain, */*',

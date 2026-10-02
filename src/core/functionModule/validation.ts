@@ -7,6 +7,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
+import { FUNCTION_GROUP } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -31,7 +32,7 @@ export async function validateFunctionModuleName(
   functionModuleName: string,
   description?: string,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/functions/validation`;
+  const url = FUNCTION_GROUP.validation;
   const queryParams = new URLSearchParams({
     objtype: 'FUGR/FF',
     objname: functionModuleName,

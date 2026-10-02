@@ -8,6 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { AUTHORIZATION_FIELD } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -27,7 +28,7 @@ export async function validateAuthorizationFieldName(
   description: string,
   packageName?: string,
 ): Promise<IAdtWireResponse> {
-  const url = '/sap/bc/adt/aps/iam/auth/validation';
+  const url = AUTHORIZATION_FIELD.validation;
   const queryParams = new URLSearchParams({
     objname: name,
   });

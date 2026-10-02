@@ -8,8 +8,12 @@ import {
   ACCEPT_TRANSPORT,
   CT_ACCESS_CONTROL,
 } from '../../constants/contentTypes';
+import {
+  ACCESS_CONTROL,
+  sourceUri,
+  transportUri,
+} from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IReadOptions } from '../shared/types';
 
@@ -23,7 +27,6 @@ export async function getAccessControl(
   options?: IReadOptions,
   logger?: ILogger,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(accessControlName.toLowerCase());
   const queryParams: string[] = [];
   if (version) {
     queryParams.push(`version=${version}`);
@@ -32,7 +35,7 @@ export async function getAccessControl(
     queryParams.push('withLongPolling=true');
   }
   const query = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
-  const url = `/sap/bc/adt/acm/dcl/sources/${encodedName}${query}`;
+  const url = `${ACCESS_CONTROL.uri(accessControlName)}${query}`;
 
   return makeAdtRequestWithAcceptNegotiation(
     connection,
@@ -58,7 +61,6 @@ export async function getAccessControlSource(
   options?: IReadOptions,
   logger?: ILogger,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(accessControlName.toLowerCase());
   const queryParams: string[] = [];
   if (version) {
     queryParams.push(`version=${version}`);
@@ -67,7 +69,7 @@ export async function getAccessControlSource(
     queryParams.push('withLongPolling=true');
   }
   const query = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
-  const url = `/sap/bc/adt/acm/dcl/sources/${encodedName}/source/main${query}`;
+  const url = `${sourceUri(ACCESS_CONTROL.uri(accessControlName))}${query}`;
 
   return makeAdtRequestWithAcceptNegotiation(
     connection,
@@ -91,9 +93,8 @@ export async function getAccessControlTransport(
   accessControlName: string,
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(accessControlName.toLowerCase());
   const query = options?.withLongPolling ? '?withLongPolling=true' : '';
-  const url = `/sap/bc/adt/acm/dcl/sources/${encodedName}/transport${query}`;
+  const url = `${transportUri(ACCESS_CONTROL.uri(accessControlName))}${query}`;
 
   return connection.makeAdtRequest({
     url,

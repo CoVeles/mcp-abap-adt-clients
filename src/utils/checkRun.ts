@@ -10,25 +10,41 @@ import {
   ACCEPT_CHECK_MESSAGES,
   CT_CHECK_OBJECTS,
 } from '../constants/contentTypes';
-import { encodeSapObjectName } from './internalUtils';
+import {
+  ACCESS_CONTROL,
+  CLASS,
+  DATA_ELEMENT,
+  DDL_SOURCE,
+  DOMAIN,
+  FUNCTION_GROUP,
+  FUNCTION_MODULE,
+  INTERFACE,
+  METADATA_EXTENSION,
+  PACKAGE,
+  PROGRAM,
+  SCALAR_FUNCTION,
+  SCALAR_FUNCTION_IMPLEMENTATION,
+  SERVICE_DEFINITION,
+  STRUCTURE,
+  TABLE,
+  TRANSFORMATION,
+} from '../endpoints/objects';
 import { getTimeout } from './timeouts';
 
 /**
  * Get ADT URI for object type
  */
 export function getObjectUri(objectType: string, objectName: string): string {
-  const encodedName = encodeSapObjectName(objectName.toLowerCase());
-
   switch (objectType.toLowerCase()) {
     case 'class':
-      return `/sap/bc/adt/oo/classes/${encodedName}`;
+      return `${CLASS.uri(objectName)}`;
     case 'program':
-      return `/sap/bc/adt/programs/programs/${encodedName}`;
+      return `${PROGRAM.uri(objectName)}`;
     case 'interface':
-      return `/sap/bc/adt/oo/interfaces/${encodedName}`;
+      return `${INTERFACE.uri(objectName)}`;
     case 'function_group':
     case 'fugr':
-      return `/sap/bc/adt/functions/groups/${encodedName}`;
+      return `${FUNCTION_GROUP.uri(objectName)}`;
     case 'function_module':
     case 'fugr/ff': {
       // Function module needs function group in format: "FUGR_NAME/FM_NAME"
@@ -38,48 +54,46 @@ export function getObjectUri(objectType: string, objectName: string): string {
         );
       }
       const [fugrName, fmName] = objectName.split('/');
-      const encodedFugr = encodeSapObjectName(fugrName.toLowerCase());
-      const encodedFm = encodeSapObjectName(fmName.toLowerCase());
-      return `/sap/bc/adt/functions/groups/${encodedFugr}/fmodules/${encodedFm}`;
+      return `${FUNCTION_MODULE.uri(fugrName, fmName)}`;
     }
     case 'table':
     case 'tabl/dt':
-      return `/sap/bc/adt/ddic/tables/${encodedName}`;
+      return `${TABLE.uri(objectName)}`;
     case 'structure':
     case 'stru/dt':
-      return `/sap/bc/adt/ddic/structures/${encodedName}`;
+      return `${STRUCTURE.uri(objectName)}`;
     case 'view':
     case 'ddls/df':
-      return `/sap/bc/adt/ddic/ddl/sources/${encodedName}`;
+      return `${DDL_SOURCE.uri(objectName)}`;
     case 'metadata_extension':
     case 'ddlx/ex':
-      return `/sap/bc/adt/ddic/ddlx/sources/${encodedName}`;
+      return `${METADATA_EXTENSION.uri(objectName)}`;
     case 'domain':
-      return `/sap/bc/adt/ddic/domains/${encodedName}`;
+      return `${DOMAIN.uri(objectName)}`;
     case 'data_element':
     case 'dtel':
-      return `/sap/bc/adt/ddic/dataelements/${encodedName}`;
+      return `${DATA_ELEMENT.uri(objectName)}`;
     case 'package':
     case 'devc/k':
-      return `/sap/bc/adt/packages/${encodedName}`;
+      return `${PACKAGE.uri(objectName)}`;
     case 'service_definition':
     case 'srvd/srv':
-      return `/sap/bc/adt/ddic/srvd/sources/${encodedName}`;
+      return `${SERVICE_DEFINITION.uri(objectName)}`;
     case 'scalar_function':
     case 'dsfd/scf':
-      return `/sap/bc/adt/ddic/dsfd/sources/${encodedName}`;
+      return `${SCALAR_FUNCTION.uri(objectName)}`;
     case 'scalar_function_implementation':
     case 'dsfi/sfi':
-      return `/sap/bc/adt/ddic/dsfi/${encodedName}`;
+      return `${SCALAR_FUNCTION_IMPLEMENTATION.uri(objectName)}`;
     case 'append_structure':
     case 'tabl/ds':
-      return `/sap/bc/adt/ddic/structures/${encodedName}`;
+      return `${STRUCTURE.uri(objectName)}`;
     case 'access_control':
     case 'dcls/dl':
-      return `/sap/bc/adt/acm/dcl/sources/${encodedName}`;
+      return `${ACCESS_CONTROL.uri(objectName)}`;
     case 'transformation':
     case 'xslt/vt':
-      return `/sap/bc/adt/xslt/transformations/${encodedName}`;
+      return `${TRANSFORMATION.uri(objectName)}`;
     default:
       throw new Error(`Unsupported object type: ${objectType}`);
   }

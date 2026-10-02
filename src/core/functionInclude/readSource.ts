@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_INCLUDE, sourceUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -19,9 +19,7 @@ export async function readFunctionIncludeSource(
   includeName: string,
   version: 'active' | 'inactive' = 'active',
 ): Promise<IAdtWireResponse> {
-  const groupLower = encodeSapObjectName(groupName).toLowerCase();
-  const encodedInclude = encodeSapObjectName(includeName.toUpperCase());
-  const url = `/sap/bc/adt/functions/groups/${groupLower}/includes/${encodedInclude}/source/main?version=${encodeURIComponent(version)}`;
+  const url = `${sourceUri(FUNCTION_INCLUDE.uri(groupName, includeName))}?version=${encodeURIComponent(version)}`;
 
   return connection.makeAdtRequest({
     url,

@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { STRUCTURE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -21,10 +21,9 @@ export async function lockAppendStructure(
   connection: IAbapConnection,
   name: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(name.toLowerCase());
   return connection.makeAdtRequest({
     method: 'POST',
-    url: `/sap/bc/adt/ddic/structures/${encoded}?_action=LOCK&accessMode=MODIFY`,
+    url: `${STRUCTURE.uri(name)}?_action=LOCK&accessMode=MODIFY`,
     headers: { Accept: ACCEPT_LOCK },
     timeout: getTimeout('default'),
   });

@@ -6,11 +6,12 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
+import { MESSAGE_CLASS } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateMessageClassParams } from './types';
 import { buildMessageClassXml } from './xml';
 
-const BASE = '/sap/bc/adt/messageclass';
+const BASE = MESSAGE_CLASS.collection;
 
 /**
  * Create a new message class (shell — no messages yet).

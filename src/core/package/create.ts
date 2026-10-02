@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_PACKAGE, CT_PACKAGE } from '../../constants/contentTypes';
+import { PACKAGE } from '../../endpoints/objects';
 import { buildQueryString, limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreatePackageParams } from './types';
@@ -18,7 +19,7 @@ export async function createPackage(
   connection: IAbapConnection,
   params: ICreatePackageParams,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/packages`;
+  const url = PACKAGE.collection;
 
   const escapeXml = (str: string | undefined): string =>
     (str || '')

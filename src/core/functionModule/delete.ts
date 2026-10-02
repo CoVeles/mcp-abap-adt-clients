@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_MODULE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteFunctionModuleParams } from './types';
 
@@ -25,9 +25,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { function_module_name, function_group_name } = params;
 
-  const encodedGroupName = encodeSapObjectName(function_group_name);
-  const encodedModuleName = encodeSapObjectName(function_module_name);
-  const objectUri = `/sap/bc/adt/functions/groups/${encodedGroupName}/fmodules/${encodedModuleName}`;
+  const objectUri = `${FUNCTION_MODULE.uri(function_group_name, function_module_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -60,9 +58,7 @@ export async function deleteFunctionModule(
   const { function_module_name, function_group_name, transport_request } =
     params;
 
-  const encodedGroupName = encodeSapObjectName(function_group_name);
-  const encodedModuleName = encodeSapObjectName(function_module_name);
-  const objectUri = `/sap/bc/adt/functions/groups/${encodedGroupName}/fmodules/${encodedModuleName}`;
+  const objectUri = `${FUNCTION_MODULE.uri(function_group_name, function_module_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

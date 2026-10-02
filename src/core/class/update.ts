@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
+import { CLASS, CLASS_INCLUDE, sourceUri } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
@@ -32,8 +33,7 @@ export async function updateClass(
   // an update without a lock is a thing ADT judges: it answers its own refusal,
   // naming what it wants, and that answer is what a caller should read. The
   // parameter is simply left off the URL rather than sent empty.
-  const encodedName = encodeSapObjectName(className).toLowerCase();
-  const url = `/sap/bc/adt/oo/classes/${encodedName}/source/main${writeQuery(lockHandle, transportRequest)}`;
+  const url = `${sourceUri(CLASS.uri(className))}${writeQuery(lockHandle, transportRequest)}`;
 
   const contentType = sourceContentType || CT_SOURCE;
   const headers = {
@@ -64,8 +64,7 @@ export async function updateClassImplementations(
   transportRequest?: string,
   sourceContentType?: string,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(className).toLowerCase();
-  const url = `/sap/bc/adt/oo/classes/${encodedName}/includes/implementations${writeQuery(lockHandle, transportRequest)}`;
+  const url = `${CLASS_INCLUDE.uri(className, 'implementations')}${writeQuery(lockHandle, transportRequest)}`;
 
   const contentType = sourceContentType || CT_SOURCE;
   const headers = {

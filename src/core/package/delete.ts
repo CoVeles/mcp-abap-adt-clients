@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { PACKAGE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeletePackageParams } from './types';
 
@@ -26,8 +26,7 @@ export async function checkPackageDeletion(
   connection: IAbapConnection,
   params: IDeletePackageParams,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(params.package_name.toLowerCase());
-  const objectUri = `/sap/bc/adt/packages/${encodedName}`;
+  const objectUri = `${PACKAGE.uri(params.package_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -59,8 +58,7 @@ export async function deletePackage(
   connection: IAbapConnection,
   params: IDeletePackageParams,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(params.package_name.toLowerCase());
-  const objectUri = `/sap/bc/adt/packages/${encodedName}`;
+  const objectUri = `${PACKAGE.uri(params.package_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

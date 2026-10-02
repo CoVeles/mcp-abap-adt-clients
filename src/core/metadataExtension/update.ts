@@ -9,6 +9,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
+import { METADATA_EXTENSION, sourceUri } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
@@ -46,8 +47,7 @@ export async function updateMetadataExtension(
   lockHandle?: string,
   transportRequest?: string,
 ): Promise<IAdtWireResponse> {
-  const lowerName = encodeSapObjectName(name).toLowerCase();
-  const url = `/sap/bc/adt/ddic/ddlx/sources/${lowerName}/source/main${writeQuery(lockHandle, transportRequest)}`;
+  const url = `${sourceUri(METADATA_EXTENSION.uri(name))}${writeQuery(lockHandle, transportRequest)}`;
 
   const headers = {
     Accept: ACCEPT_SOURCE,

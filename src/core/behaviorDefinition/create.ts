@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_BEHAVIOR_DEFINITION } from '../../constants/contentTypes';
+import { BEHAVIOR_DEFINITION } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IBehaviorDefinitionCreateParams } from './types';
@@ -64,7 +65,7 @@ export async function create(
     'Content-Type': CT_BEHAVIOR_DEFINITION,
   };
 
-  const url = `/sap/bc/adt/bo/behaviordefinitions${params.transportRequest ? `?corrNr=${params.transportRequest}` : ''}`;
+  const url = `${BEHAVIOR_DEFINITION.collection}${params.transportRequest ? `?corrNr=${params.transportRequest}` : ''}`;
 
   // A refusal comes back as the transport's failure, with SAP's answer on it.
   // It used to be rewrapped in a new Error carrying the message alone, which

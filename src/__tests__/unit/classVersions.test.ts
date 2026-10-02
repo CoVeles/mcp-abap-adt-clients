@@ -28,7 +28,7 @@ describe('getClassIncludeVersions', () => {
       await cls.getVersions({ className: 'ZCL' }),
       'versions',
     );
-    expect(seen.url).toBe('/sap/bc/adt/oo/classes/ZCL/includes/main/versions');
+    expect(seen.url).toBe('/sap/bc/adt/oo/classes/zcl/includes/main/versions');
     expect(seen.headers.Accept).toContain('application/atom+xml;type=feed');
     // The feed as it arrived — `objectVersions` in adt-strategies reads it.
     expect(feed).toBe(FEED);
@@ -43,7 +43,7 @@ describe('getClassIncludeVersions', () => {
     const local = new AdtLocalTypes(c);
     await local.getVersions({ className: 'ZCL' });
     expect(seen.url).toBe(
-      '/sap/bc/adt/oo/classes/ZCL/includes/implementations/versions',
+      '/sap/bc/adt/oo/classes/zcl/includes/implementations/versions',
     );
   });
 

@@ -48,7 +48,7 @@ const LOCKS: Array<
   [
     'authorizationField',
     (c) => lockAuthorizationField(c, 'zauth'),
-    '/aps/iam/auth/ZAUTH?_action=LOCK',
+    '/aps/iam/auth/zauth?_action=LOCK',
   ],
   [
     'behaviorDefinition',
@@ -103,7 +103,7 @@ const VERSIONS: Array<
   [
     'accessControl',
     (c) => getAccessControlVersions(c, { accessControlName: 'ZDCL' }),
-    '/sap/bc/adt/acm/dcl/sources/zdcl/source/main/versions',
+    '/sap/bc/adt/acm/dcl/sources/zdcl/versions',
   ],
   [
     'appendStructure',
@@ -118,7 +118,7 @@ const VERSIONS: Array<
   [
     'behaviorImplementation',
     (c) => getBehaviorImplementationVersions(c, { className: 'ZBP_X' }),
-    '/sap/bc/adt/oo/classes/ZBP_X/includes/implementations/versions',
+    '/sap/bc/adt/oo/classes/zbp_x/includes/implementations/versions',
   ],
 ];
 

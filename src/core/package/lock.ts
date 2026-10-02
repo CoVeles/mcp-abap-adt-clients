@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { PACKAGE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -25,7 +25,7 @@ export async function lockPackage(
   packageName: string,
 ): Promise<IAdtWireResponse> {
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/packages/${encodeSapObjectName(packageName.toLowerCase())}?_action=LOCK&accessMode=MODIFY`,
+    url: `${PACKAGE.uri(packageName)}?_action=LOCK&accessMode=MODIFY`,
     method: 'POST',
     timeout: getTimeout('default'),
     data: null,

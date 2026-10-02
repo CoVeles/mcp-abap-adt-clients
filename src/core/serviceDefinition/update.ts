@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
+import { SERVICE_DEFINITION, sourceUri } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateServiceDefinitionParams } from './types';
@@ -24,11 +25,7 @@ export async function updateServiceDefinition(
   args: IUpdateServiceDefinitionParams,
   lockHandle?: string,
 ): Promise<IAdtWireResponse> {
-  const serviceDefinitionNameEncoded = encodeSapObjectName(
-    args.service_definition_name.toLowerCase(),
-  );
-
-  const url = `/sap/bc/adt/ddic/srvd/sources/${serviceDefinitionNameEncoded}/source/main${writeQuery(lockHandle, args.transport_request)}`;
+  const url = `${sourceUri(SERVICE_DEFINITION.uri(args.service_definition_name.toLowerCase()))}${writeQuery(lockHandle, args.transport_request)}`;
 
   const headers: Record<string, string> = {
     Accept: ACCEPT_SOURCE,

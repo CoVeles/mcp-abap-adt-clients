@@ -15,6 +15,7 @@ import {
   ACCEPT_FUNCTION_INCLUDE,
   CT_FUNCTION_INCLUDE,
 } from '../../constants/contentTypes';
+import { FUNCTION_INCLUDE } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateFunctionIncludeParams } from './types';
@@ -35,11 +36,7 @@ export async function updateFunctionInclude(
   lockHandle?: string,
   logger?: ILogger,
 ): Promise<IAdtWireResponse> {
-  const groupLower = encodeSapObjectName(
-    params.function_group_name,
-  ).toLowerCase();
-  const encodedInclude = encodeSapObjectName(params.include_name.toUpperCase());
-  const url = `/sap/bc/adt/functions/groups/${groupLower}/includes/${encodedInclude}${writeQuery(lockHandle, params.transport_request)}`;
+  const url = `${FUNCTION_INCLUDE.uri(params.function_group_name, params.include_name)}${writeQuery(lockHandle, params.transport_request)}`;
 
   const xmlBody = buildFunctionIncludeXml(params);
 

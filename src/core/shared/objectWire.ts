@@ -36,8 +36,22 @@ import {
   ACCEPT_TABLE_TYPE,
   CT_VIEW,
 } from '../../constants/contentTypes';
+import {
+  CLASS,
+  DATA_ELEMENT,
+  DDL_SOURCE,
+  DOMAIN,
+  FUNCTION_GROUP,
+  FUNCTION_MODULE,
+  INTERFACE,
+  PACKAGE,
+  PROGRAM,
+  STRUCTURE,
+  sourceUri,
+  TABLE,
+  TABLE_TYPE,
+} from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
 export async function objectSourceWire(
@@ -124,47 +138,47 @@ export function getObjectMetadataUri(
   objectName: string,
   functionGroup?: string,
 ): string {
-  const encodedName = encodeSapObjectName(objectName);
-
   switch (objectType.toLowerCase()) {
     case 'class':
     case 'clas/oc':
-      return `/sap/bc/adt/oo/classes/${encodedName}`;
+      return `${CLASS.uri(objectName)}`;
     case 'program':
     case 'prog/p':
-      return `/sap/bc/adt/programs/programs/${encodedName}`;
+      return `${PROGRAM.uri(objectName)}`;
     case 'interface':
     case 'intf/if':
-      return `/sap/bc/adt/oo/interfaces/${encodedName}`;
+    // ADT's own code for an interface; 'intf/if' stays because callers pass it.
+    case 'intf/oi':
+      return `${INTERFACE.uri(objectName)}`;
     case 'functionmodule':
     case 'fugr/ff': {
-      const encodedGroup = encodeSapObjectName(functionGroup as string);
-      return `/sap/bc/adt/functions/groups/${encodedGroup}/fmodules/${encodedName}`;
+      return `${FUNCTION_MODULE.uri(functionGroup as string, objectName)}`;
     }
     case 'view':
     case 'ddls/df':
-      return `/sap/bc/adt/ddic/ddl/sources/${encodedName}`;
+      return `${DDL_SOURCE.uri(objectName)}`;
     case 'structure':
     case 'stru/dt':
-      return `/sap/bc/adt/ddic/structures/${encodedName}`;
+      return `${STRUCTURE.uri(objectName)}`;
     case 'table':
     case 'tabl/dt':
-      return `/sap/bc/adt/ddic/tables/${encodedName}`;
+      return `${TABLE.uri(objectName)}`;
     case 'tabletype':
     case 'ttyp/df':
-      return `/sap/bc/adt/ddic/tabletypes/${encodedName}`;
+      return `${TABLE_TYPE.uri(objectName)}`;
     case 'domain':
     case 'doma/dd':
-      return `/sap/bc/adt/ddic/domains/${encodedName}`;
+      return `${DOMAIN.uri(objectName)}`;
     case 'dataelement':
     case 'dtel':
-      return `/sap/bc/adt/ddic/dataelements/${encodedName}`;
+    case 'dtel/de':
+      return `${DATA_ELEMENT.uri(objectName)}`;
     case 'functiongroup':
     case 'fugr':
-      return `/sap/bc/adt/functions/groups/${encodedName}`;
+      return `${FUNCTION_GROUP.uri(objectName)}`;
     case 'package':
     case 'devc/k':
-      return `/sap/bc/adt/packages/${encodedName}`;
+      return `${PACKAGE.uri(objectName)}`;
     default:
       throw new Error(`Unsupported object type for metadata: ${objectType}`);
   }
@@ -179,6 +193,8 @@ export function getMetadataAcceptHeader(objectType: AdtObjectType): string {
       return ACCEPT_CLASS;
     case 'interface':
     case 'intf/if':
+    // ADT's own code for an interface; 'intf/if' stays because callers pass it.
+    case 'intf/oi':
       return ACCEPT_INTERFACE;
     case 'table':
     case 'tabl/dt':
@@ -191,6 +207,7 @@ export function getMetadataAcceptHeader(objectType: AdtObjectType): string {
       return ACCEPT_DOMAIN;
     case 'dataelement':
     case 'dtel':
+    case 'dtel/de':
       return ACCEPT_DATA_ELEMENT;
     case 'structure':
     case 'stru/dt':
@@ -221,36 +238,36 @@ export function getObjectSourceUri(
   functionGroup?: string,
   version?: 'active' | 'inactive',
 ): string {
-  const encodedName = encodeSapObjectName(objectName);
   const versionParam = version ? `?version=${version}` : '';
 
   switch (objectType.toLowerCase()) {
     case 'class':
     case 'clas/oc':
-      return `/sap/bc/adt/oo/classes/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(CLASS.uri(objectName))}${versionParam}`;
     case 'program':
     case 'prog/p':
-      return `/sap/bc/adt/programs/programs/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(PROGRAM.uri(objectName))}${versionParam}`;
     case 'interface':
     case 'intf/if':
-      return `/sap/bc/adt/oo/interfaces/${encodedName}/source/main${versionParam}`;
+    // ADT's own code for an interface; 'intf/if' stays because callers pass it.
+    case 'intf/oi':
+      return `${sourceUri(INTERFACE.uri(objectName))}${versionParam}`;
     case 'functionmodule':
     case 'fugr/ff': {
-      const encodedGroup = encodeSapObjectName(functionGroup as string);
-      return `/sap/bc/adt/functions/groups/${encodedGroup}/fmodules/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(FUNCTION_MODULE.uri(functionGroup as string, objectName))}${versionParam}`;
     }
     case 'view':
     case 'ddls/df':
-      return `/sap/bc/adt/ddic/ddl/sources/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(DDL_SOURCE.uri(objectName))}${versionParam}`;
     case 'structure':
     case 'stru/dt':
-      return `/sap/bc/adt/ddic/structures/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(STRUCTURE.uri(objectName))}${versionParam}`;
     case 'table':
     case 'tabl/dt':
-      return `/sap/bc/adt/ddic/tables/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(TABLE.uri(objectName))}${versionParam}`;
     case 'tabletype':
     case 'ttyp/df':
-      return `/sap/bc/adt/ddic/tabletypes/${encodedName}/source/main${versionParam}`;
+      return `${sourceUri(TABLE_TYPE.uri(objectName))}${versionParam}`;
     default:
       throw new Error(
         `Object type ${objectType} does not support source code reading`,

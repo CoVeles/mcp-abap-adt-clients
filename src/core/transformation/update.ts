@@ -3,6 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
+import { sourceUri, TRANSFORMATION } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateTransformationParams } from './types';
@@ -20,11 +21,7 @@ export async function updateTransformation(
   args: IUpdateTransformationParams,
   lockHandle?: string,
 ): Promise<IAdtWireResponse> {
-  const transformationNameEncoded = encodeSapObjectName(
-    args.transformation_name.toLowerCase(),
-  );
-
-  const url = `/sap/bc/adt/xslt/transformations/${transformationNameEncoded}/source/main${writeQuery(lockHandle, args.transport_request)}`;
+  const url = `${sourceUri(TRANSFORMATION.uri(args.transformation_name.toLowerCase()))}${writeQuery(lockHandle, args.transport_request)}`;
 
   const headers: Record<string, string> = {
     Accept: ACCEPT_SOURCE,

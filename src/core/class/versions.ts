@@ -2,7 +2,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { CLASS_INCLUDE, versionsUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 const ACCEPT_VERSION_FEED = 'application/atom+xml;type=feed';
@@ -28,7 +28,7 @@ export async function getClassIncludeVersions(
   includeType: ClassIncludeType,
 ): Promise<IAdtWireResponse> {
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/oo/classes/${encodeSapObjectName(className)}/includes/${includeType}/versions`,
+    url: `${versionsUri(CLASS_INCLUDE.uri(className, includeType))}`,
     method: 'GET',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_VERSION_FEED },

@@ -11,8 +11,8 @@ import type {
   IAdtResponse,
   IResultStrategy,
 } from '@mcp-abap-adt/interfaces-adt';
+import { FUNCTION_MODULE } from '../../endpoints/objects';
 import { answering } from '../../utils/adtResponse';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { deleteObjectDirect } from '../shared/deleteLegacy';
 import { AdtFunctionModule } from './AdtFunctionModule';
 import type {
@@ -31,9 +31,7 @@ export class AdtFunctionModuleLegacy<
     const group = config.functionGroupName as string;
     const module = config.functionModuleName;
 
-    const encodedGroup = encodeSapObjectName(group).toLowerCase();
-    const encodedModule = encodeSapObjectName(module as string).toLowerCase();
-    const objectUrl = `/sap/bc/adt/functions/groups/${encodedGroup}/fmodules/${encodedModule}`;
+    const objectUrl = `${FUNCTION_MODULE.uri(group, module as string)}`;
     return answering(
       () =>
         deleteObjectDirect(

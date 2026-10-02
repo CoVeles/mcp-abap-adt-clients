@@ -9,7 +9,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { METADATA_EXTENSION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -23,10 +23,9 @@ export async function lockMetadataExtension(
   connection: IAbapConnection,
   name: string,
 ): Promise<IAdtWireResponse> {
-  const lowerName = encodeSapObjectName(name).toLowerCase();
   return connection.makeAdtRequest({
     method: 'POST',
-    url: `/sap/bc/adt/ddic/ddlx/sources/${lowerName}?_action=LOCK&accessMode=MODIFY`,
+    url: `${METADATA_EXTENSION.uri(name)}?_action=LOCK&accessMode=MODIFY`,
     timeout: getTimeout('default'),
     data: undefined,
     headers: { Accept: ACCEPT_LOCK },

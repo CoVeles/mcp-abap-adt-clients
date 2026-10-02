@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_TRANSPORT } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { DDL_SOURCE, transportUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import { objectMetadataWire, objectSourceWire } from '../shared/objectWire';
 import type { IReadOptions } from '../shared/types';
@@ -64,9 +64,8 @@ export async function getDdlTransport(
   ddlName: string,
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(ddlName);
   const query = options?.withLongPolling ? '?withLongPolling=true' : '';
-  const url = `/sap/bc/adt/ddic/ddl/sources/${encodedName}/transport${query}`;
+  const url = `${transportUri(DDL_SOURCE.uri(ddlName))}${query}`;
 
   return connection.makeAdtRequest({
     url,

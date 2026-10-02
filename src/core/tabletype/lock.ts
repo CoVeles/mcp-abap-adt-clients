@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { TABLE_TYPE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -19,7 +19,7 @@ export async function lockTableType(
   connection: IAbapConnection,
   tableTypeName: string,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/ddic/tabletypes/${encodeSapObjectName(tableTypeName)}?_action=LOCK&accessMode=MODIFY`;
+  const url = `${TABLE_TYPE.uri(tableTypeName)}?_action=LOCK&accessMode=MODIFY`;
 
   return connection.makeAdtRequest({
     url,

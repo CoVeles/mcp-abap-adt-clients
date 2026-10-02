@@ -10,6 +10,7 @@ import type {
 import type { HttpError } from '@mcp-abap-adt/interfaces-network';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
 import { CT_CLASS } from '../../constants/contentTypes';
+import { CLASS } from '../../endpoints/objects';
 import { limitDescription, safeStringify } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateClassParams } from './types';
@@ -32,7 +33,7 @@ export async function create(
   const description = limitDescription(
     args.description || args.class_name || '',
   );
-  const url = `/sap/bc/adt/oo/classes${args.transport_request ? `?corrNr=${args.transport_request}` : ''}`;
+  const url = `${CLASS.collection}${args.transport_request ? `?corrNr=${args.transport_request}` : ''}`;
 
   const masterSystem = args.master_system || '';
   const username = args.responsible || '';

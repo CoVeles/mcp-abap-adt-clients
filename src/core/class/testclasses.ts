@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
+import { CLASS, CLASS_INCLUDE } from '../../endpoints/objects';
 import { activateObjectInSession } from '../../utils/activationUtils';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
@@ -26,8 +27,7 @@ export async function updateClassTestInclude(
   // Empty source is legitimate: PUTting it is how a test class is deleted.
   // Only a missing argument is an error.
 
-  const encodedName = encodeSapObjectName(className).toLowerCase();
-  const url = `/sap/bc/adt/oo/classes/${encodedName}/includes/testclasses${writeQuery(lockHandle, transportRequest)}`;
+  const url = `${CLASS_INCLUDE.uri(className, 'testclasses')}${writeQuery(lockHandle, transportRequest)}`;
 
   const contentType = sourceContentType || CT_SOURCE;
   const headers = {
@@ -49,9 +49,8 @@ export async function activateClassTestClasses(
   className: string,
   testClassName: string,
 ): Promise<IAdtWireResponse> {
-  const encodedClass = encodeSapObjectName(className).toLowerCase();
   const encodedTest = encodeSapObjectName(testClassName).toUpperCase();
-  const objectUri = `/sap/bc/adt/oo/classes/${encodedClass}#testclass=${encodedTest}`;
+  const objectUri = `${CLASS.uri(className)}#testclass=${encodedTest}`;
   const objectName = `${className.toUpperCase()}#${encodedTest}`;
   return activateObjectInSession(connection, objectUri, objectName, true);
 }

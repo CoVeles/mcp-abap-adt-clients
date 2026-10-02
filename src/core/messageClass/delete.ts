@@ -19,10 +19,11 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
+import { MESSAGE_CLASS } from '../../endpoints/objects';
 import { encodeSapObjectName } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 
-const BASE = '/sap/bc/adt/messageclass';
+const BASE = MESSAGE_CLASS.collection;
 
 const objectUri = (name: string): string =>
   `${BASE}/${encodeSapObjectName(name.toLowerCase())}`;

@@ -6,7 +6,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_GROUP } from '../../endpoints/objects';
 
 /**
  * Activate function group
@@ -15,8 +15,7 @@ export async function activateFunctionGroup(
   connection: IAbapConnection,
   functionGroupName: string,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(functionGroupName).toLowerCase();
-  const objectUri = `/sap/bc/adt/functions/groups/${encodedName}`;
+  const objectUri = `${FUNCTION_GROUP.uri(functionGroupName)}`;
 
   const xmlPayload = `<?xml version="1.0" encoding="UTF-8"?>
 <adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">

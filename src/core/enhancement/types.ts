@@ -10,6 +10,7 @@
  */
 
 import type { EnhancementType } from '@mcp-abap-adt/interfaces-adt';
+import { ENHANCEMENT } from '../../endpoints/objects';
 
 // Types defined in @mcp-abap-adt/interfaces
 export type {
@@ -36,14 +37,14 @@ export const ENHANCEMENT_TYPE_CODES: Record<EnhancementType, string> = {
  * Get ADT base URL for enhancement type
  */
 export function getEnhancementBaseUrl(type: EnhancementType): string {
-  return `/sap/bc/adt/enhancements/${type}`;
+  return ENHANCEMENT.collection(type);
 }
 
 /**
  * Get ADT object URI for specific enhancement
  */
 export function getEnhancementUri(type: EnhancementType, name: string): string {
-  return `${getEnhancementBaseUrl(type)}/${encodeURIComponent(name.toLowerCase())}`;
+  return ENHANCEMENT.uri(type, name);
 }
 
 /**

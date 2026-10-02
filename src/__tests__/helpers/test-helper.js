@@ -2173,6 +2173,10 @@ async function ensureSharedPackage(client, logger) {
         transportLayer: sharedConfig.transport_layer,
         packageType: 'development',
         transportRequest,
+        // A transportable software component (HOME on an on-premise system)
+        // refuses a package without change recording (TR432); a local one
+        // (ZLOCAL, LOCAL, $) does not want it. Stated in the config, not guessed.
+        recordChanges: sharedConfig.record_changes === true,
       }),
       `shared package create ${packageName}`,
     );

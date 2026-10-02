@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { PROGRAM } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteProgramParams } from './types';
 
@@ -25,8 +25,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { programName: program_name } = params;
 
-  const encodedName = encodeSapObjectName(program_name);
-  const objectUri = `/sap/bc/adt/programs/programs/${encodedName}`;
+  const objectUri = `${PROGRAM.uri(program_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -59,8 +58,7 @@ export async function deleteProgram(
   const { programName: program_name, transportRequest: transport_request } =
     params;
 
-  const encodedName = encodeSapObjectName(program_name);
-  const objectUri = `/sap/bc/adt/programs/programs/${encodedName}`;
+  const objectUri = `${PROGRAM.uri(program_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

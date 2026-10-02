@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_TRANSPORT } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { INTERFACE, transportUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import { objectMetadataWire, objectSourceWire } from '../shared/objectWire';
 import type { IReadOptions } from '../shared/types';
@@ -71,9 +71,8 @@ export async function getInterfaceTransport(
   interfaceName: string,
   options?: IReadOptions,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(interfaceName);
   const query = options?.withLongPolling ? '?withLongPolling=true' : '';
-  const url = `/sap/bc/adt/oo/interfaces/${encodedName}/transport${query}`;
+  const url = `${transportUri(INTERFACE.uri(interfaceName))}${query}`;
 
   return connection.makeAdtRequest({
     url,

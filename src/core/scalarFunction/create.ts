@@ -10,6 +10,7 @@ import {
   ACCEPT_SCALAR_FUNCTION,
   CT_SCALAR_FUNCTION,
 } from '../../constants/contentTypes';
+import { SCALAR_FUNCTION } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import { escapeXmlAttr } from '../../utils/xml';
@@ -26,7 +27,7 @@ export async function create(
   }
 
   const transport = args.transport_request?.trim();
-  const url = `/sap/bc/adt/ddic/dsfd/sources${
+  const url = `${SCALAR_FUNCTION.collection}${
     transport ? `?corrNr=${encodeURIComponent(transport)}` : ''
   }`;
 

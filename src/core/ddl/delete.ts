@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { DDL_SOURCE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteDdlParams } from './types';
 
@@ -25,8 +25,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { ddl_name } = params;
 
-  const encodedName = encodeSapObjectName(ddl_name);
-  const objectUri = `/sap/bc/adt/ddic/ddl/sources/${encodedName}`;
+  const objectUri = `${DDL_SOURCE.uri(ddl_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -58,8 +57,7 @@ export async function deleteDdl(
 ): Promise<IAdtWireResponse> {
   const { ddl_name, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(ddl_name);
-  const objectUri = `/sap/bc/adt/ddic/ddl/sources/${encodedName}`;
+  const objectUri = `${DDL_SOURCE.uri(ddl_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

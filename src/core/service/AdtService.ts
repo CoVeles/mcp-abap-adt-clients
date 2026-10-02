@@ -35,6 +35,7 @@ import {
   CT_DELETION_CHECK,
   CT_TRANSPORT_CHECK,
 } from '../../constants/contentTypes';
+import { SERVICE_BINDING } from '../../endpoints/objects';
 import { answering } from '../../utils/adtResponse';
 import { withCallTimeout } from '../../utils/callTimeout';
 import {
@@ -111,10 +112,6 @@ export class AdtServiceBinding<
     return config.bindingName as string;
   }
 
-  private static encodeName(name: string): string {
-    return encodeURIComponent(name.toLowerCase());
-  }
-
   private buildServiceBindingCreateXml(
     params: ICreateServiceBindingParams,
   ): string {
@@ -158,7 +155,7 @@ export class AdtServiceBinding<
   }
 
   private buildDeletionXml(params: IDeleteServiceBindingParams): string {
-    const bindingUri = `/sap/bc/adt/businessservices/bindings/${AdtServiceBinding.encodeName(params.bindingName)}`;
+    const bindingUri = SERVICE_BINDING.uri(params.bindingName);
     const transportNumber = params.transportRequest ?? '';
 
     return `<?xml version="1.0" encoding="UTF-8"?><del:deletionRequest xmlns:del="http://www.sap.com/adt/deletion" xmlns:adtcore="http://www.sap.com/adt/core"><del:object adtcore:uri="${bindingUri}"><del:transportNumber>${transportNumber}</del:transportNumber></del:object></del:deletionRequest>`;
@@ -196,7 +193,7 @@ export class AdtServiceBinding<
     // it refuses, naming an empty service and version `0000`. Measured 2026-09-29
     // on one binding per protocol with a known state and a single job each.
     return this.connection.makeAdtRequest({
-      url: `/sap/bc/adt/businessservices/${serviceType}/publishjobs`,
+      url: SERVICE_BINDING.publishJobs(serviceType),
       ...(service
         ? {
             params: {
@@ -254,7 +251,7 @@ export class AdtServiceBinding<
     // ␠ with version 0000 failed"; with it, `SEVERITY OK` and "service … with
     // version 0001 un-published locally".
     return this.connection.makeAdtRequest({
-      url: `/sap/bc/adt/businessservices/${serviceType}/unpublishjobs`,
+      url: SERVICE_BINDING.unpublishJobs(serviceType),
       ...(service
         ? {
             params: {
@@ -714,7 +711,7 @@ export class AdtServiceBinding<
     connection: IAbapConnection,
   ): Promise<IAdtWireResponse> {
     return connection.makeAdtRequest({
-      url: '/sap/bc/adt/businessservices/bindings/bindingtypes',
+      url: SERVICE_BINDING.bindingTypes,
       method: 'GET',
       timeout: getTimeout('default'),
       headers: {
@@ -728,14 +725,13 @@ export class AdtServiceBinding<
     connection: IAbapConnection,
     name: string,
   ): Promise<IAdtWireResponse> {
-    const encoded = encodeSapObjectName(name).toLowerCase();
     return connection.makeAdtRequest({
       url: '/sap/bc/adt/deletion/check',
       method: 'POST',
       timeout: getTimeout('default'),
       data: `<?xml version="1.0" encoding="UTF-8"?>
 <del:checkRequest xmlns:del="http://www.sap.com/adt/deletion" xmlns:adtcore="http://www.sap.com/adt/core">
-  <del:object adtcore:uri="/sap/bc/adt/businessservices/bindings/${encoded}"/>
+  <del:object adtcore:uri="${SERVICE_BINDING.uri(name)}"/>
 </del:checkRequest>`,
       headers: {
         Accept: ACCEPT_DELETION_CHECK,
@@ -782,7 +778,7 @@ export class AdtServiceBinding<
       : undefined;
 
     return connection.makeAdtRequest({
-      url: '/sap/bc/adt/businessservices/bindings',
+      url: SERVICE_BINDING.collection,
       method: 'POST',
       timeout: getTimeout('default'),
       data: this.buildServiceBindingCreateXml(createParams),
@@ -801,7 +797,7 @@ export class AdtServiceBinding<
     params: IReadServiceBindingParams,
   ): Promise<IAdtWireResponse> {
     return connection.makeAdtRequest({
-      url: `/sap/bc/adt/businessservices/bindings/${AdtServiceBinding.encodeName(params.bindingName)}`,
+      url: SERVICE_BINDING.uri(params.bindingName),
       method: 'GET',
       timeout: getTimeout('default'),
       params: params.version ? { version: params.version } : undefined,
@@ -899,7 +895,7 @@ export class AdtServiceBinding<
     params: ICheckServiceBindingParams,
   ): Promise<IAdtWireResponse> {
     const version = params.version ?? 'inactive';
-    const bindingUri = `/sap/bc/adt/businessservices/bindings/${AdtServiceBinding.encodeName(params.bindingName)}`;
+    const bindingUri = SERVICE_BINDING.uri(params.bindingName);
     const xml = `<?xml version="1.0" encoding="UTF-8"?><chkrun:checkObjectList xmlns:chkrun="http://www.sap.com/adt/checkrun" xmlns:adtcore="http://www.sap.com/adt/core"><chkrun:checkObject adtcore:uri="${bindingUri}" chkrun:version="${version}"/></chkrun:checkObjectList>`;
 
     return connection.makeAdtRequest({
@@ -920,7 +916,7 @@ export class AdtServiceBinding<
   ): Promise<IAdtWireResponse> {
     const preauditRequested =
       params.preauditRequested === undefined ? true : params.preauditRequested;
-    const bindingUri = `/sap/bc/adt/businessservices/bindings/${AdtServiceBinding.encodeName(params.bindingName)}`;
+    const bindingUri = SERVICE_BINDING.uri(params.bindingName);
     const xml = `<?xml version="1.0" encoding="UTF-8"?><adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core"><adtcore:objectReference adtcore:uri="${bindingUri}" adtcore:name="${params.bindingName.toUpperCase()}"/></adtcore:objectReferences>`;
 
     return connection.makeAdtRequest({
@@ -963,7 +959,7 @@ export class AdtServiceBinding<
       srvdname: params.serviceDefinitionName.toUpperCase(),
     });
     return connection.makeAdtRequest({
-      url: `/sap/bc/adt/businessservices/${path}/${encodeURIComponent(params.bindingName.toUpperCase())}?${genQs}`,
+      url: `${SERVICE_BINDING.odataService(path, params.bindingName.toUpperCase())}?${genQs}`,
       method: 'GET',
       timeout: getTimeout('default'),
       headers: {
@@ -1007,7 +1003,7 @@ export class AdtServiceBinding<
       srvdname: params.srvdname,
     });
     return connection.makeAdtRequest({
-      url: `/sap/bc/adt/businessservices/${params.serviceType}/${encodeURIComponent(params.objectname)}?${query}`,
+      url: `${SERVICE_BINDING.odataService(params.serviceType, params.objectname)}?${query}`,
       method: 'GET',
       timeout: getTimeout('default'),
       headers: {
@@ -1043,7 +1039,7 @@ export class AdtServiceBinding<
       servicename: params.servicename,
     });
     return connection.makeAdtRequest({
-      url: `/sap/bc/adt/businessservices/release?${classifyQs}`,
+      url: `${SERVICE_BINDING.release}?${classifyQs}`,
       method: 'GET',
       timeout: getTimeout('default'),
       headers: {

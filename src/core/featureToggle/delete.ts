@@ -12,12 +12,12 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FEATURE_TOGGLE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteFeatureToggleParams } from './types';
 
 function objectUri(name: string): string {
-  return `/sap/bc/adt/sfw/featuretoggles/${encodeSapObjectName(name.toLowerCase())}`;
+  return `${FEATURE_TOGGLE.uri(name)}`;
 }
 
 /**

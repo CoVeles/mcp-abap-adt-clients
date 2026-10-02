@@ -8,6 +8,7 @@ import type {
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
 import { ACCEPT_SOURCE } from '../../constants/contentTypes';
+import { CLASS_INCLUDE } from '../../endpoints/objects';
 import { makeAdtRequestWithAcceptNegotiation } from '../../utils/acceptNegotiation';
 import { objectMetadataWire, objectSourceWire } from '../shared/objectWire';
 import type { IReadOptions } from '../shared/types';
@@ -75,11 +76,10 @@ export async function getBehaviorImplementationImplementations(
   );
   const { getTimeout } = await import('../../utils/timeouts');
 
-  const encodedName = encodeSapObjectName(className).toLowerCase();
   // The version query is conditional here, so the base arrives both with and
   // without a `?` — which is why appending is the helper's job, not a literal.
   const url = longPollingQuery(
-    `/sap/bc/adt/oo/classes/${encodedName}/includes/implementations${version !== 'active' ? `?version=${version}` : ''}`,
+    `${CLASS_INCLUDE.uri(className, 'implementations')}${version !== 'active' ? `?version=${version}` : ''}`,
     options?.withLongPolling,
   );
 

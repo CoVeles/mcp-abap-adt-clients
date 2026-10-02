@@ -8,6 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { DOMAIN } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -33,7 +34,7 @@ export async function validateDomainName(
   description: string,
   packageName?: string,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/ddic/domains/validation`;
+  const url = DOMAIN.validation;
   const queryParams = new URLSearchParams({
     objtype: 'doma',
     objname: domainName,

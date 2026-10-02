@@ -2,7 +2,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { STRUCTURE, sourceUri, versionsUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IStructureConfig } from './types';
 
@@ -20,8 +20,7 @@ export async function getStructureVersions(
   connection: IAbapConnection,
   config: Partial<IStructureConfig>,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(config.structureName as string);
-  const url = `/sap/bc/adt/ddic/structures/${encodedName}/source/main/versions`;
+  const url = `${versionsUri(sourceUri(STRUCTURE.uri(config.structureName as string)))}`;
   return connection.makeAdtRequest({
     url,
     method: 'GET',

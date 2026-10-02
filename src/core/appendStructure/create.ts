@@ -10,6 +10,7 @@ import {
   ACCEPT_APPEND_STRUCTURE,
   CT_STRUCTURE,
 } from '../../constants/contentTypes';
+import { STRUCTURE } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import { escapeXmlAttr } from '../../utils/xml';
@@ -26,7 +27,7 @@ export async function create(
   }
 
   const transport = args.transport_request?.trim();
-  const url = `/sap/bc/adt/ddic/structures${
+  const url = `${STRUCTURE.collection}${
     transport ? `?corrNr=${encodeURIComponent(transport)}` : ''
   }`;
 

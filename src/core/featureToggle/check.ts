@@ -11,7 +11,7 @@ import {
   CT_CHECK_OBJECTS,
   CT_FEATURE_TOGGLE_METADATA,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FEATURE_TOGGLE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -27,8 +27,7 @@ export async function checkFeatureToggle(
   version: 'active' | 'inactive',
   xmlContent?: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(name.toLowerCase());
-  const uri = `/sap/bc/adt/sfw/featuretoggles/${encoded}`;
+  const uri = `${FEATURE_TOGGLE.uri(name)}`;
 
   let xmlBody: string;
   if (xmlContent) {

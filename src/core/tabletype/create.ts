@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_TABLE_TYPE } from '../../constants/contentTypes';
+import { TABLE_TYPE } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateTableTypeParams } from './types';
@@ -35,7 +36,7 @@ export async function createTableType(
     : '';
 
   // Create empty table type with POST using XML format (ttyp:tableType)
-  const createUrl = `/sap/bc/adt/ddic/tabletypes${params.transport_request ? `?corrNr=${params.transport_request}` : ''}`;
+  const createUrl = `${TABLE_TYPE.collection}${params.transport_request ? `?corrNr=${params.transport_request}` : ''}`;
 
   // Empty table type XML (rowType added via update)
   const tableTypeXml = `<?xml version="1.0" encoding="UTF-8"?><ttyp:tableType xmlns:ttyp="http://www.sap.com/dictionary/tabletype" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${params.masterLanguage || 'EN'}" adtcore:name="${params.tabletype_name.toUpperCase()}" adtcore:type="TTYP/DA" adtcore:masterLanguage="${params.masterLanguage || 'EN'}"${masterSystemAttr}${responsibleAttr}>

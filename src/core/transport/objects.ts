@@ -32,7 +32,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_TRANSPORT } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { TRANSPORT_REQUEST } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IAbapObjectEntry } from './types';
 
@@ -43,7 +43,7 @@ const USER_ACTION_HEADERS = {
 } as const;
 
 const requestUrl = (number: string): string =>
-  `/sap/bc/adt/cts/transportrequests/${encodeSapObjectName(number)}`;
+  `${TRANSPORT_REQUEST.uri(number)}`;
 
 /** `&`, `<` and `"` in an attribute value would otherwise break the body. */
 const attribute = (value: string): string =>

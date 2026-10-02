@@ -2,7 +2,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { TRANSFORMATION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -11,7 +11,7 @@ import { getTimeout } from '../../utils/timeouts';
 function buildActivationXml(transformationName: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <adtcore:objectReferences xmlns:adtcore="http://www.sap.com/adt/core">
-  <adtcore:objectReference adtcore:uri="/sap/bc/adt/xslt/transformations/${encodeSapObjectName(transformationName.toLowerCase())}" adtcore:name="${transformationName.toUpperCase()}"/>
+  <adtcore:objectReference adtcore:uri="${TRANSFORMATION.uri(transformationName)}" adtcore:name="${transformationName.toUpperCase()}"/>
 </adtcore:objectReferences>`;
 }
 

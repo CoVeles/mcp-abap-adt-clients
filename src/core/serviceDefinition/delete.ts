@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { SERVICE_DEFINITION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteServiceDefinitionParams } from './types';
 
@@ -25,8 +25,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { service_definition_name } = params;
 
-  const encodedName = encodeSapObjectName(service_definition_name);
-  const objectUri = `/sap/bc/adt/ddic/srvd/sources/${encodedName}`;
+  const objectUri = `${SERVICE_DEFINITION.uri(service_definition_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -58,8 +57,7 @@ export async function deleteServiceDefinition(
 ): Promise<IAdtWireResponse> {
   const { service_definition_name, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(service_definition_name);
-  const objectUri = `/sap/bc/adt/ddic/srvd/sources/${encodedName}`;
+  const objectUri = `${SERVICE_DEFINITION.uri(service_definition_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

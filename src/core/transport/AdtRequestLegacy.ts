@@ -27,6 +27,7 @@ import type {
 import { AdtObjectErrorCodes } from '@mcp-abap-adt/interfaces-adt';
 import type { IAbapConnection } from '@mcp-abap-adt/interfaces-adt-connection';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
+import { TRANSPORT_REQUEST_LEGACY } from '../../endpoints/objects';
 import { answering, failed } from '../../utils/adtResponse';
 import { AdtRequest } from './AdtRequest';
 import { getTransportLegacy, listTransportsLegacy } from './readLegacy';
@@ -69,7 +70,7 @@ export class AdtRequestLegacy<
     return failed<ReturnType<R['created']>, E>(
       unsupported(
         'Creating transport requests',
-        'The /sap/bc/cts/transportrequests endpoint rejects every create payload.',
+        `The ${TRANSPORT_REQUEST_LEGACY.collection} endpoint rejects every create payload.`,
       ) as E,
     );
   }
@@ -117,7 +118,7 @@ export class AdtRequestLegacy<
       return failed<ReturnType<R['list']>, E>(
         unsupported(
           'configUri',
-          '/sap/bc/cts/transportrequests is not a saved-configuration search and always returns the full list for the current user.',
+          `${TRANSPORT_REQUEST_LEGACY.collection} is not a saved-configuration search and always returns the full list for the current user.`,
         ) as E,
       );
     }
@@ -136,7 +137,7 @@ export class AdtRequestLegacy<
     return failed<ReturnType<R['metadataUpdated']>, E>(
       unsupported(
         'Updating transport requests',
-        'The legacy /sap/bc/cts/transportrequests endpoint has never been captured, so whether or how it supports changing a description is unknown.',
+        `The legacy ${TRANSPORT_REQUEST_LEGACY.collection} endpoint has never been captured, so whether or how it supports changing a description is unknown.`,
       ) as E,
     );
   }
@@ -148,7 +149,7 @@ export class AdtRequestLegacy<
     return failed<ReturnType<R['deleted']>, E>(
       unsupported(
         'Deleting transport requests',
-        'The legacy /sap/bc/cts/transportrequests endpoint has never been captured, so whether it supports deleting a request is unknown.',
+        `The legacy ${TRANSPORT_REQUEST_LEGACY.collection} endpoint has never been captured, so whether it supports deleting a request is unknown.`,
       ) as E,
     );
   }

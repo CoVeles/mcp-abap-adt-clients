@@ -26,9 +26,9 @@ import type {
 } from '@mcp-abap-adt/interfaces-adt';
 import type { IAbapConnection } from '@mcp-abap-adt/interfaces-adt-connection';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
+import { METADATA_EXTENSION } from '../../endpoints/objects';
 import { answering } from '../../utils/adtResponse';
 import { withCallTimeout } from '../../utils/callTimeout';
-import { encodeSapObjectName } from '../../utils/internalUtils';
 import { lockHandleOf } from '../../utils/lockHandle';
 import { nothing } from '../../utils/resultStrategy';
 import { inStatefulSession } from '../shared/capabilities/statefulSession';
@@ -306,11 +306,7 @@ export class AdtMetadataExtension<
     const name = this.name(config);
 
     return answering(
-      () =>
-        checkDeletionByUri(
-          connection,
-          `/sap/bc/adt/ddic/ddlx/sources/${encodeSapObjectName(name).toLowerCase()}`,
-        ),
+      () => checkDeletionByUri(connection, `${METADATA_EXTENSION.uri(name)}`),
       this.results.deletionCheck as IResultStrategy<
         ReturnType<R['deletionCheck']>
       >,

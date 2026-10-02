@@ -11,6 +11,7 @@ import type {
   IAdtResponse,
   IResultStrategy,
 } from '@mcp-abap-adt/interfaces-adt';
+import { FUNCTION_GROUP } from '../../endpoints/objects';
 import { answering } from '../../utils/adtResponse';
 import { deleteObjectDirect } from '../shared/deleteLegacy';
 import { AdtFunctionGroup } from './AdtFunctionGroup';
@@ -29,7 +30,7 @@ export class AdtFunctionGroupLegacy<
   ): Promise<IAdtResponse<ReturnType<R['deletion']>, E>> {
     const name = config.functionGroupName as string;
 
-    const objectUrl = `/sap/bc/adt/functions/groups/${name.toLowerCase()}`;
+    const objectUrl = FUNCTION_GROUP.uri(name);
     return answering(
       () =>
         deleteObjectDirect(

@@ -127,6 +127,7 @@ import {
 // Note: DDIC Activation Graph is in runtime/logs/ddic.ts
 // It is accessed via AdtRuntime.getDdicActivationGraph(), not AdtUtils
 
+import { buildObjectUri } from '../../utils/activationUtils';
 import type {
   AdtObjectType,
   AdtSourceObjectType,
@@ -179,6 +180,18 @@ import { type IUtilResults, utilDocuments } from './utilResultSet';
  * `getObjectSourceUri` — make no request, so there is no answer for a strategy
  * to read.
  */
+
+/**
+ * Every object's address, built before a group request is sent. Inside
+ * `answering` a type this library cannot address would come back as a resolved
+ * `connection` failure — telling the caller to check the network about an
+ * argument of theirs. Built here, it is thrown, as decision 15 wants for a
+ * cause on the caller's side.
+ */
+function addressEvery(objects: IObjectReference[]): void {
+  for (const o of objects) buildObjectUri(o.name, o.type, o.parentName);
+}
+
 export class AdtUtils<R extends IUtilResults = typeof utilDocuments>
   implements
     IAdtInformationSystem<
@@ -441,6 +454,7 @@ export class AdtUtils<R extends IUtilResults = typeof utilDocuments>
     preauditRequested: boolean = false,
     options?: IAdtAnalyseOptions<E>,
   ): Promise<IAdtResponse<ReturnType<R['activation']>, E>> {
+    addressEvery(objects);
     return answering(
       () => activateObjectsGroup(this.connection, objects, preauditRequested),
       this.results.activation as IResultStrategy<ReturnType<R['activation']>>,
@@ -497,6 +511,7 @@ export class AdtUtils<R extends IUtilResults = typeof utilDocuments>
     objects: IObjectReference[],
     options?: IAdtAnalyseOptions<E>,
   ): Promise<IAdtResponse<ReturnType<R['deletionCheck']>, E>> {
+    addressEvery(objects);
     return answering(
       () => checkDeletionGroup(this.connection, objects),
       this.results.deletionCheck as IResultStrategy<
@@ -522,6 +537,7 @@ export class AdtUtils<R extends IUtilResults = typeof utilDocuments>
     transportRequest?: string,
     options?: IAdtAnalyseOptions<E>,
   ): Promise<IAdtResponse<ReturnType<R['deletion']>, E>> {
+    addressEvery(objects);
     return answering(
       () => deleteObjectsGroup(this.connection, objects, transportRequest),
       this.results.deletion as IResultStrategy<ReturnType<R['deletion']>>,

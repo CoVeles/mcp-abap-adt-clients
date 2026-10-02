@@ -3,7 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { STRUCTURE, sourceUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateAppendStructureParams } from './types';
 
@@ -17,11 +17,10 @@ export async function updateAppendStructure(
   args: IUpdateAppendStructureParams,
   lockHandle: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(args.append_structure_name.toLowerCase());
   const corrNrParam = args.transport_request
     ? `&corrNr=${encodeURIComponent(args.transport_request)}`
     : '';
-  const url = `/sap/bc/adt/ddic/structures/${encoded}/source/main?lockHandle=${encodeURIComponent(lockHandle)}${corrNrParam}`;
+  const url = `${sourceUri(STRUCTURE.uri(args.append_structure_name))}?lockHandle=${encodeURIComponent(lockHandle)}${corrNrParam}`;
   return connection.makeAdtRequest({
     url,
     method: 'PUT',

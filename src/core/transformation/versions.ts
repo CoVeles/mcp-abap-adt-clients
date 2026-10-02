@@ -2,7 +2,11 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import {
+  sourceUri,
+  TRANSFORMATION,
+  versionsUri,
+} from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { ITransformationConfig } from './types';
 
@@ -20,10 +24,9 @@ export async function getTransformationVersions(
   connection: IAbapConnection,
   config: Partial<ITransformationConfig>,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(
-    (config.transformationName as string).toLowerCase(),
+  const url = versionsUri(
+    sourceUri(TRANSFORMATION.uri(config.transformationName as string)),
   );
-  const url = `/sap/bc/adt/xslt/transformations/${encodedName}/source/main/versions`;
   return connection.makeAdtRequest({
     url,
     method: 'GET',

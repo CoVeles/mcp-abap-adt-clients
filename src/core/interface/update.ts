@@ -8,7 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { INTERFACE, sourceUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -23,7 +23,7 @@ export async function upload(
   corrNr: string | undefined,
   sourceContentType?: string,
 ): Promise<IAdtWireResponse> {
-  let url = `/sap/bc/adt/oo/interfaces/${encodeSapObjectName(interfaceName)}/source/main?lockHandle=${encodeURIComponent(lockHandle)}`;
+  let url = `${sourceUri(INTERFACE.uri(interfaceName))}?lockHandle=${encodeURIComponent(lockHandle)}`;
   if (corrNr) {
     url += `&corrNr=${corrNr}`;
   }

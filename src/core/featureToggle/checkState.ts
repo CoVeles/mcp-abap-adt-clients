@@ -6,7 +6,7 @@ import {
   ACCEPT_FEATURE_TOGGLE_CHECK_RESULT,
   CT_FEATURE_TOGGLE_CHECK_PARAMETERS,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FEATURE_TOGGLE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -22,13 +22,12 @@ export async function checkFeatureToggleState(
   name: string,
   opts?: { userSpecific?: boolean },
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(name.toLowerCase());
   const body = {
     PARAMETERS: { IS_USER_SPECIFIC: Boolean(opts?.userSpecific) },
   };
   return connection.makeAdtRequest({
     method: 'POST',
-    url: `/sap/bc/adt/sfw/featuretoggles/${encoded}/check`,
+    url: `${FEATURE_TOGGLE.uri(name)}/check`,
     timeout: getTimeout('default'),
     headers: {
       'Content-Type': CT_FEATURE_TOGGLE_CHECK_PARAMETERS,

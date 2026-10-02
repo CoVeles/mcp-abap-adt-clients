@@ -12,7 +12,33 @@ import type {
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_ACTIVATION } from '../constants/contentTypes';
 import { getEnhancementUri } from '../core/enhancement/types';
-import { encodeSapObjectName } from './internalUtils';
+import {
+  ACCESS_CONTROL,
+  AUTHORIZATION_FIELD,
+  BEHAVIOR_DEFINITION,
+  CLASS,
+  DATA_ELEMENT,
+  DDIC_VIEW,
+  DDL_SOURCE,
+  DOMAIN,
+  FEATURE_TOGGLE,
+  FUNCTION_GROUP,
+  FUNCTION_INCLUDE,
+  FUNCTION_MODULE,
+  INTERFACE,
+  METADATA_EXTENSION,
+  PACKAGE,
+  PROGRAM,
+  PROGRAM_INCLUDE,
+  SCALAR_FUNCTION,
+  SCALAR_FUNCTION_IMPLEMENTATION,
+  SERVICE_BINDING,
+  SERVICE_DEFINITION,
+  STRUCTURE,
+  TABLE,
+  TABLE_TYPE,
+  TRANSFORMATION,
+} from '../endpoints/objects';
 import { getTimeout } from './timeouts';
 
 /**
@@ -29,17 +55,10 @@ export function buildObjectUri(
   type?: string,
   parentName?: string,
 ): string {
-  const lowerName = encodeSapObjectName(name).toLowerCase();
-
   if (!type) {
-    // Try to guess type from name prefix
-    if (name.startsWith('ZCL_') || name.startsWith('CL_')) {
-      return `/sap/bc/adt/oo/classes/${lowerName}`;
-    } else if (name.startsWith('Z') && name.includes('_PROGRAM')) {
-      return `/sap/bc/adt/programs/programs/${lowerName}`;
-    }
-    // Default: assume program
-    return `/sap/bc/adt/programs/programs/${lowerName}`;
+    // The name does not say what an object is: ZCL_ is a convention, not a
+    // type, and every other name used to be taken for a program.
+    throw new Error(`buildObjectUri needs the object type for ${name}`);
   }
 
   // Map type to URI path
@@ -52,25 +71,29 @@ export function buildObjectUri(
     // package CRUD worked while the group operations did not.
     case 'DEVC/K':
     case 'DEVC':
-      return `/sap/bc/adt/packages/${lowerName}`;
+      return `${PACKAGE.uri(name)}`;
 
     case 'CLAS/OC':
     case 'CLAS':
-      return `/sap/bc/adt/oo/classes/${lowerName}`;
+      return `${CLASS.uri(name)}`;
 
     case 'PROG/P':
     case 'PROG':
-      return `/sap/bc/adt/programs/programs/${lowerName}`;
+      return `${PROGRAM.uri(name)}`;
 
     case 'PROG/I':
-      return `/sap/bc/adt/programs/includes/${lowerName}`;
+      return `${PROGRAM_INCLUDE.uri(name)}`;
 
     case 'FUGR/FF': {
-      if (parentName) {
-        const lowerParent = encodeSapObjectName(parentName).toLowerCase();
-        return `/sap/bc/adt/functions/groups/${lowerParent}/fmodules/${lowerName}`;
+      // A module is addressed under its group. This used to put the module's
+      // own name in the group's place when none was passed — an address that
+      // exists nowhere.
+      if (!parentName) {
+        throw new Error(
+          `A function module (FUGR/FF) is addressed under its function group; pass the group as parentName for ${name}`,
+        );
       }
-      return `/sap/bc/adt/functions/groups/${lowerName}/fmodules/${lowerName}`;
+      return FUNCTION_MODULE.uri(parentName, name);
     }
 
     case 'FUGR/I': {
@@ -84,60 +107,59 @@ export function buildObjectUri(
           `A function include (FUGR/I) is addressed under its function group; pass the group as parentName for ${name}`,
         );
       }
-      const lowerParent = encodeSapObjectName(parentName).toLowerCase();
-      return `/sap/bc/adt/functions/groups/${lowerParent}/includes/${encodeSapObjectName(name.toUpperCase())}`;
+      return `${FUNCTION_INCLUDE.uri(parentName, name)}`;
     }
 
     case 'FUGR':
     case 'FUGR/F':
     case 'FUNC':
-      return `/sap/bc/adt/functions/groups/${lowerName}`;
+      return `${FUNCTION_GROUP.uri(name)}`;
 
     case 'TABL/DT':
     case 'TABL':
-      return `/sap/bc/adt/ddic/tables/${lowerName}`;
+      return `${TABLE.uri(name)}`;
 
     case 'TABL/DS':
     case 'STRU/DS':
     case 'STRU':
-      return `/sap/bc/adt/ddic/structures/${lowerName}`;
+      return `${STRUCTURE.uri(name)}`;
 
     case 'DDLS/DF':
     case 'DDLS':
-      return `/sap/bc/adt/ddic/ddl/sources/${lowerName}`;
+      return `${DDL_SOURCE.uri(name)}`;
 
     case 'VIEW/DV':
     case 'VIEW':
-      return `/sap/bc/adt/ddic/views/${lowerName}`;
+      return `${DDIC_VIEW.uri(name)}`;
 
     case 'DTEL/DE':
     case 'DTEL':
-      return `/sap/bc/adt/ddic/dataelements/${lowerName}`;
+      return `${DATA_ELEMENT.uri(name)}`;
 
     case 'DOMA/DD':
     case 'DOMA':
-      return `/sap/bc/adt/ddic/domains/${lowerName}`;
+      return `${DOMAIN.uri(name)}`;
 
     case 'INTF/OI':
     case 'INTF':
-      return `/sap/bc/adt/oo/interfaces/${lowerName}`;
+      return `${INTERFACE.uri(name)}`;
 
     case 'TTYP/DF':
     case 'TTYP/TT':
     case 'TTYP':
-      return `/sap/bc/adt/ddic/tabletypes/${lowerName}`;
+      return `${TABLE_TYPE.uri(name)}`;
 
     case 'SRVD/SRV':
     case 'SRVD':
-      return `/sap/bc/adt/ddic/srvd/sources/${lowerName}`;
+      return `${SERVICE_DEFINITION.uri(name)}`;
 
     case 'SRVB/SVB':
     case 'SRVB':
-      return `/sap/bc/adt/businessservices/bindings/${lowerName}`;
+      return SERVICE_BINDING.uri(name);
 
     case 'DDLX/EX':
     case 'DDLX':
-      return `/sap/bc/adt/ddic/ddlx/sources/${lowerName}`;
+      return `${METADATA_EXTENSION.uri(name)}`;
 
     case 'BDEF/BDO':
     case 'BDEF':
@@ -146,44 +168,43 @@ export function buildObjectUri(
       // until #173: SAP resolved that to nothing and answered
       // `activationExecuted="false"` with no message, so a group activation
       // reported success and left the behavior definition inactive.
-      return `/sap/bc/adt/bo/behaviordefinitions/${lowerName}`;
+      return `${BEHAVIOR_DEFINITION.uri(name)}`;
 
     case 'DCLS/DL':
     case 'DCLS':
-      return `/sap/bc/adt/acm/dcl/sources/${lowerName}`;
+      return `${ACCESS_CONTROL.uri(name)}`;
 
     case 'DSFD/SCF':
-      return `/sap/bc/adt/ddic/dsfd/sources/${lowerName}`;
+      return `${SCALAR_FUNCTION.uri(name)}`;
 
     case 'DSFI/SFI':
-      return `/sap/bc/adt/ddic/dsfi/${lowerName}`;
+      return `${SCALAR_FUNCTION_IMPLEMENTATION.uri(name)}`;
 
-    case 'ENHO/ENH':
     case 'XSLT/VT':
     case 'XSLT':
-      return `/sap/bc/adt/xslt/transformations/${lowerName}`;
+      return `${TRANSFORMATION.uri(name)}`;
 
     case 'AUTH':
-      return `/sap/bc/adt/aps/iam/auth/${lowerName}`;
+      return `${AUTHORIZATION_FIELD.uri(name)}`;
 
     case 'FTG2/FT':
     case 'FTG2':
-      return `/sap/bc/adt/sfw/featuretoggles/${lowerName}`;
+      return `${FEATURE_TOGGLE.uri(name)}`;
 
     // The subtype is a path segment — `/enhancements/enhoxh/<name>` — so it is
     // read off the type code, and built by the same function the enhancement's
     // own activation uses. This case built `/enhancements/<name>` until #173's
     // check found it, and the subtyped codes fell through to `default`.
     case 'ENHO/EXH':
-      return getEnhancementUri('enhoxh', lowerName);
+      return getEnhancementUri('enhoxh', name);
     case 'ENHO/EXHB':
-      return getEnhancementUri('enhoxhb', lowerName);
+      return getEnhancementUri('enhoxhb', name);
     case 'ENHO/EXHH':
-      return getEnhancementUri('enhoxhh', lowerName);
+      return getEnhancementUri('enhoxhh', name);
     case 'ENHS/EXS':
-      return getEnhancementUri('enhsxs', lowerName);
+      return getEnhancementUri('enhsxs', name);
     case 'ENHS/EXSB':
-      return getEnhancementUri('enhsxsb', lowerName);
+      return getEnhancementUri('enhsxsb', name);
 
     case 'ENHO':
     case 'ENHS':
@@ -194,16 +215,13 @@ export function buildObjectUri(
       );
 
     default:
-      // A guess dressed as a mapping: right when the ADT path happens to be the
-      // lowercased type code, silent when it is not. `DEVC/K` is the case that
-      // showed it — the address it built exists nowhere, and ADT's complaint
-      // arrived inside a 200 where nothing was reading it.
-      //
-      // Left in place rather than made to throw: the types above are mapped, and
-      // the ones that are not are reached by callers passing a type this library
-      // never claimed to know. Making that a throw is a separate decision about
-      // how strict `IObjectReference` should be.
-      return `/sap/bc/adt/${type.toLowerCase()}/${lowerName}`;
+      // Used to build `/sap/bc/adt/<type lowercased>/<name>` — right only when
+      // the ADT path happened to be the type code, and a 200 carrying ADT's
+      // complaint otherwise (`DEVC/K` showed it). A type this library has no
+      // record for is the caller's argument, so it is refused before a request.
+      throw new Error(
+        `No ADT address is known for object type '${type}' (${name}); pass one of the codes this library maps, e.g. CLAS/OC, PROG/P, PROG/I, FUGR/I.`,
+      );
   }
 }
 

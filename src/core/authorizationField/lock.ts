@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { AUTHORIZATION_FIELD } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -21,10 +21,9 @@ export async function lockAuthorizationField(
   connection: IAbapConnection,
   name: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(name.toUpperCase());
   return connection.makeAdtRequest({
     method: 'POST',
-    url: `/sap/bc/adt/aps/iam/auth/${encoded}?_action=LOCK&accessMode=MODIFY`,
+    url: `${AUTHORIZATION_FIELD.uri(name)}?_action=LOCK&accessMode=MODIFY`,
     headers: { Accept: ACCEPT_LOCK },
     timeout: getTimeout('default'),
   });

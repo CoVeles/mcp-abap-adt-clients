@@ -58,7 +58,7 @@ describe('class include reads carry withLongPolling when asked', () => {
 
       expect(calls).toHaveLength(1);
       expect(calls[0].url).toBe(
-        `/sap/bc/adt/oo/classes/ZTEST_CLS/includes/${kind}?version=active&withLongPolling=true`,
+        `/sap/bc/adt/oo/classes/ztest_cls/includes/${kind}?version=active&withLongPolling=true`,
       );
     });
 

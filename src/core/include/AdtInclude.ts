@@ -27,6 +27,7 @@ import type {
 } from '@mcp-abap-adt/interfaces-adt';
 import type { IAbapConnection } from '@mcp-abap-adt/interfaces-adt-connection';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
+import { PROGRAM_INCLUDE } from '../../endpoints/objects';
 import { answering } from '../../utils/adtResponse';
 import { withCallTimeout } from '../../utils/callTimeout';
 import { lockHandleOf } from '../../utils/lockHandle';
@@ -102,7 +103,7 @@ export class AdtInclude<R extends IIncludeResults = typeof includeDocuments>
     return answering(
       () =>
         connection.makeAdtRequest({
-          url: `/sap/bc/adt/includes/validation?${params.toString()}`,
+          url: `${PROGRAM_INCLUDE.validation}?${params.toString()}`,
           method: 'POST',
           timeout: 45000,
           headers: { Accept: 'application/vnd.sap.as+xml' },

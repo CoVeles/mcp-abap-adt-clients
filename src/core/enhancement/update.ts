@@ -9,7 +9,7 @@ import type {
 import type { HttpError } from '@mcp-abap-adt/interfaces-network';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
-import { encodeSapObjectName, safeStringify } from '../../utils/internalUtils';
+import { safeStringify } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import {
   type EnhancementType,
@@ -48,10 +48,10 @@ export async function update(
     );
   }
 
-  const encodedName = encodeSapObjectName(
+  const baseUri = getEnhancementUri(
+    args.enhancement_type,
     args.enhancement_name as string,
-  ).toLowerCase();
-  const baseUri = getEnhancementUri(args.enhancement_type, encodedName);
+  );
 
   // Build URL with parameters
   const params = new URLSearchParams();

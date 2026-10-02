@@ -8,6 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { PROGRAM } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -31,7 +32,7 @@ export async function validateProgramName(
   packageName: string,
   description?: string,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/programs/validation`;
+  const url = PROGRAM.validation;
   const queryParams = new URLSearchParams({
     objname: programName,
     objtype: 'PROG/P',

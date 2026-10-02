@@ -2,7 +2,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FEATURE_TOGGLE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 export async function unlockFeatureToggle(
@@ -10,10 +10,9 @@ export async function unlockFeatureToggle(
   name: string,
   lockHandle: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(name.toLowerCase());
   return connection.makeAdtRequest({
     method: 'POST',
-    url: `/sap/bc/adt/sfw/featuretoggles/${encoded}`,
+    url: `${FEATURE_TOGGLE.uri(name)}`,
     timeout: getTimeout('default'),
     params: { _action: 'UNLOCK', lockHandle },
     // No `X-sap-adt-sessiontype` here: `setSessionType('stateful')` in the

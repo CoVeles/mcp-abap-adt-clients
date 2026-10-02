@@ -22,7 +22,7 @@ describe('getProgramVersions', () => {
     });
     const answer = await getProgramVersions(c, { programName: 'ZPROG' });
     expect(seen.url).toBe(
-      '/sap/bc/adt/programs/programs/ZPROG/source/main/versions',
+      '/sap/bc/adt/programs/programs/zprog/source/main/versions',
     );
     expect(seen.headers.Accept).toContain('application/atom+xml;type=feed');
     // The feed as it arrived — `objectVersions` in adt-strategies reads it.

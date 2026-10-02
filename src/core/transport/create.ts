@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_TRANSPORT } from '../../constants/contentTypes';
+import { TRANSPORT_REQUEST } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateTransportParams } from './types';
 
@@ -41,7 +42,7 @@ export async function createTransport(
 ): Promise<IAdtWireResponse> {
   const username = params.owner as string;
 
-  const url = `/sap/bc/adt/cts/transportrequests`;
+  const url = TRANSPORT_REQUEST.collection;
 
   const xmlBody = buildCreateTransportXml(params, username);
   const headers = {

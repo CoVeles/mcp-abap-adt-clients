@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_MODULE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -22,11 +22,8 @@ export async function lockFunctionModule(
   functionGroupName: string,
   functionModuleName: string,
 ): Promise<IAdtWireResponse> {
-  const encodedGroupName = encodeSapObjectName(functionGroupName).toLowerCase();
-  const encodedModuleName =
-    encodeSapObjectName(functionModuleName).toLowerCase();
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/functions/groups/${encodedGroupName}/fmodules/${encodedModuleName}?_action=LOCK&accessMode=MODIFY`,
+    url: `${FUNCTION_MODULE.uri(functionGroupName, functionModuleName)}?_action=LOCK&accessMode=MODIFY`,
     method: 'POST',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_LOCK },

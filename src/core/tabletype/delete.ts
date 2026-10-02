@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { TABLE_TYPE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteTableTypeParams } from './types';
 
@@ -25,8 +25,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { tabletype_name } = params;
 
-  const encodedName = encodeSapObjectName(tabletype_name);
-  const objectUri = `/sap/bc/adt/ddic/tabletypes/${encodedName}`;
+  const objectUri = `${TABLE_TYPE.uri(tabletype_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -58,8 +57,7 @@ export async function deleteTableType(
 ): Promise<IAdtWireResponse> {
   const { tabletype_name, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(tabletype_name);
-  const objectUri = `/sap/bc/adt/ddic/tabletypes/${encodedName}`;
+  const objectUri = `${TABLE_TYPE.uri(tabletype_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

@@ -49,6 +49,8 @@ See [LEGACY.md](LEGACY.md) for the complete support matrix and RFC transport det
 
 ```text
 src/
+  endpoints/
+    objects.ts                # every ADT object address, one record per kind
   clients/
     AdtClient.ts
     AdtClientLegacy.ts
@@ -90,6 +92,21 @@ src/
     systemInfo.ts, discoveryEndpoints.ts
     requestTrace.ts, callTimeout.ts, timeouts.ts, ...
 ```
+
+## Object addresses
+
+Every ADT object address is built in `src/endpoints/objects.ts`: one record per
+kind, with its full `collection` and `validation` paths and a `uri(...)` that
+takes exactly what the address needs (a function include needs its group, a
+class include its class and kind). `seg(name)` is the only way a name enters an
+address: lowercased and percent-encoded. A transport request number is the
+exception and keeps its case, because the address is case-sensitive.
+`src/__tests__/unit/endpoints/noHardcodedObjectAddresses.test.ts` fails on any
+of those paths written anywhere else in `src/`. Service endpoints (activation,
+check runs, ATC, discovery) are not in the registry yet.
+
+`scripts/address-matrix.ts` reads every address in the registry on real systems
+in both cases, so a change can be checked against SAP rather than assumed.
 
 ## Public API Architecture
 

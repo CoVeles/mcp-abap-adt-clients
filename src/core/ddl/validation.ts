@@ -8,6 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { DDL_SOURCE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -32,7 +33,7 @@ export async function validateDdlName(
   packageName: string,
   description?: string,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/ddic/ddl/validation`;
+  const url = DDL_SOURCE.validation;
   const queryParams = new URLSearchParams({
     objtype: 'ddls',
     objname: ddlName,

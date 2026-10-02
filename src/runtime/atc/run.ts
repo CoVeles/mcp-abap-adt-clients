@@ -26,7 +26,15 @@ import {
   CT_ATC_RUN,
   CT_ATC_WORKLIST_CREATE,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import {
+  BEHAVIOR_DEFINITION,
+  CLASS,
+  DDL_SOURCE,
+  FUNCTION_GROUP,
+  INTERFACE,
+  PACKAGE,
+  TABLE,
+} from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 const ATC = '/sap/bc/adt/atc';
@@ -45,14 +53,14 @@ const ATC = '/sap/bc/adt/atc';
  * everywhere else; neither could be settled on a system that refuses to hold
  * either kind.
  */
-const URI_TEMPLATES: Partial<Record<AtcObjectType, string>> = {
-  class: '/sap/bc/adt/oo/classes/',
-  interface: '/sap/bc/adt/oo/interfaces/',
-  function_group: '/sap/bc/adt/functions/groups/',
-  package: '/sap/bc/adt/packages/',
-  ddl_source: '/sap/bc/adt/ddic/ddl/sources/',
-  table: '/sap/bc/adt/ddic/tables/',
-  behavior_definition: '/sap/bc/adt/bo/behaviordefinitions/',
+const URI_BUILDERS: Partial<Record<AtcObjectType, (name: string) => string>> = {
+  class: CLASS.uri,
+  interface: INTERFACE.uri,
+  function_group: FUNCTION_GROUP.uri,
+  package: PACKAGE.uri,
+  ddl_source: DDL_SOURCE.uri,
+  table: TABLE.uri,
+  behavior_definition: BEHAVIOR_DEFINITION.uri,
 };
 
 /**
@@ -74,15 +82,17 @@ export function buildAtcObjectUri(
   objectType: AtcObjectType,
   objectName: string,
 ): string {
-  const template = URI_TEMPLATES[objectType];
-  if (!template) {
+  const build = URI_BUILDERS[objectType];
+  if (!build) {
     throw new Error(
       `No ADT URI is known for ATC object type '${objectType}'. It is declared ` +
         'in AtcObjectType but has no template here — add one, with the URI ' +
         'measured against a system that checks that type.',
     );
   }
-  return `${template}${encodeSapObjectName(objectName).toUpperCase()}`;
+  // Lowercase, as every other address: ATC listed the class for a lowercase
+  // reference on an on-premise and a cloud system alike (2026-10-01).
+  return build(objectName);
 }
 
 /**

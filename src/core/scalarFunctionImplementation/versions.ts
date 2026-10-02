@@ -2,7 +2,11 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import {
+  SCALAR_FUNCTION_IMPLEMENTATION,
+  sourceUri,
+  versionsUri,
+} from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IScalarFunctionImplementationConfig } from './types';
 
@@ -20,10 +24,11 @@ export async function getScalarFunctionImplementationVersions(
   connection: IAbapConnection,
   config: Partial<IScalarFunctionImplementationConfig>,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(
-    (config.implementationName as string).toLowerCase(),
+  const url = versionsUri(
+    sourceUri(
+      SCALAR_FUNCTION_IMPLEMENTATION.uri(config.implementationName as string),
+    ),
   );
-  const url = `/sap/bc/adt/ddic/dsfi/${encodedName}/source/main/versions`;
   return connection.makeAdtRequest({
     url,
     method: 'GET',

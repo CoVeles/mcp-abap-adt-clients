@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { INTERFACE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteInterfaceParams } from './types';
 
@@ -25,8 +25,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { interface_name } = params;
 
-  const encodedName = encodeSapObjectName(interface_name);
-  const objectUri = `/sap/bc/adt/oo/interfaces/${encodedName}`;
+  const objectUri = `${INTERFACE.uri(interface_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -58,8 +57,7 @@ export async function deleteInterface(
 ): Promise<IAdtWireResponse> {
   const { interface_name, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(interface_name);
-  const objectUri = `/sap/bc/adt/oo/interfaces/${encodedName}`;
+  const objectUri = `${INTERFACE.uri(interface_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

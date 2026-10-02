@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { CLASS } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteClassParams } from './types';
 
@@ -25,8 +25,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { class_name } = params;
 
-  const encodedName = encodeSapObjectName(class_name);
-  const objectUri = `/sap/bc/adt/oo/classes/${encodedName}`;
+  const objectUri = `${CLASS.uri(class_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -58,8 +57,7 @@ export async function deleteClass(
 ): Promise<IAdtWireResponse> {
   const { class_name, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(class_name);
-  const objectUri = `/sap/bc/adt/oo/classes/${encodedName}`;
+  const objectUri = `${CLASS.uri(class_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

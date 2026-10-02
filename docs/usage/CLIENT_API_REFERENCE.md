@@ -1235,6 +1235,12 @@ Since 12.0.0 a handler whose object has none carries neither method — `getDoma
 `getAuthorizationField()`, `getFeatureToggle()`, `getServiceBinding()`, `getRequest()`
 and the unit-test handlers. The call does not compile, rather than throwing at runtime.
 
+Each handler asks for the version history at the address ADT itself links as
+`rel=versions` on the object. For DDL sources, access controls and table types
+that is `<object>/versions`; for a function include
+`<include>/source/main/versions`. Before the object-address registry these
+four asked elsewhere and got `404 No suitable resource found`.
+
 `getVersions` answers the Atom feed and `getVersionSource` the source, each as
 it arrived, through the `versions` and `versionSource` slots of the result set.
 `objectVersions` from `@mcp-abap-adt/adt-strategies` reads the feed into
@@ -1280,6 +1286,29 @@ if (!listed.ok) {
     // this system does not answer the versions resource
   }
 }
+```
+
+### AdtUtils (Group activation and deletion)
+
+`activateObjectsGroup`, `checkDeletionGroup` and `deleteObjectsGroup` take
+`IObjectReference[]`. Each reference names its ADT type code (`CLAS/OC`,
+`PROG/P`, `PROG/I`, `DDLS/DF`, …). Two kinds also need the object that owns
+them: `FUGR/FF` (a function module) and `FUGR/I` (a function include) need
+`parentName`, the function group.
+
+A reference **without a type**, with a type this library has no address for, or
+a module or include without its group, **throws before any request**. It used
+to be sent anyway:
+- a missing type was guessed from the name (`ZCL_…` → class, anything else →
+  program);
+- an unknown type built `/sap/bc/adt/<type>/<name>`, an address that exists
+  nowhere and that SAP answers with its complaint inside a `200`.
+
+```typescript
+await utils.activateObjectsGroup([
+  { name: 'ZCL_MY_CLASS', type: 'CLAS/OC' },
+  { name: 'Z_MY_FM', type: 'FUGR/FF', parentName: 'Z_MY_GROUP' },
+]);
 ```
 
 ### AdtUtils (Where-used)

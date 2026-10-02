@@ -6,6 +6,10 @@ import {
   ACCEPT_SCALAR_FUNCTION_IMPL_SOURCE,
   CT_SCALAR_FUNCTION_IMPL_SOURCE,
 } from '../../constants/contentTypes';
+import {
+  SCALAR_FUNCTION_IMPLEMENTATION,
+  sourceUri,
+} from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateScalarFunctionImplementationParams } from './types';
@@ -20,8 +24,7 @@ export async function updateScalarFunctionImplementation(
   args: IUpdateScalarFunctionImplementationParams,
   lockHandle?: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(args.implementation_name.toLowerCase());
-  const url = `/sap/bc/adt/ddic/dsfi/${encoded}/source/main${writeQuery(lockHandle, args.transport_request)}`;
+  const url = `${sourceUri(SCALAR_FUNCTION_IMPLEMENTATION.uri(args.implementation_name))}${writeQuery(lockHandle, args.transport_request)}`;
   return connection.makeAdtRequest({
     url,
     method: 'PUT',

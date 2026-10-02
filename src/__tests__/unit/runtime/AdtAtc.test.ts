@@ -335,8 +335,8 @@ describe('AdtAtc — the request itself', () => {
     const body = String(calls.find((c) => c.url.includes('/atc/runs?'))?.data);
     expect(body).toContain('maximumVerdicts="500"');
     expect(body).toContain('<objectSet kind="inclusive">');
-    expect(body).toContain('adtcore:uri="/sap/bc/adt/oo/classes/ZCL_X"');
-    expect(body).toContain('adtcore:uri="/sap/bc/adt/ddic/tables/ZT_Y"');
+    expect(body).toContain('adtcore:uri="/sap/bc/adt/oo/classes/zcl_x"');
+    expect(body).toContain('adtcore:uri="/sap/bc/adt/ddic/tables/zt_y"');
   });
 
   it('clientWait follows the wait option', async () => {
@@ -431,15 +431,17 @@ describe('AdtAtc — refusing before the request', () => {
 // 18. The one part of the contract resting on evidence rather than reasoning:
 // each template was confirmed by a run submitted at it whose finished worklist
 // then listed that object under that type. A changed template must fail loudly.
+// Lowercase since 2026-10-01: ATC listed the class for a lowercase reference on
+// an on-premise and a cloud system alike.
 describe('AdtAtc — the confirmed URI templates', () => {
   it.each([
-    ['class', '/sap/bc/adt/oo/classes/ZX'],
-    ['interface', '/sap/bc/adt/oo/interfaces/ZX'],
-    ['function_group', '/sap/bc/adt/functions/groups/ZX'],
-    ['package', '/sap/bc/adt/packages/ZX'],
-    ['ddl_source', '/sap/bc/adt/ddic/ddl/sources/ZX'],
-    ['table', '/sap/bc/adt/ddic/tables/ZX'],
-    ['behavior_definition', '/sap/bc/adt/bo/behaviordefinitions/ZX'],
+    ['class', '/sap/bc/adt/oo/classes/zx'],
+    ['interface', '/sap/bc/adt/oo/interfaces/zx'],
+    ['function_group', '/sap/bc/adt/functions/groups/zx'],
+    ['package', '/sap/bc/adt/packages/zx'],
+    ['ddl_source', '/sap/bc/adt/ddic/ddl/sources/zx'],
+    ['table', '/sap/bc/adt/ddic/tables/zx'],
+    ['behavior_definition', '/sap/bc/adt/bo/behaviordefinitions/zx'],
   ] as const)('%s is checked at %s', async (objectType, uri) => {
     const { connection, calls } = connectionFor();
 

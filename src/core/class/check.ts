@@ -10,6 +10,7 @@ import {
   ACCEPT_CHECK_MESSAGES,
   CT_CHECK_OBJECTS,
 } from '../../constants/contentTypes';
+import { CLASS } from '../../endpoints/objects';
 
 /**
  * Check class code (syntax, compilation, rules)
@@ -208,8 +209,7 @@ async function checkClassInclude(
   const { getTimeout } = await import('../../utils/timeouts');
   const { encodeSapObjectName } = await import('../../utils/internalUtils');
 
-  const encodedName = encodeSapObjectName(className.toLowerCase());
-  const objectUri = `/sap/bc/adt/oo/classes/${encodedName}`;
+  const objectUri = `${CLASS.uri(className)}`;
   const includeUri = `${objectUri}/includes/${includeType}`;
 
   // Encode source to base64

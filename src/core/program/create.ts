@@ -8,6 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { CT_PROGRAM } from '../../constants/contentTypes';
+import { PROGRAM } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateProgramParams } from './types';
@@ -85,7 +86,7 @@ export async function create(
   const description = limitDescription(args.description || args.programName);
   const programType = convertProgramType(args.programType);
   const application = args.application || '*';
-  const url = `/sap/bc/adt/programs/programs${args.transportRequest ? `?corrNr=${args.transportRequest}` : ''}`;
+  const url = `${PROGRAM.collection}${args.transportRequest ? `?corrNr=${args.transportRequest}` : ''}`;
 
   const masterSystem = args.masterSystem || '';
   const username = args.responsible || '';

@@ -8,7 +8,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { ACCESS_CONTROL } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteAccessControlParams } from './types';
 
@@ -21,8 +21,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { access_control_name } = params;
 
-  const encodedName = encodeSapObjectName(access_control_name);
-  const objectUri = `/sap/bc/adt/acm/dcl/sources/${encodedName}`;
+  const objectUri = `${ACCESS_CONTROL.uri(access_control_name)}`;
 
   const checkUrl = '/sap/bc/adt/deletion/check';
 
@@ -54,8 +53,7 @@ export async function deleteAccessControl(
 ): Promise<IAdtWireResponse> {
   const { access_control_name, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(access_control_name);
-  const objectUri = `/sap/bc/adt/acm/dcl/sources/${encodedName}`;
+  const objectUri = `${ACCESS_CONTROL.uri(access_control_name)}`;
 
   const deletionUrl = '/sap/bc/adt/deletion/delete';
 

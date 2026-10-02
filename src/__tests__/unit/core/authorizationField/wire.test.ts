@@ -77,7 +77,7 @@ describe('authorizationField wire', () => {
     const { c, conn } = cap();
     await updateAuthorizationField(conn, PARAMS, 'LH/1');
     expect(c.method).toBe('PUT');
-    expect(c.url).toBe('/sap/bc/adt/aps/iam/auth/ZAC_AUTH01?lockHandle=LH%2F1');
+    expect(c.url).toBe('/sap/bc/adt/aps/iam/auth/zac_auth01?lockHandle=LH%2F1');
     expect(c.data).toContain('<auth:auth ');
   });
 });

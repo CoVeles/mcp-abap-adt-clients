@@ -7,11 +7,12 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
+import { MESSAGE_CLASS } from '../../endpoints/objects';
 import { encodeSapObjectName } from '../../utils/internalUtils';
 import { lockHandleOf } from '../../utils/lockHandle';
 import { getTimeout } from '../../utils/timeouts';
 
-const BASE = '/sap/bc/adt/messageclass';
+const BASE = MESSAGE_CLASS.collection;
 
 // Accept header for individual message lock (StatusMessage response type)
 const ACCEPT_LOCK_MSG =

@@ -8,6 +8,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_VALIDATION } from '../../constants/contentTypes';
+import { SERVICE_DEFINITION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -25,7 +26,7 @@ export async function validateServiceDefinitionName(
   serviceDefinitionName: string,
   description?: string,
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/ddic/srvd/sources/validation`;
+  const url = SERVICE_DEFINITION.validation;
   const queryParams = new URLSearchParams({
     objtype: 'srvdsrv',
     objname: serviceDefinitionName,

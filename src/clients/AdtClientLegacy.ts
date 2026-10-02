@@ -107,6 +107,21 @@ import {
 } from '../core/tabletype';
 import { type ITransportResults, transportDocuments } from '../core/transport';
 import { AdtRequestLegacy } from '../core/transport/AdtRequestLegacy';
+import {
+  ACCESS_CONTROL,
+  AUTHORIZATION_FIELD,
+  BEHAVIOR_DEFINITION,
+  DATA_ELEMENT,
+  DOMAIN,
+  ENHANCEMENT,
+  FEATURE_TOGGLE,
+  METADATA_EXTENSION,
+  SERVICE_BINDING,
+  SERVICE_DEFINITION,
+  STRUCTURE,
+  TABLE,
+  TABLE_TYPE,
+} from '../endpoints/objects';
 import { AdtClient } from './AdtClient';
 import { absentOnLegacy } from './absentOnLegacy';
 
@@ -283,11 +298,7 @@ export class AdtClientLegacy extends AdtClient {
   override getDomain<R extends IDomainResults = typeof domainDocuments>(
     _results?: R,
   ): AdtDomain<R> {
-    return absentOnLegacy<AdtDomain<R>>(
-      AdtDomain,
-      'Domain',
-      '/sap/bc/adt/ddic/domains',
-    );
+    return absentOnLegacy<AdtDomain<R>>(AdtDomain, 'Domain', DOMAIN.collection);
   }
 
   override getDataElement<
@@ -296,7 +307,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtDataElement<R>>(
       AdtDataElement,
       'DataElement',
-      '/sap/bc/adt/ddic/dataelements',
+      DATA_ELEMENT.collection,
     );
   }
 
@@ -306,18 +317,14 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtStructure<R>>(
       AdtStructure,
       'Structure',
-      '/sap/bc/adt/ddic/structures',
+      STRUCTURE.collection,
     );
   }
 
   override getTable<R extends ITableResults = typeof tableDocuments>(
     _results?: R,
   ): AdtTable<R> {
-    return absentOnLegacy<AdtTable<R>>(
-      AdtTable,
-      'Table',
-      '/sap/bc/adt/ddic/tables',
-    );
+    return absentOnLegacy<AdtTable<R>>(AdtTable, 'Table', TABLE.collection);
   }
 
   override getTableType<
@@ -326,7 +333,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtDdicTableType<R>>(
       AdtDdicTableType,
       'TableType',
-      '/sap/bc/adt/ddic/tabletypes',
+      TABLE_TYPE.collection,
     );
   }
 
@@ -336,7 +343,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtAccessControl<R>>(
       AdtAccessControl,
       'AccessControl',
-      '/sap/bc/adt/acm/dcl/sources',
+      ACCESS_CONTROL.collection,
     );
   }
 
@@ -346,7 +353,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtServiceDefinition<R>>(
       AdtServiceDefinition,
       'ServiceDefinition',
-      '/sap/bc/adt/ddic/srvd/sources',
+      SERVICE_DEFINITION.collection,
     );
   }
 
@@ -356,7 +363,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtServiceBinding<R>>(
       AdtServiceBinding,
       'ServiceBinding',
-      '/sap/bc/adt/businessservices/bindings',
+      SERVICE_BINDING.collection,
     );
   }
 
@@ -366,7 +373,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtBehaviorDefinition<R>>(
       AdtBehaviorDefinition,
       'BehaviorDefinition',
-      '/sap/bc/adt/bo/behaviordefinitions',
+      BEHAVIOR_DEFINITION.collection,
     );
   }
 
@@ -376,7 +383,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtBehaviorImplementation<R>>(
       AdtBehaviorImplementation,
       'BehaviorImplementation',
-      '/sap/bc/adt/bo/behaviordefinitions',
+      BEHAVIOR_DEFINITION.collection,
     );
   }
 
@@ -386,7 +393,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtMetadataExtension<R>>(
       AdtMetadataExtension,
       'MetadataExtension',
-      '/sap/bc/adt/ddic/ddlx/sources',
+      METADATA_EXTENSION.collection,
     );
   }
 
@@ -396,7 +403,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtEnhancement<R>>(
       AdtEnhancement,
       'Enhancement',
-      '/sap/bc/adt/enhancements',
+      ENHANCEMENT.root,
     );
   }
 
@@ -406,7 +413,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtAuthorizationField<R>>(
       AdtAuthorizationField,
       'AuthorizationField',
-      '/sap/bc/adt/aps/iam/auth',
+      AUTHORIZATION_FIELD.collection,
     );
   }
 
@@ -416,7 +423,7 @@ export class AdtClientLegacy extends AdtClient {
     return absentOnLegacy<AdtFeatureToggle<R>>(
       AdtFeatureToggle,
       'FeatureToggle',
-      '/sap/bc/adt/sfw/featuretoggles',
+      FEATURE_TOGGLE.collection,
     );
   }
 

@@ -7,6 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_SOURCE, CT_SOURCE } from '../../constants/contentTypes';
+import { BEHAVIOR_DEFINITION, sourceUri } from '../../endpoints/objects';
 import { encodeSapObjectName, writeQuery } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
 import type { IUpdateBehaviorDefinitionParams } from './types';
@@ -60,7 +61,7 @@ export async function update(
     lockHandle?: string;
   },
 ): Promise<IAdtWireResponse> {
-  const url = `/sap/bc/adt/bo/behaviordefinitions/${encodeSapObjectName(params.name as string).toLowerCase()}/source/main${writeQuery(params.lockHandle, params.transportRequest)}`;
+  const url = `${sourceUri(BEHAVIOR_DEFINITION.uri(params.name as string))}${writeQuery(params.lockHandle, params.transportRequest)}`;
 
   const headers = {
     'Content-Type': CT_SOURCE,

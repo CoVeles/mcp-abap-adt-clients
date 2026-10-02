@@ -7,7 +7,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { DATA_ELEMENT } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -21,12 +21,9 @@ export async function lockDataElement(
   connection: IAbapConnection,
   dataElementName: string,
 ): Promise<IAdtWireResponse> {
-  const dataElementNameEncoded = encodeSapObjectName(
-    dataElementName.toLowerCase(),
-  );
   return connection.makeAdtRequest({
     method: 'POST',
-    url: `/sap/bc/adt/ddic/dataelements/${dataElementNameEncoded}?_action=LOCK&accessMode=MODIFY`,
+    url: `${DATA_ELEMENT.uri(dataElementName.toLowerCase())}?_action=LOCK&accessMode=MODIFY`,
     headers: { Accept: ACCEPT_LOCK },
     timeout: getTimeout('default'),
   });

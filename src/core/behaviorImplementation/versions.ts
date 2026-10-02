@@ -2,7 +2,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { CLASS_INCLUDE, versionsUri } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IBehaviorImplementationConfig } from './types';
 
@@ -21,9 +21,8 @@ export async function getBehaviorImplementationVersions(
   connection: IAbapConnection,
   config: Partial<IBehaviorImplementationConfig>,
 ): Promise<IAdtWireResponse> {
-  const encodedName = encodeSapObjectName(config.className as string);
   return connection.makeAdtRequest({
-    url: `/sap/bc/adt/oo/classes/${encodedName}/includes/implementations/versions`,
+    url: `${versionsUri(CLASS_INCLUDE.uri(config.className as string, 'implementations'))}`,
     method: 'GET',
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_VERSION_FEED },

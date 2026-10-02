@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FUNCTION_GROUP } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteFunctionGroupParams } from './types';
 
@@ -25,8 +25,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { function_group_name } = params;
 
-  const encodedName = encodeSapObjectName(function_group_name);
-  const objectUri = `/sap/bc/adt/functions/groups/${encodedName}`;
+  const objectUri = `${FUNCTION_GROUP.uri(function_group_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -58,8 +57,7 @@ export async function deleteFunctionGroup(
 ): Promise<IAdtWireResponse> {
   const { function_group_name, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(function_group_name);
-  const objectUri = `/sap/bc/adt/functions/groups/${encodedName}`;
+  const objectUri = `${FUNCTION_GROUP.uri(function_group_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

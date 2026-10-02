@@ -7,7 +7,7 @@ import type {
   IAbapConnection,
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { SERVICE_DEFINITION } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -19,10 +19,7 @@ export async function unlockServiceDefinition(
   serviceDefinitionName: string,
   lockHandle: string,
 ): Promise<IAdtWireResponse> {
-  const serviceDefinitionNameEncoded = encodeSapObjectName(
-    serviceDefinitionName.toLowerCase(),
-  );
-  const url = `/sap/bc/adt/ddic/srvd/sources/${serviceDefinitionNameEncoded}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`;
+  const url = `${SERVICE_DEFINITION.uri(serviceDefinitionName.toLowerCase())}?_action=UNLOCK&lockHandle=${encodeURIComponent(lockHandle)}`;
 
   return connection.makeAdtRequest({
     url,

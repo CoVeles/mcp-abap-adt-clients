@@ -27,11 +27,10 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_LOCK } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { SERVICE_BINDING } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
-const bindingUri = (name: string): string =>
-  `/sap/bc/adt/businessservices/bindings/${encodeSapObjectName(name.toLowerCase())}`;
+const bindingUri = (name: string): string => SERVICE_BINDING.uri(name);
 
 /**
  * Take the lock — `POST …?_action=LOCK`, answered as it arrived. The member

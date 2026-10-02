@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { DOMAIN } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { IDeleteDomainParams } from './types';
 
@@ -25,8 +25,7 @@ export async function checkDeletion(
 ): Promise<IAdtWireResponse> {
   const { domain_name } = params;
 
-  const encodedName = encodeSapObjectName(domain_name);
-  const objectUri = `/sap/bc/adt/ddic/domains/${encodedName}`;
+  const objectUri = `${DOMAIN.uri(domain_name)}`;
 
   const checkUrl = `/sap/bc/adt/deletion/check`;
 
@@ -58,8 +57,7 @@ export async function deleteDomain(
 ): Promise<IAdtWireResponse> {
   const { domain_name, transport_request } = params;
 
-  const encodedName = encodeSapObjectName(domain_name);
-  const objectUri = `/sap/bc/adt/ddic/domains/${encodedName}`;
+  const objectUri = `${DOMAIN.uri(domain_name)}`;
 
   const deletionUrl = `/sap/bc/adt/deletion/delete`;
 

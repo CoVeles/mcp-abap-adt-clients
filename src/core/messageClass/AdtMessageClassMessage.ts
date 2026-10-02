@@ -40,6 +40,7 @@ import { AdtObjectErrorCodes } from '@mcp-abap-adt/interfaces-adt';
 import type { IAbapConnection } from '@mcp-abap-adt/interfaces-adt-connection';
 import type { ILogger } from '@mcp-abap-adt/interfaces-utils';
 import { MESSAGE_CLASS_UPDATE_CONTENT_TYPE } from '../../constants/contentTypes';
+import { MESSAGE_CLASS } from '../../endpoints/objects';
 import { answering } from '../../utils/adtResponse';
 import { withCallTimeout } from '../../utils/callTimeout';
 import { beginCriticalSection } from '../../utils/criticalSection';
@@ -56,7 +57,7 @@ import {
 import { unlockAllMessages, unlockMessageClass } from './unlock';
 import { buildMessageClassXml, parseMessageClass } from './xml';
 
-const BASE = '/sap/bc/adt/messageclass';
+const BASE = MESSAGE_CLASS.collection;
 
 /**
  * Not `IAdtDeletable`, and that is the honest shape rather than an omission.

@@ -7,7 +7,7 @@ import {
   ACCEPT_FEATURE_TOGGLE_METADATA,
   CT_FEATURE_TOGGLE_METADATA,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { FEATURE_TOGGLE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 import type { ICreateFeatureToggleParams } from './types';
 import { buildFeatureToggleXml } from './xmlBuilder';
@@ -23,14 +23,13 @@ export async function updateFeatureToggle(
   lockHandle?: string,
   _logger?: ILogger,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(params.feature_toggle_name.toLowerCase());
   const xml = buildFeatureToggleXml(params);
   const query: Record<string, string> = {};
   if (lockHandle) query.lockHandle = lockHandle;
   if (params.transport_request) query.corrNr = params.transport_request;
   return connection.makeAdtRequest({
     method: 'PUT',
-    url: `/sap/bc/adt/sfw/featuretoggles/${encoded}`,
+    url: `${FEATURE_TOGGLE.uri(params.feature_toggle_name)}`,
     timeout: getTimeout('default'),
     headers: {
       'Content-Type': CT_FEATURE_TOGGLE_METADATA,

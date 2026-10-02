@@ -11,7 +11,7 @@ import {
   CT_AUTHORIZATION_FIELD,
   CT_CHECK_OBJECTS,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { AUTHORIZATION_FIELD } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -30,8 +30,7 @@ export async function checkAuthorizationField(
   version: 'active' | 'inactive',
   xmlContent?: string,
 ): Promise<IAdtWireResponse> {
-  const encoded = encodeSapObjectName(name.toUpperCase());
-  const uri = `/sap/bc/adt/aps/iam/auth/${encoded}`;
+  const uri = `${AUTHORIZATION_FIELD.uri(name)}`;
 
   let xmlBody: string;
   if (xmlContent) {

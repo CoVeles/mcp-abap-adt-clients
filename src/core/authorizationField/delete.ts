@@ -12,7 +12,7 @@ import {
   CT_DELETION,
   CT_DELETION_CHECK,
 } from '../../constants/contentTypes';
-import { encodeSapObjectName } from '../../utils/internalUtils';
+import { AUTHORIZATION_FIELD } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 export interface IDeleteAuthorizationFieldParams {
@@ -21,7 +21,7 @@ export interface IDeleteAuthorizationFieldParams {
 }
 
 function objectUri(name: string): string {
-  return `/sap/bc/adt/aps/iam/auth/${encodeSapObjectName(name.toUpperCase())}`;
+  return `${AUTHORIZATION_FIELD.uri(name)}`;
 }
 
 /**

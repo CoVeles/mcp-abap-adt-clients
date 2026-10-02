@@ -79,6 +79,10 @@ All clients accept `IAbapConnection` (from `@mcp-abap-adt/interfaces-adt-connect
 
 **Shared module** (`src/core/shared/AdtUtils.ts`): Large utility class — search, where-used, SQL queries, inactive objects, group activation/deletion, discovery, type info, virtual folders, etc. Result set `IUtilResults` / `utilDocuments`.
 
+### Object addresses (`src/endpoints/objects.ts`)
+
+The one place an object's ADT address is built: a record per kind (`PROGRAM`, `PROGRAM_INCLUDE`, `FUNCTION_INCLUDE`, `CLASS_INCLUDE`, …) with its full paths and a `uri(...)` taking exactly what the address needs. Never write `/sap/bc/adt/<collection>/…` in a module; `noHardcodedObjectAddresses.test.ts` enforces it with the TypeScript parser. `scripts/address-matrix.ts` checks every record against real systems.
+
 ### Design Patterns
 
 **Factory pattern**: `AdtClient` creates object-specific implementations of the capability contracts in `@mcp-abap-adt/interfaces-adt`.

@@ -3,6 +3,7 @@ import type {
   IAdtWireResponse,
 } from '@mcp-abap-adt/interfaces-adt-connection';
 import { ACCEPT_FEATURE_TOGGLE_METADATA } from '../../constants/contentTypes';
+import { FEATURE_TOGGLE } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -31,7 +32,7 @@ export async function validateFeatureToggleName(
 
   return connection.makeAdtRequest({
     method: 'POST',
-    url: '/sap/bc/adt/sfw/featuretoggles/validation',
+    url: FEATURE_TOGGLE.validation,
     timeout: getTimeout('default'),
     headers: { Accept: ACCEPT_FEATURE_TOGGLE_METADATA },
     params,

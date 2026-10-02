@@ -16,6 +16,7 @@ import {
   ACCEPT_TRANSPORT_CONFIGURATIONS,
   ACCEPT_TRANSPORT_LIST,
 } from '../../constants/contentTypes';
+import { TRANSPORT_REQUEST } from '../../endpoints/objects';
 import { getTimeout } from '../../utils/timeouts';
 
 /**
@@ -35,7 +36,7 @@ export async function listTransports(
     );
   }
 
-  const url = `/sap/bc/adt/cts/transportrequests?configUri=${encodeURIComponent(
+  const url = `${TRANSPORT_REQUEST.collection}?configUri=${encodeURIComponent(
     params.configUri,
   )}`;
 
