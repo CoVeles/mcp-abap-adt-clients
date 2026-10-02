@@ -90,7 +90,7 @@ This package interacts with external packages **ONLY through interfaces**:
 
   | package | what this package takes from it |
   |---|---|
-  | [`@mcp-abap-adt/interfaces-adt`](https://www.npmjs.com/package/@mcp-abap-adt/interfaces-adt) `^11.0.0` | the capability atoms, every object's config, `IAdtResponse`, `IAnalyse`, `IAdtAnalyseOptions`, `IResultStrategy`, `ADT_NO_FAILURE`, `ADT_TASK_TYPE` |
+  | [`@mcp-abap-adt/interfaces-adt`](https://www.npmjs.com/package/@mcp-abap-adt/interfaces-adt) `^12.0.0` | the capability atoms, every object's config, `IAdtResponse`, `IAnalyse`, `IAdtAnalyseOptions`, `IResultStrategy`, `ADT_NO_FAILURE`, `ADT_TASK_TYPE` |
   | [`@mcp-abap-adt/interfaces-adt-connection`](https://www.npmjs.com/package/@mcp-abap-adt/interfaces-adt-connection) `^1.0.0` | `IAbapConnection`, `IAdtWireResponse`, `IAbapRequestOptions`, `ITimeoutConfig`, the connection capability atoms, `ADT_SESSION_ERROR` |
   | [`@mcp-abap-adt/interfaces-network`](https://www.npmjs.com/package/@mcp-abap-adt/interfaces-network) `^2.0.0` | `IWebSocketTransport` and its four companions, `HttpError` |
   | [`@mcp-abap-adt/interfaces-utils`](https://www.npmjs.com/package/@mcp-abap-adt/interfaces-utils) `^1.1.0` | `ILogger`, `LogLevel`, `XmlNode` |
@@ -850,7 +850,7 @@ everything else is not.
 
 ### Single Definition Site: the contract packages
 
-Since **7.5.0**, every contract type is **defined once**, in the contract packages — today `@mcp-abap-adt/interfaces-adt` (`^11.0.0`) for the ADT contracts and `@mcp-abap-adt/interfaces-adt-connection` (`^1.0.0`) for the connection. This package declares no copies of its own — every `IXxxConfig`, the capability atoms, the option and response types and the cross-cutting shared types all live there.
+Since **7.5.0**, every contract type is **defined once**, in the contract packages — today `@mcp-abap-adt/interfaces-adt` (`^12.0.0`) for the ADT contracts and `@mcp-abap-adt/interfaces-adt-connection` (`^1.0.0`) for the connection. This package declares no copies of its own — every `IXxxConfig`, the capability atoms, the option and response types and the cross-cutting shared types all live there.
 
 **Import them from the package that owns them:**
 
@@ -897,6 +897,8 @@ Previously the second call compiled and threw `ADT_UNSUPPORTED_OPERATION` at run
 Since **9.0.0** no accessor returns the wide type, and since **12.0.0** none returns a type carrying a method that throws — including `getRequest()`, `getFeatureToggle()` and `getServiceBinding()`, which were the last three.
 
 Since **24.0.0** there is no unit-test handler at all: every member `getUnitTest()` and `getCdsUnitTest()` had was another handler's request under a second name — the class's create, the local test class's read, update and delete. What was left, running, is `AdtExecutor.getClassTestRunner()` (`IAdtRunnable` plus `ITestRunInformation`), and the CDS test-doubles check is `getDdl().checkCdsTestDoubles()`. See [MIGRATION-24.md](docs/usage/MIGRATION-24.md).
+
+Since **25.0.0** ATC takes programs and every kind of include, `interfaces-adt` is `^12.0.0`, group operations refuse a reference they cannot address before any request, and a legacy client answers a refusal for an object type the system lacks instead of throwing. See [MIGRATION-25.md](docs/usage/MIGRATION-25.md).
 
 The runtime client narrows the same way. `AdtRuntimeClient.getAtc()` implements `IAtcRunStatusReadable & IAtcFindings`, plus `resolveCheckVariant`, `createWorklist` and `startRun` — a check run is three requests, started and then read, never created, locked, activated or versioned, and the type says so rather than offering the rest and throwing. It is not `IAdtRunnable` since 19.0.0: that atom's `run` is one call.
 

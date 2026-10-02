@@ -24,6 +24,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+## [25.0.0] - 2026-10-02
+
+ATC checks programs and every kind of include, and every object address is
+built in one place. See [MIGRATION-25.md](docs/usage/MIGRATION-25.md).
+
+### Breaking
+
+- **`@mcp-abap-adt/interfaces-adt` `^12.0.0`** (was `^11`). Its `IAtcObjectRef`
+  is a union that carries what each kind's address needs. A consumer that
+  imports `interfaces-adt` itself moves to 12 as well, or the tree holds two
+  copies and TypeScript sees two types. (#200)
+- **Group activation, group deletion and where-used throw for a reference they
+  cannot address**, before any request: one without a type, one with a type
+  this library has no address for, and a function module or function include
+  without its group. Until now a missing type was guessed from the name
+  (`ZCL_…` → class, anything else → program) and an unknown type built
+  `/sap/bc/adt/<type>/<name>`, an address that exists nowhere. (#197)
+- **On a legacy system (BASIS < 7.50), the factories for object types it lacks
+  no longer throw.** `getDomain`, `getDataElement`, `getStructure`, `getTable`,
+  `getTableType`, `getAccessControl`, `getServiceDefinition`,
+  `getServiceBinding` (and the deprecated `getService`),
+  `getBehaviorDefinition`, `getBehaviorImplementation`,
+  `getMetadataExtension`, `getEnhancement`, and now also
+  `getAuthorizationField` and `getFeatureToggle`, hand out a handler whose every
+  member answers a refusal (`origin: 'refusal'`, `UNSUPPORTED_OPERATION`)
+  without sending a request. The last two used to send their requests. (#192)
+
+### Added
+
+- **ATC over programs and every kind of include**: `program`,
+  `program_include`, `function_include` (with `functionGroup`) and
+  `class_include` (with `includeKind`), each sent at its own address. ATC
+  checks an include as the object that owns it, and the findings are not
+  limited to the include sent. Measured on an on-premise and a cloud system;
+  see [ATC check runs](docs/usage/CLIENT_API_REFERENCE.md#atc-check-runs).
+  (#200)
+
+### Fixed
+
+- **`getVersions()` reaches the version history** of DDL sources, access
+  controls, function includes and table types. It asked an address SAP answers
+  with `404`. (#197)
+- An enhancement with a namespaced name is no longer encoded twice (`%252f`).
+  (#197)
+
+### Changed
+
+- **Every object address comes from one registry** (`src/endpoints/objects.ts`),
+  checked against an on-premise and a cloud system; a unit test fails on an
+  object address written anywhere else. Names go out lowercase, a namespace as
+  `%2F`; a transport request number keeps its case, because SAP reads it
+  case-sensitively. Request traffic is otherwise unchanged. (#197)
+- `adt-strategies` is no longer a workspace: adt-clients' tests take it from
+  npm (`^0.7.0`), and it builds against what it installs. Nothing a consumer
+  installs changes. (#198)
+- Legacy documentation: what BASIS 7.40 answers over RFC and HTTP, measured.
+  (#195)
+- `axios` 1.20.0, `brace-expansion` patched. (#188, #190)
+
 ## [24.1.0] - 2026-10-01
 
 ### Added
