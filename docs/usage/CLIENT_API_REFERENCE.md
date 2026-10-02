@@ -1573,7 +1573,10 @@ and a cloud system:
 - a function include lists its function group;
 - a class include lists its class.
 
-The findings then cover every include of that owner. Each include kind is
+The findings are not limited to the include you sent. Measured on premise: a
+run over one include of a program reported findings in another include of that
+program and on the program itself, and none in the include sent. A finding's
+`location` says where it is. Each include kind is
 addressed by what owns it, so its reference carries the owner. A function
 include is found only under its group, not under `/programs/includes/`. A
 program and a program include exist on premise only, since ABAP Cloud holds

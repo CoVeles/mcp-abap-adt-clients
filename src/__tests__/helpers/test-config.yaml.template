@@ -2441,6 +2441,7 @@ atc_object_kinds:
           #   object_name: "<AN INCLUDE WITH FINDINGS>"   # ← CHANGE
           #   owner_type: "PROG"
           #   owner_name: "<ITS MAIN PROGRAM>"            # ← CHANGE
+          #   findings_outside: true   # only where the program has findings outside this include
 
 profiler_traces:
   test_cases:

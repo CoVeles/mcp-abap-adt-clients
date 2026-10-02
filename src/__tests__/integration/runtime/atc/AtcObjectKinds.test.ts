@@ -12,6 +12,10 @@
  * and no program include, so each system's test-config lists its own. The
  * owner must have findings under the check variant, or the worklist lists
  * nothing — `check_variant` pins one where the nominated variant does not run.
+ *
+ * A reference marked `findings_outside` also asserts that the run reported a
+ * finding outside the include sent: the check covers the owner, not only the
+ * include named. Mark it only where such a finding is known to exist.
  */
 
 import * as fs from 'node:fs';
@@ -80,19 +84,21 @@ interface IKindCase {
   ref: IAtcObjectRef;
   ownerType: string;
   ownerName: string;
+  findingsOutside: boolean;
 }
 
 function kindCases(params: Record<string, unknown>): IKindCase[] {
-  const raw = (params.refs ?? []) as Array<Record<string, string>>;
+  const raw = (params.refs ?? []) as Array<Record<string, string | boolean>>;
   return raw.map((r) => ({
     ref: {
-      objectType: r.object_type,
-      objectName: r.object_name,
+      objectType: String(r.object_type),
+      objectName: String(r.object_name),
       ...(r.function_group ? { functionGroup: r.function_group } : {}),
       ...(r.include_kind ? { includeKind: r.include_kind } : {}),
     } as IAtcObjectRef,
     ownerType: String(r.owner_type).toUpperCase(),
     ownerName: String(r.owner_name).toUpperCase(),
+    findingsOutside: r.findings_outside === true,
   }));
 }
 
@@ -103,6 +109,13 @@ function listedObjects(worklist: string): string[] {
     const name = /adtcore:name="([^"]*)"/.exec(m[0])?.[1] ?? '';
     return `${type} ${name}`;
   });
+}
+
+/** Where each finding of a worklist points. */
+function findingLocations(worklist: string): string[] {
+  return [...worklist.matchAll(/atcfinding:location="([^"]*)"/g)].map(
+    (m) => m[1],
+  );
 }
 
 describe('ATC over programs and every kind of include', () => {
@@ -180,6 +193,13 @@ describe('ATC over programs and every kind of include', () => {
           expect(listedObjects(worklist)).toContain(
             `${c.ownerType} ${c.ownerName}`,
           );
+          if (c.findingsOutside) {
+            const sent = `/${encodeURIComponent(c.ref.objectName.toLowerCase())}/`;
+            const outside = findingLocations(worklist).filter(
+              (l) => !l.toLowerCase().includes(sent),
+            );
+            expect(outside.length).toBeGreaterThan(0);
+          }
         }
         logTestSuccess(testsLogger, testName);
       } catch (error) {
