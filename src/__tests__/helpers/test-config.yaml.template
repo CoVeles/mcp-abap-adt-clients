@@ -2409,6 +2409,40 @@ atc_run:
         poll_interval_ms: 3000
 
 # Profiler traces operations (AdtRuntimeClient)
+
+# ATC over programs and every kind of include (interfaces-adt 12.0.0). ATC
+# checks an include as the object that owns it, so each reference names the
+# owner the finished worklist must list. The owner needs findings under the
+# check variant, or the worklist lists nothing.
+atc_object_kinds:
+  test_cases:
+    - name: "adt_atc_object_kinds"
+      enabled: false                # ← CHANGE: true; list what this system holds
+      description: "ATC over a function include, a class include and, on premise, a program and a program include"
+      params:
+        # check_variant: "DEFAULT"   # ← CHANGE (optional): pin one when the system's nominated variant does not run
+        refs:
+          - object_type: "function_include"
+            object_name: "LZAC_SHR_FUGRTOP"
+            function_group: "ZAC_SHR_FUGR"
+            owner_type: "FUGR"
+            owner_name: "ZAC_SHR_FUGR"
+          - object_type: "class_include"
+            object_name: "ZAC_SHR_ATC_DIRTY"
+            include_kind: "implementations"
+            owner_type: "CLAS"
+            owner_name: "ZAC_SHR_ATC_DIRTY"
+          # On premise only — ABAP Cloud holds no program and no program include:
+          # - object_type: "program"
+          #   object_name: "ZAC_SHR_PROG"
+          #   owner_type: "PROG"
+          #   owner_name: "ZAC_SHR_PROG"
+          # - object_type: "program_include"
+          #   object_name: "<AN INCLUDE WITH FINDINGS>"   # ← CHANGE
+          #   owner_type: "PROG"
+          #   owner_name: "<ITS MAIN PROGRAM>"            # ← CHANGE
+          #   findings_outside: true   # only where the program has findings outside this include
+
 profiler_traces:
   test_cases:
     - name: "adt_profiler_traces"

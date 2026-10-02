@@ -467,8 +467,12 @@ describe('AdtAtc — the confirmed URI templates', () => {
       new AdtAtc(connection, logger() as never).startRun('WL1', {
         // A member the union does not have yet — the shape a future addition
         // arrives in, before anyone adds its template.
-        objects: [{ objectType: 'program' as never, objectName: 'ZX' }],
+        objects: [
+          { objectType: 'enhancement_spot' as never, objectName: 'ZX' },
+        ],
       }),
-    ).rejects.toThrow(/No ADT URI is known for ATC object type 'program'/);
+    ).rejects.toThrow(
+      /No ADT URI is known for ATC object type 'enhancement_spot'/,
+    );
   });
 });

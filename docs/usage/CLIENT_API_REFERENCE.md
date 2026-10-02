@@ -1560,12 +1560,42 @@ created, locked, activated or versioned, and the returned handler's type says
 so.
 
 Objects are named by kind, not by URI: the client builds the URI. The kinds are
-`class`, `interface`, `function_group`, `package`, `ddl_source`, `table` and
-`behavior_definition`. Each was confirmed by a run submitted at the URI this
-client builds whose *finished* worklist then listed that object under that
-type; a run being accepted proves nothing, since a URI that cannot exist is
-answered `201` too. `program` and `include` are absent because ABAP Cloud
-refuses to hold either, so nothing there could confirm them.
+`class`, `interface`, `function_group`, `package`, `ddl_source`, `table`,
+`behavior_definition`, `program`, `program_include`, `function_include` and
+`class_include` (`interfaces-adt` 12.0.0). Each was confirmed by a run submitted
+at the URI this client builds whose *finished* worklist then listed the object.
+A run being accepted proves nothing, since a URI that cannot exist is answered
+`201` too.
+
+**An include is checked as the object that owns it.** Measured on an on-premise
+and a cloud system:
+- a program include lists its main program in the worklist;
+- a function include lists its function group;
+- a class include lists its class.
+
+The findings are not limited to the include you sent. Measured on premise: a
+run over one include of a program reported findings in another include of that
+program and on the program itself, and none in the include sent. A finding's
+`location` says where it is. Each include kind is
+addressed by what owns it, so its reference carries the owner. A function
+include is found only under its group, not under `/programs/includes/`. A
+program and a program include exist on premise only, since ABAP Cloud holds
+neither.
+
+```typescript
+await atc.startRun(worklistId, {
+  objects: [
+    { objectType: 'program', objectName: 'Z_MY_REPORT' },
+    { objectType: 'program_include', objectName: 'Z_MY_REPORT_TOP' },
+    { objectType: 'function_include', objectName: 'LZ_MY_GROUPTOP', functionGroup: 'Z_MY_GROUP' },
+    { objectType: 'class_include', objectName: 'ZCL_MY_CLASS', includeKind: 'testclasses' },
+  ],
+});
+```
+
+A system's nominated check variant may not run. On one on-premise system it
+answered `TOOL_FAILURE` "ATC check run aborted, due to missing prerequisites",
+while `DEFAULT` ran. In that case pass a variant to `createWorklist` yourself.
 
 Every member answers the document as it arrived — `createWorklist` and
 `resolveCheckVariant` included, which answer `IAdtResponse` like the rest since

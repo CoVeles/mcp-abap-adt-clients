@@ -75,7 +75,9 @@ describe('every table agrees on a class', () => {
     expect(buildObjectUri('ZCL_X', 'CLAS/OC')).toBe(expected);
     expect(getObjectUri('class', 'ZCL_X')).toBe(expected);
     expect(getObjectMetadataUri('class' as never, 'ZCL_X')).toBe(expected);
-    expect(buildAtcObjectUri('class', 'ZCL_X')).toBe(expected);
+    expect(
+      buildAtcObjectUri({ objectType: 'class', objectName: 'ZCL_X' }),
+    ).toBe(expected);
   });
 });
 
