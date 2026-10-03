@@ -24,6 +24,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+## [25.0.1] - 2026-10-03
+
+Every create carries the responsible person and the master system the client
+holds. Measured on an on-premise system (2026-10-03): a message class, a
+program include and a transformation created with a system context record its
+responsible person; the system records its own id as the master system of a
+local object, whatever is sent.
+
 ### Fixed
 
 - Every create carries the responsible person and master system the client has,
