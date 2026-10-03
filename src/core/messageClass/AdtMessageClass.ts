@@ -173,6 +173,9 @@ export class AdtMessageClass<
             config.masterLanguage?.trim() ||
             this.systemContext.masterLanguage?.trim() ||
             'EN',
+          // The message class config has no such fields: the client's context.
+          masterSystem: this.systemContext.masterSystem,
+          responsible: this.systemContext.responsible,
           // sent as ?corrNr= for a transportable package; empty for local
           transport_request: config.transportRequest,
         }),

@@ -24,6 +24,7 @@ import type {
   IAdtOperationOptions,
   IAdtReadable,
   IAdtResponse,
+  IAdtSystemContext,
   IAdtTransportAware,
   IAdtUpdatable,
   IAdtValidatable,
@@ -127,6 +128,9 @@ export class AdtBehaviorImplementation<
     lockRegistry?: LockRegistry,
     // The one cast in this file, and it is on the default. See AdtClass.
     private readonly results: R = classDocuments as unknown as R,
+    // Handed to the inner class so a create carries the responsible person and
+    // master system the client knows, like a class create does.
+    systemContext?: IAdtSystemContext,
   ) {
     this.connection = connection;
     this.logger = logger;
@@ -136,7 +140,7 @@ export class AdtBehaviorImplementation<
     this.class = new AdtClass<R>(
       connection,
       logger,
-      undefined,
+      systemContext,
       undefined,
       lockRegistry,
       results,
@@ -202,7 +206,8 @@ export class AdtBehaviorImplementation<
     // The caller's deadline travels in `options` to the class's create.
     const name = this.name(config);
 
-    // The author and the master system come from the config. This used to ask
+    // The author and the master system come from the config, else from the
+    // client's system context (the inner class falls back to it). This used to ask
     // `/core/http/systeminformation` for them, which made a create two requests
     // — and answered `null` on its own failure, so a create could silently
     // write neither. The caller knows who they are.

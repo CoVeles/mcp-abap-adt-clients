@@ -123,4 +123,6 @@ export interface ICreateMessageClassParams {
   package_name: string;
   transport_request?: string;
   master_language?: string;
+  masterSystem?: string;
+  responsible?: string;
 }

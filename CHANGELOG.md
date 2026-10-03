@@ -24,6 +24,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+### Fixed
+
+- Every create carries the responsible person and master system the client has,
+  and writes no attribute it lacks. A message class create now sends
+  `adtcore:masterSystem` and `adtcore:responsible` from the client's system
+  context (an include create also falls back to the context's master language);
+  an include create and a behavior implementation create (obtained
+  through `AdtClient`) now receive that context too, where they had an empty
+  one. Service definition, transformation and access control creates wrote
+  `adtcore:responsible=""` when there was no responsible person; they now omit
+  the attribute, as `adtcore:masterSystem` already was.
+
 ## [25.0.0] - 2026-10-02
 
 ATC checks programs and every kind of include, and every object address is

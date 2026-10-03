@@ -32,6 +32,9 @@ export async function createMessageClass(
     packageName: params.package_name.toUpperCase(),
     language: lang,
     masterLanguage: lang,
+    // Left out of the document when absent, never written empty.
+    masterSystem: params.masterSystem || undefined,
+    responsible: params.responsible || undefined,
     messages: [],
   });
 

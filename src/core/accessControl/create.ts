@@ -6,6 +6,7 @@ import { CT_ACCESS_CONTROL } from '../../constants/contentTypes';
 import { ACCESS_CONTROL } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
+import { escapeXmlAttr } from '../../utils/xml';
 import type { ICreateAccessControlParams } from './types';
 
 /**
@@ -18,8 +19,8 @@ export async function create(
 ): Promise<IAdtWireResponse> {
   const url = `${ACCESS_CONTROL.collection}${args.transport_request ? `?corrNr=${args.transport_request}` : ''}`;
 
-  const username = args.responsible || '';
-  const masterSystem = args.masterSystem || '';
+  const username = escapeXmlAttr(args.responsible || '');
+  const masterSystem = escapeXmlAttr(args.masterSystem || '');
 
   // Description is limited to 60 characters in SAP ADT
   const description = limitDescription(
@@ -27,11 +28,13 @@ export async function create(
   );
   const accessControlName = args.access_control_name.toUpperCase();
 
+  // Absent means absent: an empty attribute is not "no responsible person".
+  const responsibleAttr = username ? ` adtcore:responsible="${username}"` : '';
   const masterSystemAttr = masterSystem
     ? ` adtcore:masterSystem="${masterSystem}"`
     : '';
 
-  const xmlBody = `<?xml version="1.0" encoding="UTF-8"?><dcl:dclSource xmlns:dcl="http://www.sap.com/adt/acm/dclsources" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${args.masterLanguage || 'EN'}" adtcore:name="${accessControlName}" adtcore:type="DCLS/DL" adtcore:masterLanguage="${args.masterLanguage || 'EN'}"${masterSystemAttr} adtcore:responsible="${username}">
+  const xmlBody = `<?xml version="1.0" encoding="UTF-8"?><dcl:dclSource xmlns:dcl="http://www.sap.com/adt/acm/dclsources" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${args.masterLanguage || 'EN'}" adtcore:name="${accessControlName}" adtcore:type="DCLS/DL" adtcore:masterLanguage="${args.masterLanguage || 'EN'}"${masterSystemAttr}${responsibleAttr}>
   <adtcore:packageRef adtcore:name="${args.package_name.toUpperCase()}"/>
 </dcl:dclSource>`;
 
