@@ -20,6 +20,7 @@ import type {
   IAdtOperationOptions,
   IAdtReadable,
   IAdtResponse,
+  IAdtSystemContext,
   IAdtUpdatable,
   IAdtValidatable,
   IIncludeConfig,
@@ -72,6 +73,8 @@ export class AdtInclude<R extends IIncludeResults = typeof includeDocuments>
     private readonly contentTypes?: IAdtContentTypes,
     // The one cast in this file, and it is on the default. See AdtClass.
     private readonly results: R = includeDocuments as unknown as R,
+    // Last, so the constructor every consumer already calls keeps its shape.
+    private readonly systemContext: IAdtSystemContext = {},
   ) {}
 
   /**
@@ -152,7 +155,10 @@ export class AdtInclude<R extends IIncludeResults = typeof includeDocuments>
             description: config.description,
             packageName: config.packageName as string,
             transportRequest: config.transportRequest,
-            masterLanguage: config.masterLanguage,
+            masterLanguage:
+              config.masterLanguage ?? this.systemContext.masterLanguage,
+            masterSystem: this.systemContext.masterSystem,
+            responsible: this.systemContext.responsible,
           },
           this.contentTypes,
         ),

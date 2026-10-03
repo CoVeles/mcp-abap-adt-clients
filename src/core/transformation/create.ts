@@ -27,11 +27,13 @@ export async function create(
   );
   const transformationName = args.transformation_name.toUpperCase();
 
+  // Absent means absent: an empty attribute is not "no responsible person".
+  const responsibleAttr = username ? ` adtcore:responsible="${username}"` : '';
   const masterSystemAttr = masterSystem
     ? ` adtcore:masterSystem="${masterSystem}"`
     : '';
 
-  const xmlBody = `<?xml version="1.0" encoding="UTF-8"?><trans:transformation xmlns:trans="http://www.sap.com/adt/transformation" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${args.masterLanguage || 'EN'}" adtcore:name="${transformationName}" adtcore:type="XSLT/VT" adtcore:masterLanguage="${args.masterLanguage || 'EN'}"${masterSystemAttr} adtcore:responsible="${username}" trans:transformationType="${args.transformation_type}">
+  const xmlBody = `<?xml version="1.0" encoding="UTF-8"?><trans:transformation xmlns:trans="http://www.sap.com/adt/transformation" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:description="${description}" adtcore:language="${args.masterLanguage || 'EN'}" adtcore:name="${transformationName}" adtcore:type="XSLT/VT" adtcore:masterLanguage="${args.masterLanguage || 'EN'}"${masterSystemAttr}${responsibleAttr} trans:transformationType="${args.transformation_type}">
   <adtcore:packageRef adtcore:name="${args.package_name.toUpperCase()}"/>
 </trans:transformation>`;
 

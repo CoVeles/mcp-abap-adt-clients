@@ -24,6 +24,7 @@ import type {
   IAdtOperationOptions,
   IAdtReadable,
   IAdtResponse,
+  IAdtSystemContext,
   IAdtTransportAware,
   IAdtUpdatable,
   IAdtValidatable,
@@ -127,6 +128,9 @@ export class AdtBehaviorImplementation<
     lockRegistry?: LockRegistry,
     // The one cast in this file, and it is on the default. See AdtClass.
     private readonly results: R = classDocuments as unknown as R,
+    // Handed to the inner class so a create carries the responsible person and
+    // master system the client knows, like a class create does.
+    systemContext?: IAdtSystemContext,
   ) {
     this.connection = connection;
     this.logger = logger;
@@ -136,7 +140,7 @@ export class AdtBehaviorImplementation<
     this.class = new AdtClass<R>(
       connection,
       logger,
-      undefined,
+      systemContext,
       undefined,
       lockRegistry,
       results,

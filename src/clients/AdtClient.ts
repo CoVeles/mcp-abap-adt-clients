@@ -1124,6 +1124,7 @@ export class AdtClient {
       this.logger,
       this.contentTypes,
       results,
+      this.systemContext,
     );
   }
 
@@ -1856,6 +1857,7 @@ export class AdtClient {
       this.logger,
       this.lockRegistry,
       results,
+      this.systemContext,
     );
   }
 
