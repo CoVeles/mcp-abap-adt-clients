@@ -206,7 +206,8 @@ export class AdtBehaviorImplementation<
     // The caller's deadline travels in `options` to the class's create.
     const name = this.name(config);
 
-    // The author and the master system come from the config. This used to ask
+    // The author and the master system come from the config, else from the
+    // client's system context (the inner class falls back to it). This used to ask
     // `/core/http/systeminformation` for them, which made a create two requests
     // — and answered `null` on its own failure, so a create could silently
     // write neither. The caller knows who they are.

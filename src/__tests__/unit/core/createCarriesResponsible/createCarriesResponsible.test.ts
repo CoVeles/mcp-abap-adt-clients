@@ -23,7 +23,7 @@ function recorder(): { conn: IAbapConnection; bodies: string[] } {
   return { conn, bodies };
 }
 
-const CTX = { responsible: 'DEVELOPER', masterSystem: 'E19' };
+const CTX = { responsible: 'DEVELOPER', masterSystem: 'SID' };
 
 describe('message class create', () => {
   const config = {
@@ -36,7 +36,17 @@ describe('message class create', () => {
     const { conn, bodies } = recorder();
     await new AdtMessageClass(conn, undefined, CTX).create(config);
     expect(bodies[0]).toContain('adtcore:responsible="DEVELOPER"');
-    expect(bodies[0]).toContain('adtcore:masterSystem="E19"');
+    expect(bodies[0]).toContain('adtcore:masterSystem="SID"');
+  });
+
+  it('writes neither attribute for an empty-string context', async () => {
+    const { conn, bodies } = recorder();
+    await new AdtMessageClass(conn, undefined, {
+      responsible: '',
+      masterSystem: '',
+    }).create(config);
+    expect(bodies[0]).not.toContain('adtcore:responsible');
+    expect(bodies[0]).not.toContain('adtcore:masterSystem');
   });
 
   it('writes neither attribute when the context has none', async () => {
@@ -83,6 +93,12 @@ describe.each([
     expect(bodies[0]).not.toContain('adtcore:responsible');
   });
 
+  it('escapes the values it writes', async () => {
+    const { conn, bodies } = recorder();
+    await run(conn, 'A&"B');
+    expect(bodies[0]).toContain('adtcore:responsible="A&amp;&quot;B"');
+  });
+
   it('writes the responsible person when set', async () => {
     const { conn, bodies } = recorder();
     await run(conn, 'DEVELOPER');
@@ -102,7 +118,7 @@ describe('behavior implementation create through the client', () => {
       description: 'd',
     } as never);
     expect(bodies[0]).toContain('adtcore:responsible="DEVELOPER"');
-    expect(bodies[0]).toContain('adtcore:masterSystem="E19"');
+    expect(bodies[0]).toContain('adtcore:masterSystem="SID"');
   });
 
   it('the class itself, without a context, sends neither', async () => {
@@ -113,6 +129,7 @@ describe('behavior implementation create through the client', () => {
       description: 'd',
     } as never);
     expect(bodies[0]).not.toContain('adtcore:responsible');
+    expect(bodies[0]).not.toContain('adtcore:masterSystem');
   });
 });
 
@@ -125,7 +142,16 @@ describe('include create', () => {
       config,
     );
     expect(bodies[0]).toContain('adtcore:responsible="DEVELOPER"');
-    expect(bodies[0]).toContain('adtcore:masterSystem="E19"');
+    expect(bodies[0]).toContain('adtcore:masterSystem="SID"');
+  });
+
+  it('carries the client context when obtained through the client', async () => {
+    const { conn, bodies } = recorder();
+    await new AdtClient(conn, undefined, { ...CTX } as never)
+      .getInclude()
+      .create(config);
+    expect(bodies[0]).toContain('adtcore:responsible="DEVELOPER"');
+    expect(bodies[0]).toContain('adtcore:masterSystem="SID"');
   });
 
   it('low-level create writes none when absent', async () => {

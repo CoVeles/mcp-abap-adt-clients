@@ -11,6 +11,7 @@ import { CT_SERVICE_DEFINITION } from '../../constants/contentTypes';
 import { SERVICE_DEFINITION } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
+import { escapeXmlAttr } from '../../utils/xml';
 import type { ICreateServiceDefinitionParams } from './types';
 
 /**
@@ -23,8 +24,8 @@ export async function create(
 ): Promise<IAdtWireResponse> {
   const url = `${SERVICE_DEFINITION.collection}${args.transport_request ? `?corrNr=${args.transport_request}` : ''}`;
 
-  const username = args.responsible || '';
-  const masterSystem = args.masterSystem || '';
+  const username = escapeXmlAttr(args.responsible || '');
+  const masterSystem = escapeXmlAttr(args.masterSystem || '');
 
   // Description is limited to 60 characters in SAP ADT
   const description = limitDescription(

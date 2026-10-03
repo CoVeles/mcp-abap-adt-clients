@@ -6,6 +6,7 @@ import { CT_ACCESS_CONTROL } from '../../constants/contentTypes';
 import { ACCESS_CONTROL } from '../../endpoints/objects';
 import { limitDescription } from '../../utils/internalUtils';
 import { getTimeout } from '../../utils/timeouts';
+import { escapeXmlAttr } from '../../utils/xml';
 import type { ICreateAccessControlParams } from './types';
 
 /**
@@ -18,8 +19,8 @@ export async function create(
 ): Promise<IAdtWireResponse> {
   const url = `${ACCESS_CONTROL.collection}${args.transport_request ? `?corrNr=${args.transport_request}` : ''}`;
 
-  const username = args.responsible || '';
-  const masterSystem = args.masterSystem || '';
+  const username = escapeXmlAttr(args.responsible || '');
+  const masterSystem = escapeXmlAttr(args.masterSystem || '');
 
   // Description is limited to 60 characters in SAP ADT
   const description = limitDescription(

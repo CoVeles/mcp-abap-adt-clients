@@ -50,14 +50,14 @@ describe('authorizationField wire', () => {
   it('keeps both namespaces and the adtcore attributes on that root', () => {
     const xml = buildAuthorizationFieldXml({
       ...PARAMS,
-      master_system: 'E19',
+      master_system: 'SID',
       responsible: 'OKYSLYTSIA',
     });
     expect(xml).toContain('xmlns:auth="http://www.sap.com/iam/auth"');
     expect(xml).toContain('xmlns:adtcore="http://www.sap.com/adt/core"');
     expect(xml).toContain('adtcore:name="ZAC_AUTH01"');
     expect(xml).toContain('adtcore:type="AUTH"');
-    expect(xml).toContain('adtcore:masterSystem="E19"');
+    expect(xml).toContain('adtcore:masterSystem="SID"');
     expect(xml).toContain('adtcore:responsible="OKYSLYTSIA"');
     expect(xml).toContain('<adtcore:packageRef adtcore:name="TEST_MCP"/>');
   });
