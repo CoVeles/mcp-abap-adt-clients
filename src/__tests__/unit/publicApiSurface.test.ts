@@ -63,6 +63,7 @@ describe('public API surface', () => {
  * reads only what is marked.
  */
 const RUNTIME_EXPORTS = [
+  'AbapDebugger',
   'AdtAbapGitClient',
   'AdtAppendStructure',
   'AdtAtc',
@@ -87,6 +88,8 @@ const RUNTIME_EXPORTS = [
   'AtcLog',
   'CT_INCLUDE',
   'CrossTrace',
+  'DEBUGGER_IDE_ID',
+  'DEBUGGER_TERMINAL_ID',
   'DdicActivation',
   'FeedRepository',
   'GatewayErrorLog',
@@ -113,6 +116,7 @@ const RUNTIME_EXPORTS = [
   'crossTraceDocuments',
   'dataElementDocuments',
   'ddicActivationDocuments',
+  'debuggerDocuments',
   'ddlDocuments',
   'domainDocuments',
   'enhancementDocuments',

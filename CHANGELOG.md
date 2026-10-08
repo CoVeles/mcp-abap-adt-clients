@@ -24,6 +24,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 ## [Unreleased]
 
+### Added
+
+- **`AbapDebugger`, from `AdtRuntimeClient.getDebugger()`.** External ABAP
+  debugging over SAP's own ADT debugger resources, with nothing installed on the
+  server: breakpoints (line, statement, exception and message, with conditions), the
+  listener, attach, stack, frames, variables and the variable tree, and the
+  steps `stepInto`, `stepOver`, `stepReturn`, `stepContinue` and
+  `stepRunToLine`. One member per request, result set `debuggerDocuments`, types
+  declared locally until the contracts take them back.
+- Measured on S/4HANA 2023 on premise: `docs/research/debugger-endpoints.md`,
+  the exchanges in `corpus/adt/debugger-*`, and `scripts/probe-debugger.ts` to
+  repeat it. Every request a member sends is tested against the recorded one.
+- `stepRunToLine` takes the target `uri` as a required argument. Without it SAP
+  answers `400 Parameter uri could not be found` and lets the program run to its
+  end in the same moment (`docs/usage/ERRATA.md`).
+
 ## [25.0.1] - 2026-10-03
 
 Every create carries the responsible person and the master system the client

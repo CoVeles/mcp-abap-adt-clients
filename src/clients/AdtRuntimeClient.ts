@@ -10,6 +10,7 @@
  * - getAtcLog() — ATC check failure and execution logs
  * - getDdicActivation() — DDIC activation graph
  * - getDumps() — Runtime dump analysis
+ * - getDebugger() — External ABAP debugging (needs a dedicated stateful connection)
  * - getFeeds() — Feed repository (list feeds, variants, parse Atom feeds)
  * - getSystemMessages() — System messages (SM02)
  * - getGatewayErrorLog() — Gateway error log (/IWFND/ERROR_LOG)
@@ -56,6 +57,11 @@ import {
   ddicActivationDocuments,
   type IDdicActivationResults,
 } from '../runtime/ddic/DdicActivation';
+import {
+  AbapDebugger,
+  debuggerDocuments,
+} from '../runtime/debugger/AbapDebugger';
+import type { IDebuggerResults } from '../runtime/debugger/types';
 import {
   type IRuntimeDumpsResults,
   RuntimeDumps,
@@ -195,6 +201,17 @@ export class AdtRuntimeClient {
     results: R = runtimeDumpsDocuments as unknown as R,
   ): RuntimeDumps<R> {
     return new RuntimeDumps<R>(this.connection, this.logger, results);
+  }
+
+  /**
+   * The debugger speaks over this client's connection, which must be stateful
+   * and kept for this debugger alone from the listen until the debuggee is
+   * released — see {@link AbapDebugger}.
+   */
+  getDebugger<R extends IDebuggerResults = typeof debuggerDocuments>(
+    results: R = debuggerDocuments as unknown as R,
+  ): AbapDebugger<R> {
+    return new AbapDebugger<R>(this.connection, this.logger, results);
   }
 
   // ============================================================================

@@ -5,6 +5,7 @@
 export * from './applicationLog';
 export * from './atc';
 export * from './ddic';
+export * from './debugger';
 export * from './dumps';
 export * from './feeds';
 export * from './gatewayErrorLog';

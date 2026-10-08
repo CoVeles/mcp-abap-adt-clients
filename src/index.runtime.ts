@@ -24,6 +24,24 @@ export {
   ddicActivationDocuments,
   type IDdicActivationResults,
 } from './runtime/ddic/DdicActivation';
+export {
+  AbapDebugger,
+  debuggerDocuments,
+} from './runtime/debugger/AbapDebugger';
+export {
+  DEBUGGER_IDE_ID,
+  DEBUGGER_TERMINAL_ID,
+  type IDebuggerAttachOptions,
+  type IDebuggerBreakpoint,
+  type IDebuggerBreakpointSet,
+  type IDebuggerExceptionBreakpoint,
+  type IDebuggerIdentity,
+  type IDebuggerLineBreakpoint,
+  type IDebuggerListenOptions,
+  type IDebuggerMessageBreakpoint,
+  type IDebuggerResults,
+  type IDebuggerStatementBreakpoint,
+} from './runtime/debugger/types';
 // Keep low-level dump types/functions (may be used by consumers)
 export {
   buildDumpIdPrefix,

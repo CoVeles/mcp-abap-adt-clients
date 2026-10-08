@@ -3,6 +3,24 @@
 What SAP ADT answers that a caller would misread, recorded once it has been
 decided to belong here.
 
+## Run to line without a target releases the program
+
+**Symptom.** `POST /sap/bc/adt/debugger?method=stepRunToLine` without a `uri`
+parameter answers `400 ExceptionParameterNotFound`, "Parameter uri could not be
+found" (`SADT_RESOURCE/017`).
+
+**What actually happened.** The debuggee was released in the same moment and
+ran to its end. Measured on S/4HANA 2023 on premise, 2026-10-08: the request
+being debugged returned its output while the `400` was in flight, and the next
+request on the debugger session answered `500 AdiFailed`, subtype
+`debuggeeEnded` (`corpus/adt/debugger-conversation--24-stepruntoline-no-uri`
+and the steps after it). The refusal reads like nothing happened; in fact the
+stop is gone.
+
+**Why the library is shaped by it.** `AbapDebugger.stepRunToLine(uri)` takes the
+target, `<source uri>#start=<line>`, as a required argument, so the request
+without it cannot be built.
+
 ## A service binding is locked to publish it
 
 **Symptom.** `_action=LOCK` on a service binding, before a publish or an
