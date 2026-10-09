@@ -126,8 +126,11 @@ export function buildChildVariablesXml(parentIds: readonly string[]): string {
 /**
  * Replaces the identity's whole set of external breakpoints.
  *
- * A breakpoint SAP refuses comes back without an `id` and without its `uri`,
- * only `errorMessage`: which one it was is known by its position in the set.
+ * A breakpoint SAP refuses comes back with only its kind and `errorMessage`,
+ * and not in the order it was sent (measured: the refused one first). A placed
+ * one echoes what identifies it — uri and line, statement, exception class, or
+ * message id, number and type — so the refused ones are those sent that do not
+ * come back placed.
  */
 export async function setBreakpoints(
   connection: IAbapConnection,

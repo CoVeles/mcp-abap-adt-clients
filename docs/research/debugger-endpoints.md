@@ -75,8 +75,12 @@ it.
   in it (`…INCLUDE=ZCL_X============CM002.LINE_NR=9`), and with the `uri` and
   the source line as sent (`…/source/main#start=32`).
 - A refused one comes back with `errorMessage="Cannot create a breakpoint at
-  this position"` and **neither `id` nor `uri`**. Which one it was is known
-  only by its position in the set that was sent.
+  this position"` and **neither `id` nor `uri`** — only its kind.
+- The answer is **not in the order the set was sent**: the refused breakpoint,
+  sent second, came back first (`debugger-conversation--01`). A placed one
+  echoes what identifies it: the `uri` with `#start=N` for a line,
+  `statement`, `exceptionClass`, or `msgId`, `msgNo` and `msgTy`. So the
+  refused ones are those sent that do not come back placed.
 - Without `systemDebugging="true"`, breakpoints in SAP standard code are
   accepted and never stop (vibing-steampunk's finding, not re-measured here).
 
