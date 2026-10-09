@@ -201,19 +201,30 @@ That is why `uri` is a required argument of `stepRunToLine` and not an option.
 
 ## Over RFC
 
-The same resources travel through `SADT_REST_RFC_ENDPOINT`. vibing-steampunk
-runs its debugger over that route, behind a SAProuter too. Over this package's
-connection, two things follow from how `RfcTransport` works:
+Measured on 2026-10-09 against an S/4HANA system that is reachable for ADT only over RFC (its
+`/sap/bc/adt` answers 403 over HTTP), through a SAProuter. The connection was this package's
+`AdtOnPremConnector` over `RfcTransport`, set stateful. The trigger was a second RFC session of
+the same user calling `RFC_READ_TABLE` with a made-up table name, which a condition on the line
+breakpoint matched.
 
-- **Stateful requests share one persistent RFC conversation, and the others go
-  to conversations that are reset.** So `setSessionType('stateful')` is needed
-  over RFC exactly as over HTTP. `docs/usage/RFC_CONNECTION.md` still calls it a
-  no-op.
-- **There is no client-side deadline and no cancel.** A listen holds the
-  connection's call lock until the server answers, so the trigger and the
-  listener stop belong on a second connection.
+| Run | Result |
+|---|---|
+| Basic, trigger after 4 s | caught; attach; stack top `SAPLSDTX:49`; `QUERY_TABLE` read; `stepOver` → line 77; `stepContinue` → `500 debuggeeEnded`; trigger raised `TABLE_NOT_AVAILABLE`; cleanup |
+| Trigger after 45 s, `timeout=120` | the same, caught after a 46-second listen |
+| `timeout=240`, nobody stops | `200` with an empty body after the full 240 s, no error |
 
-Not measured through this package yet.
+Afterwards neither `ABDBG_EXTDBPS` nor `ABDBG_LISTENER` held a row for the user.
+
+So the resources, the requests and the answers are the same as over HTTP. Two things follow from
+how `RfcTransport` works:
+
+- **Only stateful requests share the persistent conversation**; every other request runs in a
+  conversation of its own, reset or thrown away. So `setSessionType('stateful')` is needed over
+  RFC exactly as over HTTP. (`docs/usage/RFC_CONNECTION.md` called it a no-op; corrected in the
+  same change.)
+- **There is no client-side deadline and no cancel**, and a call holds the client's lock until the
+  server answers. The listen above held its connection for 240 s; the trigger and a listener stop
+  belong on a second connection.
 
 ## Not measured yet
 
@@ -227,7 +238,5 @@ Not measured through this package yet.
 - Whether a false condition on a statement, exception or message breakpoint
   keeps it from stopping.
 - Watchpoints, which are a resource of their own (`/debugger/watchpoints`).
-- The debugger over RFC through this package, and a full 240-second listen
-  there.
 - The `conflictDetected` refusal, which needs a second listener for the same
   user.

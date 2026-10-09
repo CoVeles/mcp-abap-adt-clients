@@ -39,6 +39,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 - `stepRunToLine` takes the target `uri` as a required argument. Without it SAP
   answers `400 Parameter uri could not be found` and lets the program run to its
   end in the same moment (`docs/usage/ERRATA.md`).
+- The debugger measured over RFC too, through a SAProuter: the same requests and answers, a
+  240-second listen included (`docs/research/debugger-endpoints.md`).
+
+### Fixed
+
+- `docs/usage/RFC_CONNECTION.md` called `setSessionType()` a no-op over RFC. `RfcTransport`
+  sends only stateful requests to its persistent conversation and every other one to a reset
+  or throwaway conversation, so the stateful setting matters there as it does over HTTP.
 
 ## [25.0.1] - 2026-10-03
 
